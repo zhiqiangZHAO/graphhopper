@@ -1,0 +1,80 @@
+a:link { color: #0063AC; text-decoration: none; }
+a:visited {color: #258bd5; text-decoration: none; }
+a:hover {color: #0066AC; text-decoration: none;  }
+body {
+    font-family: 'Arbutus Slab', serif;
+    color: #000;
+    /*    background-color: black;*/
+    background: url('../img/back.jpg') no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+ul li {
+    padding-top: 2px;
+}
+#main {
+    position: relative;
+    padding-top: 30px;    
+    top: -10px;
+    max-width: 750px;
+    min-width: 305px;    
+/*    opacity:0.9;*/
+    background-color: white;
+    margin: 0 auto;
+}
+/* to expand main div's height */
+.clearfix { 
+    clear: both 
+}
+.beautyfont {
+    font-weight: bold;
+    text-shadow: 0 1px 0 gray;
+}
+.left {
+    float: left;
+}
+.right {
+    float: right;
+}
+.subproject {
+    opacity:1;  
+    background-color: white;   
+    border: gray groove;
+    border-width: 2px;
+    border-radius: 15px;
+    -moz-border-radius: 15px;
+    -webkit-border-radius: 15px;
+    margin: 25px;
+    padding: 20px;
+    width : 280px;
+    height: 280px;    
+
+    -moz-box-shadow: 7px 4px 5px -2px lightgray;
+    -webkit-box-shadow: 7px 4px 5px -2px lightgray;
+    box-shadow: 7px 4px 5px -2px lightgray;
+}            
+.subimg {
+    padding: 4px;
+    max-width: 100px;
+    max-height: 100px;
+    float: right;
+}
+.subtext {
+    padding-top: 30px;
+    font-size: 16px;
+}
+#intro {
+    padding-top: 30px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 15px;                
+    font-size: 18px;
+}
+#header {
+    font-size: 24px;
+    padding-left: 20px;
+    padding-right: 20px;                
+    text-align:center;
+}
