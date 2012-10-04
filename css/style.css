@@ -5,7 +5,7 @@ body {
     font-family: 'Arbutus Slab', serif;
     color: #000;
     /*    background-color: black;*/
-    background: url('../img/back.jpg') no-repeat center center fixed;
+    background: url('../img/back_g.jpg') no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -19,9 +19,9 @@ ul li {
     padding-top: 30px;    
     top: -10px;
     max-width: 750px;
-    min-width: 305px;    
+    min-width: 375px;
 /*    opacity:0.9;*/
-    background-color: white;
+    background-color: #f1f1f1;
     margin: 0 auto;
 }
 /* to expand main div's height */
@@ -39,7 +39,6 @@ ul li {
     float: right;
 }
 .subproject {
-    opacity:1;  
     background-color: white;   
     border: gray groove;
     border-width: 2px;
