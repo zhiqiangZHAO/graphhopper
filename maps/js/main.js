@@ -17,10 +17,10 @@ var toCoord = {
 };
 var bounds = {};
 // local development
-//var host = "http://localhost:8989";
+var host = "http://localhost:8989";
 
 // cross origin:
-var host = "http://217.92.216.224:8080";
+//var host = "http://217.92.216.224:8080";
 
 $(document).ready(function(e) {
     // I'm really angry about you history.js :/ (triggering double events) ... but let us just use the url rewriting thing
@@ -45,10 +45,8 @@ $(document).ready(function(e) {
 });
             
 function resolveCoords(from, to) {    
-    setFrom(from).done(function(fromArgs) {        
-        setTo(to).done(function(toArgs) {    
-            routeLatLng(fromArgs[0], toArgs[0], true);
-        })
+    $.when(setFrom(from), setTo(to)).done(function(fromArgs, toArgs) {                
+        routeLatLng(fromArgs[0], toArgs[0], true);        
     });    
 }
 
@@ -76,13 +74,14 @@ function initMap() {
     }).addTo(map);
 
     routingLayer = L.geoJson().addTo(map);
+    var iconLayer = L.geoJson().addTo(map);
     
     var myStyle = {
-        "color": 'orange',
-        "weight": 3,
+        "color": 'black',
+        "weight": 2,
         "opacity": 0.3
     };
-     var geoJson = {
+    var geoJson = {
         "type": "Feature",        
         "geometry": {            
             "type": "LineString",
@@ -91,7 +90,9 @@ function initMap() {
             [bounds.minLon, bounds.minLat]]
         }
     };
-    var boundsLayer = L.geoJson(geoJson, {"style": myStyle}).addTo(map);        
+    L.geoJson(geoJson, {
+        "style": myStyle
+    }).addTo(map);        
     // boundsLayer.addData(geojsonFeature);  
     
     // limit area to underlying routing graph bounds!
@@ -99,12 +100,21 @@ function initMap() {
     //    map.setMaxBounds(new L.LatLngBounds(new L.LatLng(bounds.minLat, bounds.minLon), 
     //        new L.LatLng(bounds.maxLat, bounds.maxLon)));
     
-    var popup = L.popup();    
     var routeNow = true;
+    var iconTo = L.icon({
+        iconUrl: '../img/marker-to.png', 
+        iconAnchor: [10, 16]
+        });
+    var iconFrom = L.icon({
+        iconUrl: '../img/marker-from.png', 
+        iconAnchor: [10, 16]
+        });
     function onMapClick(e) {        
         routeNow = !routeNow;
         if(routeNow) {            
-            popup.setLatLng(e.latlng).setContent("End").openOn(map);
+            L.marker([e.latlng.lat, e.latlng.lng], {
+                icon: iconTo
+            }).addTo(iconLayer).bindPopup("Finish");
             var endPoint = e.latlng;
             toCoord.lat = round(endPoint.lat);
             toCoord.lng = round(endPoint.lng);
@@ -114,7 +124,11 @@ function initMap() {
                 routeLatLng(fromCoord, toCoord);
             });            
         } else {
-            popup.setLatLng(e.latlng).setContent("Start").openOn(map);            
+            iconLayer.clearLayers();
+            routingLayer.clearLayers();
+            L.marker([e.latlng.lat, e.latlng.lng], {
+                icon: iconFrom
+            }).addTo(iconLayer).bindPopup("Start");
             fromCoord.lat = round(e.latlng.lat);
             fromCoord.lng = round(e.latlng.lng);
             fromCoord.input = toStr(fromCoord);            
@@ -173,6 +187,7 @@ function setTo(coordStr) {
     })
 }
 
+var getInfoTmpCounter = 0;
 function getInfoFromLocation(locCoord) {
     if(locCoord.resolved) {
         var tmpDefer = $.Deferred();
@@ -180,17 +195,20 @@ function getInfoFromLocation(locCoord) {
         return tmpDefer;   
     }
         
+    // Every call to getInfoFromLocation needs to get its own callback. Sadly we need to overwrite 
+    // the callback method name for nominatim and cannot use the default jQuery behaviour.
+    getInfoTmpCounter++;
     if(locCoord.lat && locCoord.lng) {
         // in every case overwrite name
         locCoord.name = "Error while looking up coordinate";
         var url = "http://nominatim.openstreetmap.org/reverse?lat=" + locCoord.lat + "&lon="
-        + locCoord.lng + "&format=json&zoom=16&json_callback=reverse_callback";
+        + locCoord.lng + "&format=json&zoom=16&json_callback=reverse_callback" + getInfoTmpCounter;
         return $.ajax({
             "url": url,
             "error" : errCallback,
             "type" : "GET",
             "dataType": "jsonp",
-            "jsonpCallback": 'reverse_callback'
+            "jsonpCallback": 'reverse_callback' + getInfoTmpCounter
         }).pipe(function(json) {
             if(!json) {
                 locCoord.name = "No description found for coordinate";
@@ -209,7 +227,7 @@ function getInfoFromLocation(locCoord) {
         });        
     } else {
         var url = "http://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(locCoord.input)
-        +"&json_callback=search_callback&limit=1";
+        +"&limit=1&json_callback=search_callback" + getInfoTmpCounter;
         if(bounds.initialized) {
             // minLon, minLat, maxLon, maxLat => left, top, right, bottom
             url += "&bounded=1&viewbox=" + bounds.minLon + ","+bounds.maxLat + ","+bounds.maxLon +","+ bounds.minLat;
@@ -219,7 +237,7 @@ function getInfoFromLocation(locCoord) {
             "url": url,            
             "type" : "GET",
             "dataType": "jsonp",
-            "jsonpCallback": 'search_callback'
+            "jsonpCallback": 'search_callback' + getInfoTmpCounter
         }).pipe(function(jsonArgs) {
             var json = jsonArgs[0];
             if(!json) {
@@ -274,7 +292,8 @@ function routeLatLng(fromPoint, toPoint, doPan) {
                 
         distDiv.html("distance: " + round(json.route.distance, 1000) + "km<br/>"
             +"time: " + json.route.time + "min<br/>"
-            +"took: " + round(json.info.took, 1000) + "s"); 
+            +"took: " + round(json.info.took, 1000) + "s<br/>"
+            +"points: " + json.route.data.coordinates.length); 
         $("#info").append(distDiv);
         var googleLink = $("<a>Google</a>");
         googleLink.attr("href", "http://maps.google.com/?q=from:" + from + "+to:" + to);
@@ -436,8 +455,8 @@ function initForm() {
     $('#fromInput').keypress(function(e) {
         if(e.which == 10 || e.which == 13) {
             var to = $("#toInput").val();
-            // do not resolve
-            if(toCoord.input == to) to = null;
+            // do not resolve 'to'
+            if(to == toCoord.input || to == "To") to = null;
             resolveCoords($("#fromInput").val(), to);
         }
     });
@@ -446,8 +465,8 @@ function initForm() {
     $('#toInput').keypress(function(e) {
         if(e.which == 10 || e.which == 13) {
             var from = $("#fromInput").val();
-            // do not resolve
-            if(toCoord.input == from) from = null;
+            // do not resolve from
+            if(from == fromCoord.input || from == "From") from = null;
             resolveCoords(from, $("#toInput").val());
         }
     });
