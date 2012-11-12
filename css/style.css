@@ -45,10 +45,13 @@ ul li {
     border-radius: 15px;
     -moz-border-radius: 15px;
     -webkit-border-radius: 15px;
-    margin: 25px;
+    margin-bottom: 15px;
+    margin-top: 20px;
+    margin-right: 25px;
+    margin-left: 25px;
     padding: 20px;
     width : 280px;
-    height: 280px;    
+    height: 250px;    
 
     -moz-box-shadow: 7px 4px 5px -2px lightgray;
     -webkit-box-shadow: 7px 4px 5px -2px lightgray;
@@ -87,6 +90,7 @@ ul li {
     padding-right: 40px;
     padding-bottom: 10px;
 }
-#testimonials {
-    
+#webdemo, #androiddemo {
+    padding-top: 30px;
+    padding-left: 20px;
 }
