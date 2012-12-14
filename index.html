@@ -3,23 +3,34 @@
     <head>
         <title>Java Routing with GraphHopper</title>
         <meta name="viewport" content="width=320; initial-scale=1.0;" />
-        <meta name="keywords" content="road routing,shortest path,openstreetmap,android,navigation,routenplaner"/>            
+        <meta name="keywords" content="road routing,shortest path,openstreetmap,android,navigation,routenplaner,onboard"/>            
         <link type="image/png" rel="icon" href="favicon.ico"/>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">      
         <link href='http://fonts.googleapis.com/css?family=Arbutus+Slab' rel='stylesheet' type='text/css'>
-        <link href="css/style.css" media="screen" rel="stylesheet" type="text/css" />        
+        <link href="css/style.css" media="screen" rel="stylesheet" type="text/css" />
+        <script type="text/javascript">
+            var lang = navigator.language;
+            if(lang && lang.indexOf("de") >= 0 && window.location.indexOf("http") >= 0 && !window.location.hash['forward'])
+                window.location = "index_de.html";
+        </script>
     </head>
     <body>
         <div id="main">
+            <div id="countrylist">
+                <img alt="English" src="img/country_us.png"> <a href="index_de.html"><img alt="Deutsch" src="img/country_de.png"></a>
+            </div>
+            
             <h2 id="header">
                 GraphHopper: a routing engine for roads and more
             </h2>
 
             <div id="intro" class="solid">
-                GraphHopper offers memory efficient algorithms in Java for road routing 
-                e.g. Dijkstra and A* but also optimized shortest path algorithms like Contraction Hierarchies.
-                It stands under the Apache License and is heavily unit tested although 
-                still in alpha - ie. the library itself is quite stable but the API not.
+                GraphHopper offers memory efficient algorithms in Java for road routing.
+                E.g. <a href="http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra</a> and 
+                <a href="http://en.wikipedia.org/wiki/A*_search_algorithm">A*</a>
+                but also optimized algorithms like <a href="http://en.wikipedia.org/wiki/Contraction_hierarchies">Contraction Hierarchies</a>.
+                It stands under the Apache License and is heavily (automated) tested although 
+                still in alpha - i.e. the library itself is quite stable but the API not.
             </div>
 
             <div class="subproject left">
@@ -28,7 +39,7 @@
                     <a href="https://github.com/graphhopper/graphhopper/"><img class="subimg" src="img/core.png"/></a>
                 </div>
                 <div class="subtext">
-                    A small library ready to be thrown into your Java application. Be it on the server-side,
+                    The core of GraphHopper can be used in a server,
                     on the Desktop or on Android.
                     <ul>
                         <li>Easy to use and small</li>
@@ -43,7 +54,7 @@
                     <a href="https://github.com/graphhopper/graphhopper-web"><img class="subimg" src="img/web.png"/></a>
                 </div>
                 <div class="subtext">
-                    Clone this example on how to use GraphHopper within a web-based application using Leaflet.
+                    GraphHopper-Web offers a web-based interface to the routing service using Leaflet.
                     Using alternatives like OpenLayers or Google is easy too.                    
                     <div id="webdemo">                                          
                         <a href="http://graphhopper.com/maps/?from=kiel&to=freiburg%20deutschland">View Demo Now!</a> 
@@ -57,8 +68,8 @@
                     <a href="https://github.com/graphhopper/graphhopper-android"><img class="subimg" src="img/android.png"/></a>
                 </div>
                 <div class="subtext">
-                    Offline road routing example for Android using Mapsforge.<br/> 
-                    Clone this Eclipse project to get started on Android.
+                    This is an offline road routing example to show how to combine GraphHopper and Mapsforge on Android.
+                    Clone this Eclipse project to get started. Or:
                     <div id="androiddemo">                
                         <a href="https://github.com/graphhopper/graphhopper-android/downloads">Get Demo App!</a> 
                         <small style="color: gray">Berlin only</small>

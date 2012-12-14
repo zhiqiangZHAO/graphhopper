@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Java Routing with GraphHopper</title>
+        <meta name="viewport" content="width=320; initial-scale=1.0;" />
+        <meta name="keywords" content="routenplanung,routenplaner,kürzester weg,openstreetmap,android,navigation,onboard"/>            
+        <link type="image/png" rel="icon" href="favicon.ico"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">      
+        <link href='http://fonts.googleapis.com/css?family=Arbutus+Slab' rel='stylesheet' type='text/css'>
+        <link href="css/style.css" media="screen" rel="stylesheet" type="text/css" />        
+    </head>
+    <body>
+        <div id="main">
+            <div id="countrylist">
+                <a href="index.html#forward=false"><img alt="English" src="img/country_us.png"></a> <img alt="Deutsch" src="img/country_de.png">
+            </div>
+            <h2 id="header">
+                GraphHopper: ein Routenplaner in Java
+            </h2>
+
+            <div id="intro" class="solid">
+                GraphHopper stellt effiziente Algorithmen für die Routenplanung bereit.
+                Z.B. <a href="http://de.wikipedia.org/wiki/Dijkstra-Algorithmus">Dijkstra</a> oder 
+                <a href="http://de.wikipedia.org/wiki/A*-Algorithmus">A*</a>, 
+                aber auch optimierte Algorithmen wie 
+                <a href="http://en.wikipedia.org/wiki/Contraction_hierarchies">Contraction Hierarchies</a>.
+                GraphHopper steht under der Apache Lizenz und die Bibliothek wird dauerhaft, automatisch auf Fehler überprüft,
+                dennoch ist sie im Alpha-Status, d.h. GraphHopper selbst ist stabil, die API ist es
+                noch nicht.
+            </div>
+
+            <div class="subproject left">
+                <div class="">                    
+                    <a href="https://github.com/graphhopper/graphhopper">Die Basis</a>
+                    <a href="https://github.com/graphhopper/graphhopper/"><img class="subimg" src="img/core.png"/></a>
+                </div>
+                <div class="subtext">
+                    GraphHopper kann Server-seitig,
+                    Desktop-seitig oder auf dem Android eingesetzt werden.
+                    <ul>
+                        <li>Einfach zu benutzen</li>
+                        <li>Speichereffizient</li>                        
+                        <li>Sehr gut getestet und schnell</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="subproject right">
+                <div class="">
+                    <a href="https://github.com/graphhopper/graphhopper-web">Fürs Web</a>
+                    <a href="https://github.com/graphhopper/graphhopper-web"><img class="subimg" src="img/web.png"/></a>
+                </div>
+                <div class="subtext">
+                    GraphHopper-Web ist ein schlanker Webservice der auch ein kleines Abfrageinterface bereitstellt.                    
+                    <div id="webdemo">                                          
+                        <a href="http://graphhopper.com/maps/?from=kiel&to=freiburg%20deutschland">Life-Demo ansehen!</a> 
+                        <small style="color: gray">Nur Dtl.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="subproject left">
+                <div class="">
+                    <a href="https://github.com/graphhopper/graphhopper-android">Für Android</a>
+                    <a href="https://github.com/graphhopper/graphhopper-android"><img class="subimg" src="img/android.png"/></a>
+                </div>
+                <div class="subtext">
+                    Hier finden Sie ein Beispiel wie man GraphHopper und das Mapsforge-Projekt auf dem Android für 
+                    Offline Navigation vereint.
+                    <div id="androiddemo">                
+                        <a href="https://github.com/graphhopper/graphhopper-android/downloads">Android App!</a> 
+                        <small style="color: gray">Nur Berlin</small>
+                    </div>
+                </div>
+            </div>           
+            <div class="subproject right">
+                <div class="">
+                    <a href="https://github.com/graphhopper/graphhopper/wiki">Wikiseiten</a>                    
+                    <a href="https://github.com/graphhopper/graphhopper/wiki"><img class="subimg" src="img/wiki.png"/></a>                                        
+                </div>
+                <div class="subtext">
+                    <div>
+                        <div>
+                            Die Dokumentation ist noch am Anfang. Aber es werden schon jetzt einige 
+                            grundlegende Dinge für
+                            <a href="https://github.com/graphhopper/graphhopper/wiki/Developers">Entwickler</a>,
+                            für das
+                            <a href="https://github.com/graphhopper/graphhopper/wiki/Android">Android</a>                    
+                            oder über die
+                            <a href="https://github.com/graphhopper/graphhopper/wiki/Performance">Performance</a>
+                            erläutert.
+                        </div>                        
+                    </div>                    
+                </div>
+            </div>
+            <div id="footer">
+                <div id="contact"><a href="http://karussell.wordpress.com/about">Impressum</a></div>
+                <div id="testimonials">Einzelne Bilder von <a href="http://the-houbler.com/">The-Houbler.com</a></div>
+            </div>
+            <div class="clearfix"> </div>
+        </div>
+        <!-- Piwik -->
+        <script type="text/javascript">
+            var pkBaseURL = (("https:" == document.location.protocol) ? "https://www.pannous.info/piwik/" : "http://www.pannous.info/piwik/");
+            document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script type="text/javascript">
+            try {
+                var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 7);
+                piwikTracker.trackPageView();
+                piwikTracker.enableLinkTracking();
+            } catch( err ) {}
+        </script><noscript><p><img src="http://www.pannous.info/piwik/piwik.php?idsite=7" style="border:0" alt="" /></p></noscript>
+        <!-- End Piwik Tracking Code -->
+    </body>
+</html>

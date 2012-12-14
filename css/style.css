@@ -67,12 +67,27 @@ ul li {
     padding-top: 30px;
     font-size: 16px;
 }
+#countrylist {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    float: right;
+    padding: 0;
+    margin: 0;
+}
+#intro a {
+    color: black;
+    border-bottom: 1px gray dotted;    
+}
+#intro a:hover {
+    color: #0066AC;
+}
 #intro {
     padding-top: 30px;
     padding-left: 38px;
     padding-right: 35px;
     padding-bottom: 15px;                
-    font-size: 18px;
+    font-size: 18px;    
 }
 #header {
 /*    font-size: 24px;*/
