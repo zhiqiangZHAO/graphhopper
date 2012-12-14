@@ -10,8 +10,10 @@
         <link href="css/style.css" media="screen" rel="stylesheet" type="text/css" />
         <script type="text/javascript">
             var lang = navigator.language;
-            if(lang && lang.indexOf("de") >= 0 && !window.location.hash['forward'])
+            if(lang && lang.indexOf("de") >= 0 && window.location.hash.indexOf("forward=false") < 0)
                 window.location = "index_de.html";
+            
+            window.location.hash = "";
         </script>
     </head>
     <body>
