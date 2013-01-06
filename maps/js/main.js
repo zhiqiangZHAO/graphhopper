@@ -1,12 +1,20 @@
 // fixing cross domain support e.g in Opera
 jQuery.support.cors = true;
 
+var nominatim = "http://open.mapquestapi.com/nominatim/v1/search.php";
+var nominatim_reverse = "http://open.mapquestapi.com/nominatim/v1/reverse.php";
+// var nominatim = "http://nominatim.openstreetmap.org/search";
+// var nominatim_reverse = "http://nominatim.openstreetmap.org/reverse";
 var routingLayer;
 var map;
 var browserTitle = "GraphHopper Web Demo";
 var errCallback = function(err) {
-    console.log("error:"+ err.statusText + ", " + err.responseText);
+    if(err.statusText == "timeout")
+        alert("Timeout reached");    
+    
+    console.log(err); // console.log("error:"+ err.statusText + ", " + err.responseText);
 };
+var minPathPrecision = 1;
 var fromCoord = {
     input: "", 
     name: ""
@@ -43,7 +51,9 @@ $(document).ready(function(e) {
     initForm();
     requestBounds().done(function(){
         initMap();
-        var params = parseUrlWithHisto()
+        var params = parseUrlWithHisto()        
+        if(params.minPathPrecision)
+            minPathPrecision = params.minPathPrecision;
         if(params.from && params.to) {
             fromCoord = toLatLng(params.from);
             toCoord = toLatLng(params.to);
@@ -200,18 +210,19 @@ function getInfoFromLocation(locCoord) {
     // Every call to getInfoFromLocation needs to get its own callback. Sadly we need to overwrite 
     // the callback method name for nominatim and cannot use the default jQuery behaviour.
     getInfoTmpCounter++;
+    var url;
     if(locCoord.lat && locCoord.lng) {
         // in every case overwrite name
         locCoord.name = "Error while looking up coordinate";
-        var url = "http://nominatim.openstreetmap.org/reverse?lat=" + locCoord.lat + "&lon="
+        url = nominatim_reverse + "?lat=" + locCoord.lat + "&lon="
         + locCoord.lng + "&format=json&zoom=16&json_callback=reverse_callback" + getInfoTmpCounter;
         return $.ajax({
-            "url": url,
-            "error" : errCallback,
-            "type" : "GET",
-            "dataType": "jsonp",
-            "jsonpCallback": 'reverse_callback' + getInfoTmpCounter
-        }).pipe(function(json) {
+            url: url,
+            type : "GET",
+            dataType: "jsonp",
+            timeout: 3000,
+            jsonpCallback: 'reverse_callback' + getInfoTmpCounter            
+        }).fail(errCallback).pipe(function(json) {
             if(!json) {
                 locCoord.name = "No description found for coordinate";
                 return [locCoord];
@@ -229,7 +240,7 @@ function getInfoFromLocation(locCoord) {
         });        
     } else {
         // see https://trac.openstreetmap.org/ticket/4683 why limit=3 and not 1
-        var url = "http://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(locCoord.input)
+        url = nominatim + "?format=json&q=" + encodeURIComponent(locCoord.input)
         +"&limit=3&json_callback=search_callback" + getInfoTmpCounter;
         if(bounds.initialized) {
             // minLon, minLat, maxLon, maxLat => left, top, right, bottom
@@ -237,11 +248,12 @@ function getInfoFromLocation(locCoord) {
         }
         locCoord.name = "Error while looking up area description";
         return $.ajax({
-            "url": url,            
-            "type" : "GET",
-            "dataType": "jsonp",
-            "jsonpCallback": 'search_callback' + getInfoTmpCounter
-        }).pipe(function(jsonArgs) {
+            url: url,
+            type : "GET",
+            dataType: "jsonp",
+            timeout: 3000,
+            jsonpCallback: 'search_callback' + getInfoTmpCounter
+        }).fail(errCallback).pipe(function(jsonArgs) {
             var json = jsonArgs[0];
             if(!json) {
                 locCoord.name = "No area description found";                
@@ -268,7 +280,10 @@ function routeLatLng(fromPoint, toPoint) {
         return;
     }
     // do not overwrite input text!
-    History.pushState({}, browserTitle, "?from=" + fromPoint.input + "&to=" + toPoint.input);
+    var historyUrl = "?from=" + fromPoint.input + "&to=" + toPoint.input;
+    if(minPathPrecision != 1)
+        historyUrl += "&minPathPrecision=" + minPathPrecision;
+    History.pushState({}, browserTitle, historyUrl);
     doRequest(from, to, function (json) {        
         if(json.info.routeNotFound) {
             distDiv.html('route not found');            
@@ -314,7 +329,7 @@ function routeLatLng(fromPoint, toPoint) {
 
 function doRequest(from, to, callback) {    
     // example: http://localhost:8989/api?from=52.439688,13.276863&to=52.532932,13.479424    
-    var demoUrl = "?from=" + from + "&to=" + to;
+    var demoUrl = "?from=" + from + "&to=" + to + "&minPathPrecision=" + minPathPrecision;
     var url;
     var arrayBufferSupported = typeof new XMLHttpRequest().responseType === 'string' 
     && typeof DataView === 'function';    
