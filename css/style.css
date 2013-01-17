@@ -96,13 +96,13 @@ ul li {
     text-align:center;
 }
 #footer {
-    font-size: 10px;
+    font-size: 12px;
     padding-left: 30px;
     padding-right: 30px;        
 }
 #footer div {
     float: left;
-    padding-right: 40px;
+    padding-right: 20px;
     padding-bottom: 10px;
 }
 #webdemo, #androiddemo {
