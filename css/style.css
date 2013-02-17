@@ -16,7 +16,7 @@ ul li {
 }
 #main {
     position: relative;
-    padding-top: 30px;    
+    padding-top: 25px;    
     top: -10px;
     max-width: 750px;
     min-width: 375px;
@@ -89,8 +89,12 @@ ul li {
     padding-bottom: 15px;                
     font-size: 18px;    
 }
-.center {
+
+#header_img {
     text-align:center;
+    border-bottom: thin solid gray;
+    margin-left: 40px;
+    margin-right: 40px;
 }
 #header {
 /*    font-size: 24px;*/
