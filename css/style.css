@@ -89,6 +89,9 @@ ul li {
     padding-bottom: 15px;                
     font-size: 18px;    
 }
+.center {
+    text-align:center;
+}
 #header {
 /*    font-size: 24px;*/
     padding-left: 20px;
