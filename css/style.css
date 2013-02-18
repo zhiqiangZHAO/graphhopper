@@ -18,8 +18,8 @@ ul li {
     position: relative;
     padding-top: 25px;    
     top: -10px;
-    max-width: 750px;
-    min-width: 375px;
+    max-width: 680px;
+    min-width: 365px;
 /*    opacity:0.9;*/
     background-color: #f1f1f1;
     margin: 0 auto;
@@ -38,20 +38,24 @@ ul li {
 .right {
     float: right;
 }
+#containerlist {
+    padding-left: 30px;
+    padding-right: 30px;
+}
 .subproject {
     background-color: white;   
     border: gray groove;
-    border-width: 2px;
-    border-radius: 15px;
+    border-width: 1px;
+    border-radius: 20px;
     -moz-border-radius: 15px;
     -webkit-border-radius: 15px;
-    margin-bottom: 15px;
-    margin-top: 20px;
-    margin-right: 25px;
-    margin-left: 25px;
-    padding: 20px;
-    width : 280px;
-    height: 250px;    
+    margin-bottom: 10px;
+    margin-top: 10px;
+    margin-right: 5px;
+    margin-left: 5px;
+    padding: 15px;
+    width : 260px;
+    height: 250px;
 
     -moz-box-shadow: 7px 4px 5px -2px lightgray;
     -webkit-box-shadow: 7px 4px 5px -2px lightgray;
@@ -83,7 +87,7 @@ ul li {
     color: #0066AC;
 }
 #intro {
-    padding-top: 30px;
+    padding-top: 1px;
     padding-left: 38px;
     padding-right: 35px;
     padding-bottom: 15px;                
@@ -95,6 +99,7 @@ ul li {
     border-bottom: thin solid gray;
     margin-left: 40px;
     margin-right: 40px;
+    margin-bottom: 30px;
 }
 #header {
 /*    font-size: 24px;*/
@@ -113,6 +118,11 @@ ul li {
     padding-bottom: 10px;
 }
 #webdemo, #androiddemo {
-    padding-top: 30px;
-    padding-left: 20px;
+    width: 100%;
+    text-align: center;
+    padding-top: 30px;    
+}
+
+#webdemo div, #androiddemo div{
+    display: inline-block;
 }
