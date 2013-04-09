@@ -20,6 +20,8 @@ var iconFrom = L.icon({
 
 var bounds = {};
 var ghRequest = new GHRequest();
+ghRequest.algoVehicle = "car";
+ghRequest.algoType = "shortest";
 
 LOCAL=false;
 var host;
@@ -55,7 +57,7 @@ $(document).ready(function(e) {
             else
                 resolveCoords(params.point[0], params.point[1]);                
         }
-    })
+    });
 });
 
 function resolveCoords(fromStr, toStr) { 
@@ -180,7 +182,7 @@ function resolve(fromOrTo, point) {
         $("#" + fromOrTo + "Flag").show();
         $("#" + fromOrTo + "Indicator").hide();
         return point;
-    })   
+    });
 }
 
 var getInfoTmpCounter = 0;
@@ -258,6 +260,7 @@ function getInfoFromLocation(locCoord) {
 function routeLatLng(request) {    
     clickToRoute = true;
     $("#info").empty();
+    $("#info").show();
     var distDiv = $("<div/>");
     $("#info").append(distDiv);
     
@@ -269,17 +272,19 @@ function routeLatLng(request) {
     }
     
     routingLayer.clearLayers();        
+        
+    // approximative fit
+    //    var minLat = Math.min(request.from.lat, request.to.lat);
+    //    var minLon = Math.min(request.from.lng, request.to.lng);
+    //    var maxLat = Math.max(request.from.lat, request.to.lat);
+    //    var maxLon = Math.max(request.from.lng, request.to.lng);
+    //    var tmpB = new L.LatLngBounds(new L.LatLng(minLat, minLon), new L.LatLng(maxLat, maxLon));
+    //    map.fitBounds(tmpB);
     
-    var minLat = Math.min(request.from.lat, request.to.lat);
-    var minLon = Math.min(request.from.lng, request.to.lng);
-    var maxLat = Math.max(request.from.lat, request.to.lat);
-    var maxLon = Math.max(request.from.lng, request.to.lng);
-    var tmpB = new L.LatLngBounds(new L.LatLng(minLat, minLon), new L.LatLng(maxLat, maxLon));
-    map.fitBounds(tmpB);                        
     setFlag(request.from, true);
     setFlag(request.to, false);    
     
-    var urlForAPI = "?point=" + from + "&point=" + to;
+    var urlForAPI = "point=" + from + "&point=" + to;
     var urlForHistory = "?point=" + request.from.input + "&point=" + request.to.input;
     if(request.minPathPrecision != 1) {
         urlForHistory += "&minPathPrecision=" + request.minPathPrecision;
@@ -299,13 +304,19 @@ function routeLatLng(request) {
         };
         
         routingLayer.addData(geojsonFeature);        
-        // var coords = json.route.data.coordinates;
+        
+        var minLon = json.route.bbox[0];
+        var minLat = json.route.bbox[1];
+        var maxLon = json.route.bbox[2];
+        var maxLat = json.route.bbox[3];
+        var tmpB = new L.LatLngBounds(new L.LatLng(minLat, minLon), new L.LatLng(maxLat, maxLon));
+        map.fitBounds(tmpB);
         
         var tmpTime = round(json.route.time / 60, 1000);
         if(tmpTime > 60) 
-            tmpTime = round(tmpTime / 60, 1) + "h " + round(tmpTime % 60, 1) + "min";
+            tmpTime = floor(tmpTime / 60, 1) + "h " + round(tmpTime % 60, 1) + "min";
         else
-            tmpTime = tmpTime % 60+ "min";
+            tmpTime = round(tmpTime % 60, 1) + "min";
         distDiv.html("distance: " + round(json.route.distance, 100) + "km<br/>"
             +"time: " + tmpTime + "<br/>"
             +"took: " + round(json.info.took, 1000) + "s<br/>"
@@ -313,12 +324,19 @@ function routeLatLng(request) {
         $("#info").append(distDiv);
         var osrmLink = $("<a>OSRM</a> ");
         osrmLink.attr("href", "http://map.project-osrm.org/?loc=" + from + "&loc=" + to);
+        $("#info").append("<span>Compare with: </span>");
         $("#info").append(osrmLink);
         var googleLink = $("<a>Google</a> ");
-        googleLink.attr("href", "http://maps.google.com/?q=from:" + from + "+to:" + to);
+        var addToGoogle = "";
+        var addToBing = "";
+        if(request.algoVehicle == "foot") {
+            addToGoogle = "&dirflg=w";
+            addToBing = "&mode=W";
+        }
+        googleLink.attr("href", "http://maps.google.com/?q=from:" + from + "+to:" + to + addToGoogle);
         $("#info").append(googleLink);
         var bingLink = $("<a>Bing</a> ");        
-        bingLink.attr("href", "http://www.bing.com/maps/default.aspx?rtp=adr." + from + "~adr." + to);
+        bingLink.attr("href", "http://www.bing.com/maps/default.aspx?rtp=adr." + from + "~adr." + to + addToBing);
         $("#info").append(bingLink);
         $('.defaulting').each(function(index, element) {
             $(element).css("color", "black");
@@ -366,7 +384,7 @@ function decodePath(encoded, geoJson) {
 
 
 function requestBounds() {
-    var url = host + "/api/bounds?type=jsonp";
+    var url = host + "/api/info?type=jsonp";
     console.log(url);    
     return $.ajax({
         "url": url,
@@ -416,17 +434,22 @@ function parseUrl(query) {
     var res = {};        
     var vars = query.split("&");
     for (var i=0;i < vars.length;i++) {
-        var pair = vars[i].split("=");
-        if(pair.length > 1 && pair[1] != null)
-            pair[1] = decodeURIComponent(pair[1].replace(/\+/g,' '));
+        var indexPos = vars[i].indexOf("=");
+        if(indexPos < 0) 
+            continue;
+        
+        var key = vars[i].substring(0, indexPos);
+        var value = vars[i].substring(indexPos + 1);
+        value = decodeURIComponent(value.replace(/\+/g,' '));
                         
-        if (typeof res[pair[0]] === "undefined")
-            res[pair[0]] = pair[1];
-        else if (typeof res[pair[0]] === "string") {
-            var arr = [ res[pair[0]], pair[1] ];
-            res[pair[0]] = arr;
+        if (typeof res[key] === "undefined")
+            res[key] = value;
+        else if (typeof res[key] === "string") {
+            var arr = [ res[key], value ];
+            res[key] = arr;
         } else
-            res[pair[0]].push(pair[1]);                   
+            res[key].push(value);
+        
     } 
     return res;
 }
@@ -479,6 +502,11 @@ function initForm() {
     });
 }
 
+function floor(val, precision) {
+    if(!precision)
+        precision = 1e6;
+    return Math.floor(val * precision) / precision;
+}
 function round(val, precision) {
     if(!precision)
         precision = 1e6;
