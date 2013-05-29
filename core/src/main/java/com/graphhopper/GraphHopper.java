@@ -191,8 +191,6 @@ public class GraphHopper implements GraphHopperAPI {
 
     /**
      * Enables the usage of turn restrictions when routing.
-     *
-     * Currently not available for contraction hierarchies
      */
     public GraphHopper enableTurnRestrictions() {
         turnRestrictions = true;
@@ -415,7 +413,7 @@ public class GraphHopper implements GraphHopperAPI {
 
         properties = new StorableProperties(dir, "properties");
         if (chUsage) {
-            graph = new LevelGraphStorage(dir);
+            graph = new LevelGraphStorage(dir, turnRestrictions);
             PrepareContractionHierarchies tmpPrepareCH = new PrepareContractionHierarchies();
 
             EdgePropertyEncoder encoder = acceptWay.getSingle();

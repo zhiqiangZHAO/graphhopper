@@ -527,8 +527,10 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
 
                 double existingDirectWeight = v_u_weight + outgoingEdges.distance();
 
-                //this shortcut candidate may contain an expensive turn 
-                existingDirectWeight += prepareTurnCostCalc.getTurnCosts(sch.node(), incomingEdges.edge(), outgoingEdges.edge());
+                if(g.isTurnCostSupport()){
+                    //this shortcut candidate may contain an expensive turn 
+                    existingDirectWeight += prepareTurnCostCalc.getTurnCosts(sch.node(), incomingEdges.edge(), outgoingEdges.edge());                    
+                }
 
                 algo.limit(existingDirectWeight).edgeFilter(levelEdgeFilter.avoidNode(sch.node()));
 
@@ -573,8 +575,9 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
                     iter.distance(sc.distance);
                     setOrigEdgeCount(iter.edge(), sc.originalEdges);
                     //TODO we should delete old turn costs of updated shortcut
-
-                    copyTurnCosts(sc.from, sc.skippedEdge1, sc.skippedEdge2, sc.to, iter.edge());
+                    if(g.isTurnCostSupport()){
+                        copyTurnCosts(sc.from, sc.skippedEdge1, sc.skippedEdge2, sc.to, iter.edge());    
+                    }
 
                     updatedInGraph = true;
                     break;
@@ -588,7 +591,9 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
                 tmpNewShortcuts++;
 
                 //we need to copy the old turn cost entries for the shortcut
-                copyTurnCosts(sc.from, sc.skippedEdge1, sc.skippedEdge2, sc.to, iter.edge());
+                if(g.isTurnCostSupport()){
+                    copyTurnCosts(sc.from, sc.skippedEdge1, sc.skippedEdge2, sc.to, iter.edge());
+                }
             }
         }
         return tmpNewShortcuts;
