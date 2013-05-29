@@ -73,6 +73,20 @@ public class RoutingAlgorithmIntegrationTest {
                 createMonacoCar(), "CAR", true, new CarFlagEncoder());
         assertEquals(testCollector.toString(), 0, testCollector.errors.size());
     }
+    
+    @Test
+    public void testMonacoWithTurn() {
+        // TODO this test should fail
+        String osmFile = "files/monaco.osm.gz";
+        String graphFile = "target/graph-monaco";
+        GraphHopper hopper = new GraphHopper().setInMemory(true, true).
+                osmFile(osmFile).graphHopperLocation(graphFile).
+                acceptWay(new AcceptWay("CAR")).
+                enableTurnRestrictions().
+                importOrLoad();
+        runAlgo(hopper.graph(), hopper.index(), createMonacoCar(), true, new CarFlagEncoder());
+        assertEquals(testCollector.toString(), 0, testCollector.errors.size());
+    }
 
     @Test
     public void testMonacoMixed() {
@@ -159,24 +173,25 @@ public class RoutingAlgorithmIntegrationTest {
                     osmFile(osmFile).graphHopperLocation(graphFile).
                     acceptWay(new AcceptWay(vehicles)).
                     importOrLoad();
-
-            Graph g = hopper.graph();
-            Location2IDIndex idx = hopper.index();
-
-            Collection<AlgorithmPreparation> prepares = RoutingAlgorithmSpecialAreaTests.
-                    createAlgos(g, encoder, ch);
-            EdgeFilter edgeFilter = new DefaultEdgeFilter(encoder);
-            for (AlgorithmPreparation prepare : prepares) {
-                for (OneRun or : forEveryAlgo) {
-                    int from = idx.findClosest(or.fromLat, or.fromLon, edgeFilter).closestNode();
-                    int to = idx.findClosest(or.toLat, or.toLon, edgeFilter).closestNode();
-                    testCollector.assertDistance(prepare.createAlgo(), from, to, or.dist, or.locs);
-                }
-            }
+            runAlgo(hopper.graph(), hopper.index(), forEveryAlgo, ch, encoder);
         } catch (Exception ex) {
             throw new RuntimeException("cannot handle osm file " + osmFile, ex);
         } finally {
             Helper.removeDir(new File(graphFile));
+        }
+    }
+
+    void runAlgo(Graph g, Location2IDIndex idx, List<OneRun> forEveryAlgo,
+            boolean ch, EdgePropertyEncoder encoder) {
+        Collection<AlgorithmPreparation> prepares = RoutingAlgorithmSpecialAreaTests.
+                createAlgos(g, encoder, ch);
+        EdgeFilter edgeFilter = new DefaultEdgeFilter(encoder);
+        for (AlgorithmPreparation prepare : prepares) {
+            for (OneRun or : forEveryAlgo) {
+                int from = idx.findClosest(or.fromLat, or.fromLon, edgeFilter).closestNode();
+                int to = idx.findClosest(or.toLat, or.toLon, edgeFilter).closestNode();
+                testCollector.assertDistance(prepare.createAlgo(), from, to, or.dist, or.locs);
+            }
         }
     }
 

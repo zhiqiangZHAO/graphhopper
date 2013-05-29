@@ -31,8 +31,7 @@ public class OSMReaderTurnCostsTest extends OSMReaderTest {
     }
 
     @Test public void testImportTurnRestrictions() {
-        GraphHopper hopper = new GraphHopperTest(file6).
-                enableTurnCosts().
+        GraphHopper hopper = new GraphHopperTest(file6).enableTurnRestrictions().
                 acceptWay(new AcceptWay("CAR,FOOT")).
                 importOrLoad();
         GraphTurnCosts g = (GraphTurnCosts) hopper.graph();

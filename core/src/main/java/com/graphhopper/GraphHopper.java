@@ -90,7 +90,7 @@ public class GraphHopper implements GraphHopperAPI {
     // for index:
     private Location2IDIndex index;
     private int preciseIndexResolution = 1000;
-    private boolean turnCosts = false;
+    private boolean turnRestrictions = false;
     private boolean edgeCalcOnSearch = true;
     private boolean searchRegion = true;
     // for prepare
@@ -194,8 +194,8 @@ public class GraphHopper implements GraphHopperAPI {
      *
      * Currently not available for contraction hierarchies
      */
-    public GraphHopper enableTurnCosts() {
-        turnCosts = true;
+    public GraphHopper enableTurnRestrictions() {
+        turnRestrictions = true;
         return this;
     }
 
@@ -308,6 +308,7 @@ public class GraphHopper implements GraphHopperAPI {
         wayPointMaxDistance = args.getDouble("osmreader.wayPointMaxDistance", 1);
         String type = args.get("osmreader.acceptWay", "CAR");
         acceptWay = new AcceptWay(type);
+        turnRestrictions = args.getBool("osmreader.turnRestrictions", false);
 
         // index
         preciseIndexResolution = args.getInt("index.highResolution", 1000);
@@ -429,7 +430,7 @@ public class GraphHopper implements GraphHopperAPI {
 
             prepare = tmpPrepareCH;
             prepare.graph(graph);
-        } else if (turnCosts) {
+        } else if (turnRestrictions) {
             graph = new GraphStorageTurnCosts(dir, true);
             prepare = NoOpAlgorithmPreparation.createAlgoPrepare(graph, defaultAlgorithm, new CarFlagEncoder());
         } else {

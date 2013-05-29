@@ -203,6 +203,7 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
     @Override
     void storeOSMWayID(int edgeId, long osmWayID) {
         long ptr = (long) edgeId * 2;
+        osmIDsOfEdges.ensureCapacity((ptr + 2) * 4);
         osmIDsOfEdges.setInt(ptr, Helper.longToIntLeft(osmWayID));
         osmIDsOfEdges.setInt(ptr + 1, Helper.longToIntRight(osmWayID));
     }
@@ -328,6 +329,7 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
         dir.remove(osmIDsOfEdges);
         pillarLons = null;
         pillarLats = null;
+        osmIDsOfEdges = null;
         osmNodeIDToIndexMap = null;
     }
 
