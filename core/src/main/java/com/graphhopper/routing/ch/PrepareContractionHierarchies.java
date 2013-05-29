@@ -599,32 +599,42 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
         return tmpNewShortcuts;
     }
 
-    public void copyTurnCosts(int scNodeStart, int skippedEdge1, int skippedEdge2, int scNodeEnd, int shortcut) {
+    private void copyTurnCosts(int scNodeStart, int skippedEdge1, int skippedEdge2, int scNodeEnd, int shortcut) {
         final Collection<TurnCostsEntry> costEntriesToAdd = new ArrayList<TurnCostsEntry>();
-        TurnCostIterator turnCostsOnStart = g.createTurnCostIterable(scNodeStart, TurnCostIterator.ANY_EDGE, skippedEdge1);
-        while (turnCostsOnStart.next()) {
-            final TurnCostsEntry newEntry = new TurnCostsEntry();
-            newEntry.edgeFrom(turnCostsOnStart.edgeFrom());
-            newEntry.flags(turnCostsOnStart.costs());
-            newEntry.edgeTo(shortcut);
-            newEntry.node(scNodeStart);
-            costEntriesToAdd.add(newEntry);
-        }
-
-        TurnCostIterator turnCostsOnEnd = g.createTurnCostIterable(scNodeEnd, skippedEdge2, TurnCostIterator.ANY_EDGE);
-        while (turnCostsOnEnd.next()) {
-            final TurnCostsEntry newEntry = new TurnCostsEntry();
-            newEntry.edgeFrom(shortcut);
-            newEntry.flags(turnCostsOnEnd.costs());
-            newEntry.edgeTo(turnCostsOnEnd.edgeTo());
-            newEntry.node(scNodeEnd);
-            costEntriesToAdd.add(newEntry);
-        }
-
+        
+        copyTurnCostsAtStartOfSC(scNodeStart, skippedEdge1, shortcut, costEntriesToAdd);
+        copyTurnCostsAtStartOfSC(scNodeEnd,  skippedEdge2, shortcut, costEntriesToAdd);
+        copyTurnCostsAtEndOfSC(scNodeStart, skippedEdge1, shortcut, costEntriesToAdd);
+        copyTurnCostsAtEndOfSC(scNodeEnd,  skippedEdge2, shortcut, costEntriesToAdd);
+        
         //we add new entries AFTER iterating through them
-        for (TurnCostsEntry entry : costEntriesToAdd) {
+        for(TurnCostsEntry entry : costEntriesToAdd){
             g.turnCosts(entry.node(), entry.edgeFrom(), entry.edgeTo(), entry.flags());
             newTurnCostEntries++;
+        }
+    }
+
+    private void copyTurnCostsAtStartOfSC(int tcNode, int tcEdgeTo, int shortcutId, final Collection<TurnCostsEntry> costEntriesToAdd) {
+        TurnCostIterator turnCostsIt = g.createTurnCostIterable(tcNode, TurnCostIterator.ANY_EDGE, tcEdgeTo);
+        while(turnCostsIt.next()){
+            final TurnCostsEntry newEntry = new TurnCostsEntry();
+            newEntry.edgeFrom(turnCostsIt.edgeFrom());
+            newEntry.flags(turnCostsIt.costs());
+            newEntry.edgeTo(shortcutId);
+            newEntry.node(tcNode);
+            costEntriesToAdd.add(newEntry);
+        }
+    }
+    
+    private void copyTurnCostsAtEndOfSC(int tcNode, int tcEdgeFrom, int shortcutId, final Collection<TurnCostsEntry> costEntriesToAdd) {
+        TurnCostIterator turnCostsIt = g.createTurnCostIterable(tcNode, tcEdgeFrom, TurnCostIterator.ANY_EDGE);
+        while(turnCostsIt.next()){
+            final TurnCostsEntry newEntry = new TurnCostsEntry();
+            newEntry.edgeFrom(shortcutId);
+            newEntry.flags(turnCostsIt.costs());
+            newEntry.edgeTo(turnCostsIt.edgeTo());
+            newEntry.node(tcNode);
+            costEntriesToAdd.add(newEntry);
         }
     }
 
