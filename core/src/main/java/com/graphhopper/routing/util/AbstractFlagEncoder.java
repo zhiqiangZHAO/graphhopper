@@ -150,8 +150,7 @@ public abstract class AbstractFlagEncoder implements EdgePropertyEncoder {
     public boolean ignoreTurnCosts() {
         return false;
     }
-    
-    
+
     /**
      * Simple Helper to check for OSM tags
      */

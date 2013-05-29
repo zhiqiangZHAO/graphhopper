@@ -25,7 +25,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 
 /**
- * 
+ *
  * @author Peter Karich
  */
 public class HelperTest {

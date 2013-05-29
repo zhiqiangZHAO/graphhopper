@@ -62,6 +62,7 @@ public class DijkstraBidirectionCHTest extends AbstractRoutingAlgorithmTester {
     protected LevelGraph createGraph() {
         return new GraphBuilder().levelGraphCreate();
     }
+
     @Override
     protected GraphTurnCosts createTurnCostsGraph() {
         return new GraphBuilder().levelTurnCostsGraphCreate();
@@ -81,18 +82,18 @@ public class DijkstraBidirectionCHTest extends AbstractRoutingAlgorithmTester {
         // TODO hmmh preparation takes a bit tooo long
         // super.testPerformance();
     }
-    
-    @Test @Override 
+
+    @Test @Override
     public void testCalcWithTurnRestrictions_CarPath_ignoreTurnRestrictions() {
-       //currently it's not possible to ignore turn restrictions when we prepare the graph with turn restrictions, because 
-       //potential shortcuts won't be created when they contain turn restrictions/costs    
+        //currently it's not possible to ignore turn restrictions when we prepare the graph with turn restrictions, because 
+        //potential shortcuts won't be created when they contain turn restrictions/costs    
     }
 
     @Test
     public void testPathRecursiveUnpacking() {
         LevelGraphStorage g2 = (LevelGraphStorage) createGraph();
         initNodes(g2, 8);
-        
+
         g2.edge(0, 1, 1, true);
         EdgeSkipIterator iter1_1 = g2.edge(0, 2, 1.4, true);
         EdgeSkipIterator iter1_2 = g2.edge(2, 5, 1.4, true);

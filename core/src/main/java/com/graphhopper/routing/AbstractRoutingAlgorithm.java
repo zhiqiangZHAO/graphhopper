@@ -47,6 +47,7 @@ public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
         this.additionalEdgeFilter = EdgeFilter.ALL_EDGES;
         this.flagEncoder = encoder;
         type(new ShortestCalc());
+        turnCosts(new DefaultTurnCostsCalc(flagEncoder, weightCalc));
         outEdgeFilter = new DefaultEdgeFilter(encoder, false, true);
         inEdgeFilter = new DefaultEdgeFilter(encoder, true, false);
     }
@@ -64,29 +65,28 @@ public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
         return graph.getEdges(neighborNode, outEdgeFilter);
     }
 
-    @Override 
+    @Override
     public RoutingAlgorithm type(WeightCalculation wc) {
         this.weightCalc = wc;
-        turnCosts(new DefaultTurnCostsCalc(flagEncoder, weightCalc));
         return this;
     }
-    
+
     @Override
     public RoutingAlgorithm turnCosts(TurnCostCalculation calc) {
-    	this.turnCostCalc = calc;
+        this.turnCostCalc = calc;
     	this.turnCostCalc.graph(graph);
-    	return this;
+        return this;
     }
 
     protected void updateShortest(EdgeEntry shortestDE, int currLoc) {
     }
 
-    @Override 
+    @Override
     public String toString() {
-        return name() + "|" + weightCalc+"|"+turnCostCalc;
+        return name() + "|" + weightCalc + "|" + turnCostCalc;
     }
 
-    @Override 
+    @Override
     public String name() {
         return getClass().getSimpleName();
     }

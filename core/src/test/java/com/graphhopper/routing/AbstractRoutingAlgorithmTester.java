@@ -64,7 +64,7 @@ public abstract class AbstractRoutingAlgorithmTester {
     protected Graph createGraph() {
         return new GraphBuilder().create();
     }
-    
+
     protected GraphTurnCosts createTurnCostsGraph() {
         return new GraphBuilder().turnCostsGraphCreate();
     }
@@ -100,11 +100,11 @@ public abstract class AbstractRoutingAlgorithmTester {
     }
 
     public static void initNodes(Graph graph, int nodes) {
-        for(int i=0;i<nodes;i++){
+        for (int i = 0; i < nodes; i++) {
             graph.setNode(i, 0, 0);
         }
     }
-    
+
     // 0-1-2-3
     // |/|/ /|
     // 4-5-- |
@@ -166,61 +166,59 @@ public abstract class AbstractRoutingAlgorithmTester {
 
         graph.edge(6, 7, 5000, carEncoder.flags(20, true));
     }
-    
+
     void initTurnRestrictionsFootVsCar(GraphTurnCosts graph) {
         graph.setNode(8, 0, 0);
-        
+
         initFootVsCar(graph);
-        
+
         int edge_5_8 = graph.edge(5, 8, 3000, footEncoder.flags(5, true) | carEncoder.flags(20, false)).edge();
-        graph.edge(8, 5, 3000, footEncoder.flags(5, true) );
-        
+        graph.edge(8, 5, 3000, footEncoder.flags(5, true));
+
         int edge_2_8 = graph.edge(2, 8, 3000, footEncoder.flags(5, true) | carEncoder.flags(20, false)).edge();
         graph.edge(8, 2, 3000, footEncoder.flags(5, true) | carEncoder.flags(20, false));
-        
+
         int edge_8_3 = graph.edge(8, 3, 1000, footEncoder.flags(5, true) | carEncoder.flags(20, false)).edge();
         graph.edge(3, 8, 1000, footEncoder.flags(5, true) | carEncoder.flags(20, false));
-        
+
         EdgeIterator e1 = graph.getEdges(5, new EdgeFilter() {
-            
             @Override
             public boolean accept(EdgeIterator iter) {
                 return iter.baseNode() == 5 && iter.adjNode() == 2;
             }
         });
         assertTrue(e1.next());
-       
-        
+
+
         EdgeIterator e2 = graph.getEdges(2, new EdgeFilter() {
-            
             @Override
             public boolean accept(EdgeIterator iter) {
                 return iter.baseNode() == 2 && iter.adjNode() == 3;
             }
         });
         assertTrue(e2.next());
-        
+
         //add some restrictions
         graph.turnCosts(8, edge_5_8, edge_8_3, TurnCostEncoder.restriction());
         graph.turnCosts(8, edge_2_8, edge_8_3, TurnCostEncoder.restriction());
         graph.turnCosts(2, e1.edge(), e2.edge(), TurnCostEncoder.restriction());
 
-        
+
     }
 
-    @Test 
+    @Test
     public void testCalcWithTurnRestrictions_CarPath_turnRestrictions() {
         GraphTurnCosts graph = createTurnCostsGraph();
         initTurnRestrictionsFootVsCar(graph);
         Path p1 = prepareGraph(graph, new ShortestCalc(), carEncoder).createAlgo().calcPath(0, 3);
-        
+
         assertEquals(Helper.createTList(0, 1, 5, 3), p1.calcNodes());
         assertEquals(p1.toString(), 25000, p1.distance(), 1e-6);
         assertEquals(p1.toString(), 7020, p1.time());
-        
+
     }
-    
-    @Test 
+
+    @Test
     public void testCalcWithTurnRestrictions_CarPath_ignoreTurnRestrictions() {
         GraphTurnCosts graph = createTurnCostsGraph();
         initTurnRestrictionsFootVsCar(graph);
@@ -229,8 +227,8 @@ public abstract class AbstractRoutingAlgorithmTester {
         assertEquals(p1.toString(), 18000, p1.distance(), 1e-6);
         assertEquals(p1.toString(), 5760, p1.time());
     }
-    
-    @Test 
+
+    @Test
     public void testCalcWithTurnRestrictions_FootPath_noTurnRestrictions() {
         GraphTurnCosts graph = createTurnCostsGraph();
         initFootVsCar(graph);
@@ -240,13 +238,13 @@ public abstract class AbstractRoutingAlgorithmTester {
         assertEquals(p1.toString(), 11520, p1.time());
         assertEquals(Helper.createTList(0, 4, 5, 8, 3), p1.calcNodes());
     }
-    
+
     protected Graph createTestGraph() {
         Graph graph = createGraph();
         createTestGraph(graph);
         return graph;
     }
-        
+
     // see test-graph.svg !
     protected Graph createTestGraph(Graph graph) {
         initNodes(graph, 8);
@@ -298,7 +296,7 @@ public abstract class AbstractRoutingAlgorithmTester {
         assertEquals(Helper.createTList(1, 2), p.calcNodes());
         assertEquals(p.toString(), 2, p.distance(), 1e-4);
     }
-    
+
 //    //TODO routing algorithms currently do not support P-turns (see http://www.easts.info/on-line/journal_06/1426.pdf) 
 //    @Test public void testCalcWithTurnRestrictions_PTurnInShortestPath() {
 //        Graph graph = createTestGraphPTurn(createTurnCostsGraph(), TurnCostEncoder.restriction());
@@ -306,7 +304,6 @@ public abstract class AbstractRoutingAlgorithmTester {
 //        assertEquals(Helper.createTList(3, 5, 8, 9, 10, 5, 6, 7, 0), p1.calcNodes());
 //        assertEquals(p1.toString(), 23, p1.distance(), 1e-6);
 //    }
-    
     /*
      * 0---------1
      *  \        |
@@ -328,30 +325,30 @@ public abstract class AbstractRoutingAlgorithmTester {
         initNodes(graph, 11);
         //outer lanes
         graph.edge(0, 1, 10, true);
-        graph.edge(1, 2, 10, true);        
-        graph.edge(2, 3, 5, true);        
+        graph.edge(1, 2, 10, true);
+        graph.edge(2, 3, 5, true);
         graph.edge(3, 4, 5, true);
-        
+
         //inner lanes
-        
-        graph.edge(5, 8, 3, true);        
-        EdgeIterator edgeTo = graph.edge(5, 6, 3, true);        
-        graph.edge(5, 10, 3, true);        
-        graph.edge(8, 9, 3, true);        
+
+        graph.edge(5, 8, 3, true);
+        EdgeIterator edgeTo = graph.edge(5, 6, 3, true);
+        graph.edge(5, 10, 3, true);
+        graph.edge(8, 9, 3, true);
         graph.edge(9, 10, 3, true);
-        graph.edge(6, 7, 3, false);        
-        graph.edge(7, 8, 3, false);        
-        
+        graph.edge(6, 7, 3, false);
+        graph.edge(7, 8, 3, false);
+
         //connections
-        EdgeIterator edgeFrom = graph.edge(3, 5, 4, true);        
+        EdgeIterator edgeFrom = graph.edge(3, 5, 4, true);
         graph.edge(7, 0, 4, true);
-        
+
         //turn costs
         graph.turnCosts(5, edgeFrom.edge(), edgeTo.edge(), leftTurnCosts);
-        
+
         return graph;
     }
-    
+
     // see wikipedia-graph.svg !
     protected Graph createWikipediaTestGraph() {
         Graph graph = createGraph();
@@ -447,14 +444,12 @@ public abstract class AbstractRoutingAlgorithmTester {
 //        assertEquals(3, p.calcNodes().size());
 //        assertEquals(17, p.distance(), 1e-5);
 //    }
-
 //    @Test
 //    public void testCorrectWeight() {
 //        Path p = prepareGraph(getMatrixGraph()).createAlgo().calcPath(45, 72);
 //        assertEquals(Helper.createTList(45, 44, 54, 64, 74, 73, 72), p.calcNodes());
 //        assertEquals(38f, p.distance(), 1e-3);
 //    }
-
     @Test
     public void testCannotCalculateSP() {
         Graph graph = createGraph();
@@ -470,7 +465,7 @@ public abstract class AbstractRoutingAlgorithmTester {
     public void testDirectedGraphBug1() {
         Graph graph = createGraph();
         initNodes(graph, 5);
-        
+
         graph.edge(0, 1, 3, false);
         graph.edge(1, 2, 2.99, false);
 
@@ -488,7 +483,7 @@ public abstract class AbstractRoutingAlgorithmTester {
     public void testDirectedGraphBug2() {
         Graph graph = createGraph();
         initNodes(graph, 5);
-        
+
         graph.edge(0, 1, 1, false);
         graph.edge(1, 2, 1, false);
         graph.edge(2, 3, 1, false);

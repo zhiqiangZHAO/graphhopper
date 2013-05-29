@@ -52,7 +52,7 @@ import com.graphhopper.util.PointList;
  * memorizes the lat,lon of those node. Only tower nodes (crossroads) are kept
  * directly in the graph, pillar nodes (nodes with degree of exactly 2) are just
  * stored as geometry for an edge for later usage e.g. in a UI.
- * 
+ *
  * @author Peter Karich
  */
 public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
@@ -65,10 +65,9 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private LongIntMap nodeOsmIdToIndexMap;
     /* we cannot hold a map for osmId->edgeId, because different edgeIds can have the same osmId
-      instead we hold for each edgeId the corresponding OSM id and compare it later when we need it
-      @see OSMRestrictionRelation#getAsEntries(...) */ 
+     instead we hold for each edgeId the corresponding OSM id and compare it later when we need it
+     @see OSMRestrictionRelation#getAsEntries(...) */
     private DataAccess osmIDsOfEdges;
-    
     private int towerId = 0;
     private int pillarId = 0;
     // remember how many times a node was used to identify tower nodes
@@ -98,7 +97,7 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
         // memory overhead due to open addressing and full rehash:
 //        nodeOsmIdToIndexMap = new BigLongIntMap(expectedNodes, EMPTY);
         // smaller memory overhead for bigger data sets because of avoiding a "rehash"
-       nodeOsmIdToIndexMap = new GHLongIntBTree(200);
+        nodeOsmIdToIndexMap = new GHLongIntBTree(200);
     }
 
     @Override
@@ -170,19 +169,19 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
                     }
                     continue;
                 }
-    
+
                 if (tmpNode <= -TOWER_NODE && tmpNode >= TOWER_NODE)
                     throw new AssertionError("Mapped index not in correct bounds " + tmpNode + ", " + osmId);
-    
+
                 if (tmpNode > -TOWER_NODE) {
                     boolean convertToTowerNode = i == 0 || i == lastIndex;
                     if (!convertToTowerNode)
                         lastInBoundsPillarNode = tmpNode;
-    
+
                     // PILLAR node, but convert to towerNode if end-standing
                     tmpNode = handlePillarNode(tmpNode, osmId, pointList, convertToTowerNode);
                 }
-    
+
                 if (tmpNode < TOWER_NODE) {
                     // TOWER node
                     tmpNode = -tmpNode - 3;
@@ -237,12 +236,12 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
         if (g instanceof GraphTurnCosts) {
             OSMRestrictionRelation restriction = parseRestriction(sReader);
             if (restriction != null && restriction.isValid()) {
-                    for (TurnCostsEntry entry : restriction.getAsEntries((GraphTurnCosts) g,
-                            edgeOutFilter, edgeInFilter, osmIDsOfEdges)) {
-                        ((GraphTurnCosts) g).turnCosts(entry.node(), entry.edgeFrom(),
-                                entry.edgeTo(), entry.flags());
-                    }    
-                
+                for (TurnCostsEntry entry : restriction.getAsEntries((GraphTurnCosts) g,
+                        edgeOutFilter, edgeInFilter, osmIDsOfEdges)) {
+                    ((GraphTurnCosts) g).turnCosts(entry.node(), entry.edgeFrom(),
+                            entry.edgeTo(), entry.flags());
+                }
+
             }
         }
     }
@@ -250,11 +249,11 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
     public OSMRestrictionRelation parseRestriction(XMLStreamReader sReader)
             throws XMLStreamException {
         final OSMRestrictionRelation restriction = new OSMRestrictionRelation();
-        
+
         boolean restrictionFound = false;
-        
+
         for (int tmpE = sReader.nextTag(); tmpE != XMLStreamConstants.END_ELEMENT; tmpE = sReader
-                .nextTag()) {
+                        .nextTag()) {
             if (tmpE == XMLStreamConstants.START_ELEMENT) {
                 if ("member".equals(sReader.getLocalName())) {
                     String ref = sReader.getAttributeValue(null, "ref");
@@ -303,19 +302,19 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
     void startWayProcessing() {
         printInfo("node");
     }
-    
+
     @Override
     void startRelationsProcessing() {
         printInfo("way");
     }
 
     void printRelationInfo() {
-        if(g instanceof GraphStorageTurnCosts){
+        if (g instanceof GraphStorageTurnCosts) {
             LoggerFactory.getLogger(getClass()).info("finished relation processing."
-                    + " turn cost entries: "+ ((GraphStorageTurnCosts)g).entries()+", "
-                    + Helper.memInfo());    
+                    + " turn cost entries: " + ((GraphStorageTurnCosts) g).entries() + ", "
+                    + Helper.memInfo());
         }
-        
+
     }
 
     @Override

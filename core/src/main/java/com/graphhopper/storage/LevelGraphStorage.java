@@ -40,7 +40,7 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
     public LevelGraphStorage(Directory dir) {
         this(dir, false);
     }
-    
+
     public LevelGraphStorage(Directory dir, boolean withTurnCostSupport) {
         super(dir, withTurnCostSupport);
         I_SKIP_EDGE1 = nextEdgeEntryIndex();

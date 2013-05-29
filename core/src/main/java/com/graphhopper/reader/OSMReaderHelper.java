@@ -122,25 +122,24 @@ public abstract class OSMReaderHelper {
         }
 
         final EdgeIterator iter = g.edge(fromIndex, toIndex, towerNodeDistance, flags);
-        if(g instanceof GraphStorageTurnCosts){
-        	storeEdgeOSMId(iter.edge(), osmid);
-        } 
+        if (g instanceof GraphStorageTurnCosts) {
+            storeEdgeOSMId(iter.edge(), osmid);
+        }
         if (nodes > 2) {
             dpAlgo.simplify(pillarNodes);
             iter.wayGeometry(pillarNodes);
         }
         return nodes;
     }
-    
+
     abstract void storeEdgeOSMId(int edgeId, long osmId);
-    
 
     String getInfo() {
         return "Found " + zeroCounter + " zero distances.";
     }
 
     public boolean isTurnCostSupport(GraphStorage graphStorage) {
-        return (graphStorage instanceof GraphTurnCosts) && ((GraphTurnCosts)graphStorage).isTurnCostSupport();
+        return (graphStorage instanceof GraphTurnCosts) && ((GraphTurnCosts) graphStorage).isTurnCostSupport();
     }
 
     void finishedReading() {
@@ -151,10 +150,10 @@ public abstract class OSMReaderHelper {
 
     void startRelationsProcessing() {
     }
-    
-    void processRelations(XMLStreamReader sReader) throws XMLStreamException{
+
+    void processRelations(XMLStreamReader sReader) throws XMLStreamException {
     }
-    
+
     /**
      * Filter ways but do not analyze properties wayNodes will be filled with
      * participating node ids.
@@ -197,12 +196,12 @@ public abstract class OSMReaderHelper {
     private void readWayAttributes(XMLStreamReader sReader) throws XMLStreamException {
         wayNodes.clear();
         osmProperties.clear();
-        try{
-        	edgeOsmId = Long.parseLong(sReader.getAttributeValue(null, "id"));	
-        }catch(Exception e){
-        	logger.error("could not read osm id of edge", e);
+        try {
+            edgeOsmId = Long.parseLong(sReader.getAttributeValue(null, "id"));
+        } catch (Exception e) {
+            logger.error("could not read osm id of edge", e);
         }
-        
+
         for (int tmpE = sReader.nextTag(); tmpE != XMLStreamConstants.END_ELEMENT;
                 tmpE = sReader.nextTag()) {
             if (tmpE == XMLStreamConstants.START_ELEMENT) {

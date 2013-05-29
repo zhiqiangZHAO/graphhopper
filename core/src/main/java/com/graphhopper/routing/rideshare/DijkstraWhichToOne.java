@@ -137,19 +137,19 @@ public class DijkstraWhichToOne extends AbstractRoutingAlgorithm {
             TIntObjectMap<EdgeEntry> shortestDistMap, EdgeFilter filter) {
 
         boolean backwards = shortestDistMapFrom == shortestDistMapOther;
-        
+
         int currNode = curr.endNode;
         EdgeIterator iter = graph.getEdges(currNode, filter);
         while (iter.next()) {
             int tmpV = iter.adjNode();
             double tmp = weightCalc.getWeight(iter.distance(), iter.flags()) + curr.weight;
-            
-            if(!backwards){
+
+            if (!backwards) {
                 tmp += turnCostCalc.getTurnCosts(currNode, curr.edge, iter.edge());
-            }else{
-                tmp += turnCostCalc.getTurnCosts(currNode, iter.edge(), curr.edge);    
+            } else {
+                tmp += turnCostCalc.getTurnCosts(currNode, iter.edge(), curr.edge);
             }
-            
+
             EdgeEntry de = shortestDistMap.get(tmpV);
             if (de == null) {
                 de = new EdgeEntry(iter.edge(), tmpV, tmp);
@@ -172,22 +172,22 @@ public class DijkstraWhichToOne extends AbstractRoutingAlgorithm {
     public void updateShortest(EdgeEntry de, int currLoc) {
         EdgeEntry entryOther = shortestDistMapOther.get(currLoc);
         if (entryOther != null) {
-            
+
             //prevents the shortest path to contain the same edge twice, when turn restriction is around the meeting point
-            if(de.edge == entryOther.edge){
+            if (de.edge == entryOther.edge) {
                 return;
             }
-            
+
             // update μ
             double newShortest = de.weight + entryOther.weight;
-            
+
             boolean backwards = shortestDistMapFrom == shortestDistMapOther;
-            if(!backwards){
+            if (!backwards) {
                 newShortest += turnCostCalc.getTurnCosts(currLoc, de.edge, entryOther.edge);
-            }else{
-                newShortest += turnCostCalc.getTurnCosts(currLoc, entryOther.edge, de.edge);   
+            } else {
+                newShortest += turnCostCalc.getTurnCosts(currLoc, entryOther.edge, de.edge);
             }
-            
+
             if (newShortest < shortest.weight()) {
                 shortest.switchToFrom(shortestDistMapFrom == shortestDistMapOther);
                 shortest.edgeEntry(de);

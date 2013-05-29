@@ -2,7 +2,7 @@ package com.graphhopper.routing.util;
 
 /**
  * Describes a node costs entry
- * 
+ *
  * @author Karl Hübner
  */
 public class TurnCostsEntry {
@@ -51,5 +51,4 @@ public class TurnCostsEntry {
         this.flags = flags;
         return this;
     }
-
 }

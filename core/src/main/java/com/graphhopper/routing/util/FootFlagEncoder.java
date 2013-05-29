@@ -159,11 +159,11 @@ public class FootFlagEncoder extends AbstractFlagEncoder {
             put("max", 15);
         }
     }
-    
+
     /**
-     * We don't need to consider turn restriction when
-     * we search for routes for pedestrians.
-     * 
+     * We don't need to consider turn restriction when we search for routes for
+     * pedestrians.
+     *
      * @return <code>true</code>
      */
     @Override

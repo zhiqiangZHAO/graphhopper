@@ -113,9 +113,6 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
     @Override
     public PrepareContractionHierarchies graph(Graph g) {
         this.g = (LevelGraph) g;
-        if(prepareTurnCostCalc != null){
-            prepareTurnCostCalc.graph(g);    
-        }
         return this;
     }
 
@@ -131,12 +128,9 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
         prepareWeightCalc = weightCalc;
         return this;
     }
-    
+
     public PrepareContractionHierarchies turnCosts(TurnCostCalculation turnCostCalc) {
-        prepareTurnCostCalc= turnCostCalc;
-        if(g != null){
-            prepareTurnCostCalc.graph(g);    
-        }
+        prepareTurnCostCalc = turnCostCalc;
         return this;
     }
 
@@ -348,7 +342,7 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
             }
         }
 
-        logger.info("new shortcuts " + newShortcuts + ", new turn cost entries: " 
+        logger.info("new shortcuts " + newShortcuts + ", new turn cost entries: "
                 + newTurnCostEntries + ", " + prepareWeightCalc
                 + ", " + prepareEncoder
                 + ", removeHigher2LowerEdges:" + removesHigher2LowerEdges
@@ -532,10 +526,10 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
                     continue;
 
                 double existingDirectWeight = v_u_weight + outgoingEdges.distance();
-                
+
                 //this shortcut candidate may contain an expensive turn 
                 existingDirectWeight += prepareTurnCostCalc.getTurnCosts(sch.node(), incomingEdges.edge(), outgoingEdges.edge());
-                
+
                 algo.limit(existingDirectWeight).edgeFilter(levelEdgeFilter.avoidNode(sch.node()));
 
                 dijkstraSW.start();
@@ -579,9 +573,9 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
                     iter.distance(sc.distance);
                     setOrigEdgeCount(iter.edge(), sc.originalEdges);
                     //TODO we should delete old turn costs of updated shortcut
-                    
+
                     copyTurnCosts(sc.from, sc.skippedEdge1, sc.skippedEdge2, sc.to, iter.edge());
-                    
+
                     updatedInGraph = true;
                     break;
                 }
@@ -592,18 +586,18 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
                 iter.skippedEdges(sc.skippedEdge1, sc.skippedEdge2);
                 setOrigEdgeCount(iter.edge(), sc.originalEdges);
                 tmpNewShortcuts++;
-                
+
                 //we need to copy the old turn cost entries for the shortcut
                 copyTurnCosts(sc.from, sc.skippedEdge1, sc.skippedEdge2, sc.to, iter.edge());
             }
         }
         return tmpNewShortcuts;
     }
-    
+
     public void copyTurnCosts(int scNodeStart, int skippedEdge1, int skippedEdge2, int scNodeEnd, int shortcut) {
         final Collection<TurnCostsEntry> costEntriesToAdd = new ArrayList<TurnCostsEntry>();
         TurnCostIterator turnCostsOnStart = g.createTurnCostIterable(scNodeStart, TurnCostIterator.ANY_EDGE, skippedEdge1);
-        while(turnCostsOnStart.next()){
+        while (turnCostsOnStart.next()) {
             final TurnCostsEntry newEntry = new TurnCostsEntry();
             newEntry.edgeFrom(turnCostsOnStart.edgeFrom());
             newEntry.flags(turnCostsOnStart.costs());
@@ -611,9 +605,9 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
             newEntry.node(scNodeStart);
             costEntriesToAdd.add(newEntry);
         }
-        
+
         TurnCostIterator turnCostsOnEnd = g.createTurnCostIterable(scNodeEnd, skippedEdge2, TurnCostIterator.ANY_EDGE);
-        while(turnCostsOnEnd.next()){
+        while (turnCostsOnEnd.next()) {
             final TurnCostsEntry newEntry = new TurnCostsEntry();
             newEntry.edgeFrom(shortcut);
             newEntry.flags(turnCostsOnEnd.costs());
@@ -621,9 +615,9 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
             newEntry.node(scNodeEnd);
             costEntriesToAdd.add(newEntry);
         }
-        
+
         //we add new entries AFTER iterating through them
-        for(TurnCostsEntry entry : costEntriesToAdd){
+        for (TurnCostsEntry entry : costEntriesToAdd) {
             g.turnCosts(entry.node(), entry.edgeFrom(), entry.edgeTo(), entry.flags());
             newTurnCostEntries++;
         }
@@ -632,10 +626,10 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation<Prepa
     PrepareContractionHierarchies initFromGraph() {
         if (g == null)
             throw new NullPointerException("Graph must not be empty calling doWork of preparation");
-        if(prepareTurnCostCalc == null){
+        if (prepareTurnCostCalc == null)
             //choose default turn costs calculation when not set explicitly 
             prepareTurnCostCalc = new DefaultTurnCostsCalc(prepareEncoder, prepareWeightCalc);
-        }
+        prepareTurnCostCalc.graph(g);
         levelEdgeFilter = new LevelEdgeFilterCH(this.g);
         sortedNodes = new GHTreeMapComposed();
         refs = new PriorityNode[g.nodes()];

@@ -116,14 +116,14 @@ public class GHRequest {
     public WeightCalculation type() {
         return weightCalc;
     }
-    
+
     public GHRequest turnCosts(TurnCostCalculation turnCostCalc) {
-    	this.turnCostCalc = turnCostCalc;
-    	return this;
+        this.turnCostCalc = turnCostCalc;
+        return this;
     }
-    
-    public TurnCostCalculation turnCosts(){
-    	return turnCostCalc;
+
+    public TurnCostCalculation turnCosts() {
+        return turnCostCalc;
     }
 
     public GHRequest vehicle(EdgePropertyEncoder encoder) {

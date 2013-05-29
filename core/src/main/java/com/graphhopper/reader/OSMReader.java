@@ -55,8 +55,8 @@ public class OSMReader {
     private GraphStorage graphStorage;
     private OSMReaderHelper helper;
     private Boolean negativeIds;
-        
-     public OSMReader(GraphStorage storage, long expectedNodes) {
+
+    public OSMReader(GraphStorage storage, long expectedNodes) {
         this.graphStorage = storage;
         helper = createDoubleParseHelper(expectedNodes);
         helper.acceptWay(new AcceptWay(AcceptWay.CAR));
@@ -130,15 +130,15 @@ public class OSMReader {
                                         + " (" + skippedLocations + "), edges:" + nf(helper.edgeCount())
                                         + " " + Helper.memInfo());
                             }
-                        } else if ("relation".equals(sReader.getLocalName()) && helper.isTurnCostSupport(graphStorage)){
-                        	if (relStart < 0) {
-                        	    helper.startRelationsProcessing();
+                        } else if ("relation".equals(sReader.getLocalName()) && helper.isTurnCostSupport(graphStorage)) {
+                            if (relStart < 0) {
+                                helper.startRelationsProcessing();
                                 logger.info(nf(counter) + ", now parsing relations");
                                 relStart = counter;
                                 sw.start();
                             }
-                        	helper.processRelations(sReader);
-                        	if (counter - relStart == 10000 && sw.stop().getSeconds() > 1) {
+                            helper.processRelations(sReader);
+                            if (counter - relStart == 10000 && sw.stop().getSeconds() > 1) {
                                 logger.warn("Something is wrong! Processing relations takes too long! "
                                         + sw.getSeconds() + "sec for only " + (counter - relStart) + " entries");
                             }

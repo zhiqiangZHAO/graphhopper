@@ -39,7 +39,7 @@ public interface EdgePropertyEncoder {
     boolean isForward(int flags);
 
     boolean isBackward(int flags);
-    
+
     boolean ignoreTurnCosts();
 
     /**

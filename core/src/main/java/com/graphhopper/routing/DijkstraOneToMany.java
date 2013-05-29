@@ -74,7 +74,7 @@ public class DijkstraOneToMany extends AbstractRoutingAlgorithm {
     }
 
     private void initializeEdgeIds() {
-        if (edgeIds == null ) {
+        if (edgeIds == null) {
             edgeIds = new int[graph.nodes()];
             Arrays.fill(edgeIds, EdgeIterator.NO_EDGE);
         }
@@ -89,13 +89,13 @@ public class DijkstraOneToMany extends AbstractRoutingAlgorithm {
         return weights[endNode];
     }
 
-    public int findEndNode(int from, int to) {        
+    public int findEndNode(int from, int to) {
         if (weights.length < 2)
             return -1;
-        if(graph instanceof GraphTurnCosts && ((GraphTurnCosts)graph).isTurnCostSupport()){
-            initializeEdgeIds();    
+        if (graph instanceof GraphTurnCosts && ((GraphTurnCosts) graph).isTurnCostSupport()) {
+            initializeEdgeIds();
         }
-        
+
         int currNode = from;
         if (doClear) {
             doClear = false;
@@ -132,8 +132,8 @@ public class DijkstraOneToMany extends AbstractRoutingAlgorithm {
                     continue;
                 int adjNode = iter.adjNode();
                 double tmpWeight = weightCalc.getWeight(iter.distance(), iter.flags()) + weights[currNode];
-                if(edgeIds != null){
-                    tmpWeight += turnCostCalc.getTurnCosts(currNode, edgeIds[currNode], iter.edge());    
+                if (edgeIds != null) {
+                    tmpWeight += turnCostCalc.getTurnCosts(currNode, edgeIds[currNode], iter.edge());
                 }
                 if (weights[adjNode] == Double.MAX_VALUE) {
                     parents[adjNode] = currNode;

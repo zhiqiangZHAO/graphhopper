@@ -9,7 +9,7 @@ import com.graphhopper.util.TurnCostIterator;
 
 /**
  * Additionally stores node costs of nodes.
- * 
+ *
  * @author Karl Hübner
  */
 public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCosts {
@@ -20,27 +20,24 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
     /* additional items for nodes: osmid (splitted), pointer to first entry in
      * node cost table */
     protected final int N_COSTS_PTR;
-    
     /* items in turn cost tables: edge from, edge to, costs, pointer to next
      * cost entry of same node */
     protected final int TC_FROM, TC_TO, TC_COSTS, TC_NEXT;
-
     protected DataAccess turnCosts;
     protected int turnCostsEntryIndex = -1;
     protected int turnCostsEntrySize;
     protected int turnCostsCount;
-    
     protected boolean supportTurnCosts;
-    
+
     public GraphStorageTurnCosts(Directory dir) {
         this(dir, true);
     }
-    
+
     public GraphStorageTurnCosts(Directory dir, boolean supportTurnCosts) {
         super(dir);
         this.supportTurnCosts = supportTurnCosts;
-        
-        if(supportTurnCosts){
+
+        if (supportTurnCosts) {
             N_COSTS_PTR = nextNodeEntryIndex();
 
             initNodeAndEdgeEntrySize();
@@ -52,11 +49,11 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
             TC_COSTS = nextTurnCostsEntryIndex();
             TC_NEXT = nextTurnCostsEntryIndex();
             turnCostsEntrySize = turnCostsEntryIndex + 1;
-            turnCostsCount = 0;    
-        }else{
+            turnCostsCount = 0;
+        } else {
             N_COSTS_PTR = TC_FROM = TC_TO = TC_COSTS = TC_NEXT = 0;
         }
-        
+
     }
 
     protected final int nextTurnCostsEntryIndex() {
@@ -66,18 +63,18 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
     @Override
     GraphStorage segmentSize(int bytes) {
         super.segmentSize(bytes);
-        if(supportTurnCosts){
-            turnCosts.segmentSize(bytes);   
-        }        
+        if (supportTurnCosts) {
+            turnCosts.segmentSize(bytes);
+        }
         return this;
     }
 
     @Override
     public GraphStorageTurnCosts create(long nodeCount) {
         super.create(nodeCount);
-        if(supportTurnCosts){
+        if (supportTurnCosts) {
             long initBytes = Math.max(nodeCount * 4, 100);
-            turnCosts.create((long) initBytes * turnCostsEntrySize);    
+            turnCosts.create((long) initBytes * turnCostsEntrySize);
         }
         return this;
     }
@@ -85,20 +82,20 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
     @Override
     public void setNode(int index, double lat, double lon) {
         super.setNode(index, lat, lon);
-        if(supportTurnCosts){
+        if (supportTurnCosts) {
             long tmp = (long) index * nodeEntrySize;
-            nodes.setInt(tmp + N_COSTS_PTR, NO_COST_ENTRY);    
+            nodes.setInt(tmp + N_COSTS_PTR, NO_COST_ENTRY);
         }
     }
 
     @Override
     public void turnCosts(int nodeIndex, int from, int to, int flags) {
-        if(supportTurnCosts){
+        if (supportTurnCosts) {
             //append
             int newEntryIndex = turnCostsCount;
             turnCostsCount++;
             ensureNodeCostsIndex(newEntryIndex);
-    
+
             //determine if we already have an cost entry for this node
             int previousEntryIndex = getCostTableAdress(nodeIndex);
             if (previousEntryIndex == NO_COST_ENTRY) {
@@ -130,33 +127,31 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
     }
 
     private int getCostTableAdress(int index) {
-        if(index >= nodes() || index < 0){
+        if (index >= nodes() || index < 0) {
             return NO_COST_ENTRY;
         }
         return nodes.getInt((long) index * nodeEntrySize + N_COSTS_PTR);
     }
 
-    
-    
     @Override
     public int turnCosts(int node, int edgeFrom, int edgeTo) {
-        if(edgeFrom != EdgeIterator.NO_EDGE && edgeTo != EdgeIterator.NO_EDGE ){
+        if (edgeFrom != EdgeIterator.NO_EDGE && edgeTo != EdgeIterator.NO_EDGE) {
             TurnCostIterator tc = createTurnCostIterable(node, edgeFrom, edgeTo);
-            if(tc.next()){
+            if (tc.next()) {
                 return tc.costs();
-            }  
+            }
         }
         return TurnCostEncoder.noCosts();
     }
-    
+
     @Override
-    public TurnCostIterator createTurnCostIterable(int node, int edgeFrom, int edgeTo){
-        if(supportTurnCosts){
-            return new TurnCostIteratable(node, edgeFrom, edgeTo);    
-        }else{
-            return TurnCostIterator.noTurnCostSupport; 
+    public TurnCostIterator createTurnCostIterable(int node, int edgeFrom, int edgeTo) {
+        if (supportTurnCosts) {
+            return new TurnCostIteratable(node, edgeFrom, edgeTo);
+        } else {
+            return TurnCostIterator.noTurnCostSupport;
         }
-        
+
     }
 
     void ensureNodeCostsIndex(int nodeIndex) {
@@ -170,13 +165,13 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
     @Override
     public boolean loadExisting() {
         if (super.loadExisting()) {
-            if(supportTurnCosts){
+            if (supportTurnCosts) {
                 if (!turnCosts.loadExisting())
                     throw new IllegalStateException(
                             "cannot load node costs. corrupt file or directory? " + directory());
 
                 turnCostsEntrySize = turnCosts.getHeader(0);
-                turnCostsCount = turnCosts.getHeader(1);    
+                turnCostsCount = turnCosts.getHeader(1);
             }
             return true;
         }
@@ -186,26 +181,26 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
     @Override
     public void flush() {
         super.flush();
-        if(supportTurnCosts){
+        if (supportTurnCosts) {
             turnCosts.setHeader(0, turnCostsEntrySize);
             turnCosts.setHeader(1, turnCostsCount);
-            turnCosts.flush();    
+            turnCosts.flush();
         }
     }
 
     @Override
     public void close() {
         super.close();
-        if(supportTurnCosts){
+        if (supportTurnCosts) {
             turnCosts.close();
         }
-        
+
     }
 
     @Override
     public long capacity() {
-        if(supportTurnCosts){
-            return super.capacity() + turnCosts.capacity();    
+        if (supportTurnCosts) {
+            return super.capacity() + turnCosts.capacity();
         }
         return super.capacity();
     }
@@ -218,17 +213,17 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
     public boolean isTurnCostSupport() {
         return supportTurnCosts;
     }
-    
-    @Override 
+
+    @Override
     public String toString() {
-        if(isTurnCostSupport()){
-            return super.toString()+", turn cost entries: " + nf(turnCostsCount) + "(" + turnCosts.capacity() / Helper.MB + ")";    
+        if (isTurnCostSupport()) {
+            return super.toString() + ", turn cost entries: " + nf(turnCostsCount) + "(" + turnCosts.capacity() / Helper.MB + ")";
         }
         return super.toString();
     }
-    
+
     public class TurnCostIteratable implements TurnCostIterator {
-        
+
         int nodeVia;
         int edgeFrom;
         int edgeTo;
@@ -236,8 +231,8 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
         int iteratorEdgeTo;
         int turnCostIndex;
         long turnCostPtr;
-        
-        private TurnCostIteratable(int node, int edgeFrom, int edgeTo){
+
+        private TurnCostIteratable(int node, int edgeFrom, int edgeTo) {
             this.nodeVia = node;
             this.iteratorEdgeFrom = edgeFrom;
             this.iteratorEdgeTo = edgeTo;
@@ -246,10 +241,10 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
             this.turnCostIndex = getCostTableAdress(nodeVia);
             this.turnCostPtr = -1L;
         }
-        
+
         @Override
-        public boolean next(){
-            int i=0;
+        public boolean next() {
+            int i = 0;
             boolean found = false;
             for (; i < 1000; i++) {
                 if (turnCostIndex == NO_COST_ENTRY)
@@ -257,17 +252,17 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
                 turnCostPtr = (long) turnCostIndex * turnCostsEntrySize;
                 edgeFrom = turnCosts.getInt(turnCostPtr + TC_FROM);
                 edgeTo = turnCosts.getInt(turnCostPtr + TC_TO);
-                
+
 
                 int nextTurnCostIndex = turnCosts.getInt(turnCostPtr + TC_NEXT);
-                if(nextTurnCostIndex == turnCostIndex){
+                if (nextTurnCostIndex == turnCostIndex) {
                     throw new IllegalStateException("something went wrong: next entry would be the same");
                 }
                 turnCostIndex = nextTurnCostIndex;
-                
-                if(edgeFrom != EdgeIterator.NO_EDGE && edgeTo != EdgeIterator.NO_EDGE && // 
+
+                if (edgeFrom != EdgeIterator.NO_EDGE && edgeTo != EdgeIterator.NO_EDGE && // 
                         (iteratorEdgeFrom == TurnCostIterator.ANY_EDGE || edgeFrom == iteratorEdgeFrom) && // 
-                        (iteratorEdgeTo == TurnCostIterator.ANY_EDGE || edgeTo == iteratorEdgeTo)){
+                        (iteratorEdgeTo == TurnCostIterator.ANY_EDGE || edgeTo == iteratorEdgeTo)) {
                     found = true;
                     break;
                 }
@@ -277,35 +272,34 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
                 throw new IllegalStateException("something went wrong: no end of turn cost-list found");
             return found;
         }
-        
-        public int edgeFrom(){
+
+        public int edgeFrom() {
             return edgeFrom;
         }
-        
-        public int edgeTo(){
+
+        public int edgeTo() {
             return edgeTo;
         }
-        
-        public int costs(){
+
+        public int costs() {
             return turnCosts.getInt(turnCostPtr + TC_COSTS);
         }
-        
+
         public TurnCostIterator edgeFrom(int from) {
             turnCosts.setInt(turnCostPtr + TC_FROM, from);
             edgeFrom = from;
             return this;
         }
-        
+
         public TurnCostIterator edgeTo(int to) {
             turnCosts.setInt(turnCostPtr + TC_TO, to);
             edgeTo = to;
             return this;
         }
-        
+
         public TurnCostIterator costs(int costs) {
             turnCosts.setInt(turnCostPtr + TC_COSTS, costs);
             return this;
         }
-        
     }
 }

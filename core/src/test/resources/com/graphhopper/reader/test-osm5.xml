@@ -8,11 +8,11 @@
        5~~~4~~7
        
        
-       (2,3)->(3,4): straight_only
-       (4,3)->(3,8): no_right_turn
-       (4,5)->(5,6): right_turn_only
-       (6,1)->(1,5): no_u_turn
-     -->
+      (2,3)->(3,4): straight_only
+      (4,3)->(3,8): no_right_turn
+      (4,5)->(5,6): right_turn_only
+      (6,1)->(1,5): no_u_turn
+    -->
 
 
     <node id="1" lat="51.0" lon="9.0">
@@ -70,14 +70,14 @@
         <tag k="highway" v="motorway" />
     </way>
     
-     <!-- 5-6 -->
+    <!-- 5-6 -->
     <way id="56">
         <nd ref="6"/>     
         <nd ref="5"/>
         <tag k="highway" v="motorway" />
     </way>
     
-     <!-- 6-1 -->
+    <!-- 6-1 -->
     <way id="61">
         <nd ref="1"/>     
         <nd ref="6"/>

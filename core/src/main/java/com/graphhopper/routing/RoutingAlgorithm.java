@@ -44,10 +44,10 @@ public interface RoutingAlgorithm {
      * shortest.
      */
     RoutingAlgorithm type(WeightCalculation calc);
-    
+
     /**
-     * Changes the used turn costs calculation (e.g. turn restriction). Default is
-     * turn restriction, if, and only if, turn cost tables are available.
+     * Changes the used turn costs calculation (e.g. turn restriction). Default
+     * is turn restriction, if, and only if, turn cost tables are available.
      */
     RoutingAlgorithm turnCosts(TurnCostCalculation calc);
 

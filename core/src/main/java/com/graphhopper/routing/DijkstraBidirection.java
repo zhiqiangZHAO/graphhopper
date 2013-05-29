@@ -125,18 +125,18 @@ public class DijkstraBidirection extends AbstractRoutingAlgorithm {
     void fillEdges(int currNode, double currWeight, int currRef,
             IntDoubleBinHeap prioQueue, EdgeWrapper wrapper, EdgeFilter filter) {
 
-    	boolean backwards = wrapperFrom == wrapperOther;
-    	
+        boolean backwards = wrapperFrom == wrapperOther;
+
         EdgeIterator iter = graph.getEdges(currNode, filter);
         while (iter.next()) {
             if (!accept(iter))
                 continue;
             int neighborNode = iter.adjNode();
-            double tmpWeight = weightCalc.getWeight(iter.distance(), iter.flags()) + currWeight;     
-            if(!backwards){
-            	tmpWeight += turnCostCalc.getTurnCosts(currNode, wrapper.getEdgeId(currRef), iter.edge());
-            }else{
-            	tmpWeight += turnCostCalc.getTurnCosts(currNode, iter.edge(), wrapper.getEdgeId(currRef));
+            double tmpWeight = weightCalc.getWeight(iter.distance(), iter.flags()) + currWeight;
+            if (!backwards) {
+                tmpWeight += turnCostCalc.getTurnCosts(currNode, wrapper.getEdgeId(currRef), iter.edge());
+            } else {
+                tmpWeight += turnCostCalc.getTurnCosts(currNode, iter.edge(), wrapper.getEdgeId(currRef));
             }
             int newRef = wrapper.getRef(neighborNode);
             if (newRef < 0) {
@@ -161,27 +161,27 @@ public class DijkstraBidirection extends AbstractRoutingAlgorithm {
         int otherRef = wrapperOther.getRef(nodeId);
         if (otherRef < 0)
             return;
-        
+
         boolean backwards = wrapperFrom == wrapperOther;
-        
+
         // update μ
         double newWeight = weight + wrapperOther.getWeight(otherRef);
-        
+
         //costs for the turn where forward and backward routing meet each other
-        if(!backwards){
+        if (!backwards) {
             //prevents the shortest path to contain the same edge twice, when turn restriction is around the meeting point
-            if(wrapperFrom.getEdgeId(ref) == wrapperOther.getEdgeId(otherRef)){
-                return;
-            }            
-        	newWeight += turnCostCalc.getTurnCosts(nodeId, wrapperFrom.getEdgeId(ref), wrapperOther.getEdgeId(otherRef));
-        }else{
-            //prevents the shortest path to contain the same edge twice, when turn restriction is around the meeting point
-            if(wrapperTo.getEdgeId(ref) == wrapperOther.getEdgeId(otherRef)){
+            if (wrapperFrom.getEdgeId(ref) == wrapperOther.getEdgeId(otherRef)) {
                 return;
             }
-        	newWeight += turnCostCalc.getTurnCosts(nodeId, wrapperOther.getEdgeId(otherRef), wrapperTo.getEdgeId(ref));
+            newWeight += turnCostCalc.getTurnCosts(nodeId, wrapperFrom.getEdgeId(ref), wrapperOther.getEdgeId(otherRef));
+        } else {
+            //prevents the shortest path to contain the same edge twice, when turn restriction is around the meeting point
+            if (wrapperTo.getEdgeId(ref) == wrapperOther.getEdgeId(otherRef)) {
+                return;
+            }
+            newWeight += turnCostCalc.getTurnCosts(nodeId, wrapperOther.getEdgeId(otherRef), wrapperTo.getEdgeId(ref));
         }
-        
+
         if (newWeight < shortest.weight()) {
             shortest.switchWrapper = backwards;
             shortest.fromRef = ref;

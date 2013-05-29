@@ -224,8 +224,8 @@ public class AStarBidirection extends AbstractRoutingAlgorithm {
             PriorityQueue<AStarEdge> prioQueueOpenSet,
             TIntObjectMap<AStarEdge> shortestWeightMap, EdgeFilter filter) {
 
-    	boolean backwards = shortestWeightMapFrom == shortestWeightMapOther;
-    	
+        boolean backwards = shortestWeightMapFrom == shortestWeightMapOther;
+
         int currNode = curr.endNode;
         EdgeIterator iter = graph.getEdges(currNode, filter);
         while (iter.next()) {
@@ -235,10 +235,10 @@ public class AStarBidirection extends AbstractRoutingAlgorithm {
             // TODO performance: check if the node is already existent in the opposite direction
             // then we could avoid the approximation as we already know the exact complete path!
             double alreadyVisitedWeight = weightCalc.getWeight(iter.distance(), iter.flags()) + curr.weightToCompare;
-            if(!backwards){
-            	alreadyVisitedWeight += turnCostCalc.getTurnCosts(currNode, curr.edge, iter.edge());
-            }else{
-            	alreadyVisitedWeight += turnCostCalc.getTurnCosts(currNode, iter.edge(), curr.edge);
+            if (!backwards) {
+                alreadyVisitedWeight += turnCostCalc.getTurnCosts(currNode, curr.edge, iter.edge());
+            } else {
+                alreadyVisitedWeight += turnCostCalc.getTurnCosts(currNode, iter.edge(), curr.edge);
             }
             AStarEdge de = shortestWeightMap.get(neighborNode);
             if (de == null || de.weightToCompare > alreadyVisitedWeight) {
@@ -269,24 +269,24 @@ public class AStarBidirection extends AbstractRoutingAlgorithm {
         AStarEdge entryOther = shortestWeightMapOther.get(currLoc);
         if (entryOther == null)
             return;
-        
+
         //prevents the shortest path to contain the same edge twice, when turn restriction is around the meeting point
-        if(shortestDE.edge == entryOther.edge){
+        if (shortestDE.edge == entryOther.edge) {
             return;
         }
-        
+
         boolean backwards = shortestWeightMapFrom == shortestWeightMapOther;
 
         // update μ
         double newShortest = shortestDE.weightToCompare + entryOther.weightToCompare;
-        
+
         //costs for the turn where forward and backward routing meet each other
-        if(!backwards){
-        	newShortest += turnCostCalc.getTurnCosts(currLoc, shortestDE.edge, entryOther.edge);
-        }else{
-        	newShortest += turnCostCalc.getTurnCosts(currLoc, entryOther.edge, shortestDE.edge);
+        if (!backwards) {
+            newShortest += turnCostCalc.getTurnCosts(currLoc, shortestDE.edge, entryOther.edge);
+        } else {
+            newShortest += turnCostCalc.getTurnCosts(currLoc, entryOther.edge, shortestDE.edge);
         }
-        
+
         if (newShortest < shortest.weight()) {
             shortest.switchToFrom(backwards);
             shortest.edgeEntry = shortestDE;

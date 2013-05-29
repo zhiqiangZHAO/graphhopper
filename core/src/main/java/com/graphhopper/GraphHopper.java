@@ -101,7 +101,7 @@ public class GraphHopper implements GraphHopperAPI {
     // for OSM import:
     private String osmFile;
     private AcceptWay acceptWay = new AcceptWay("CAR");
-	private long expectedNodes = 10;
+    private long expectedNodes = 10;
     private double wayPointMaxDistance = 1;
     private int periodicUpdates = 3;
     private int lazyUpdates = 10;
@@ -188,14 +188,14 @@ public class GraphHopper implements GraphHopperAPI {
             defaultAlgorithm = "bidijkstra";
         return this;
     }
-    
+
     /**
      * Enables the usage of turn restrictions when routing.
-     * 
+     *
      * Currently not available for contraction hierarchies
      */
     public GraphHopper enableTurnCosts() {
-    	turnCosts = true;
+        turnCosts = true;
         return this;
     }
 
@@ -429,14 +429,14 @@ public class GraphHopper implements GraphHopperAPI {
 
             prepare = tmpPrepareCH;
             prepare.graph(graph);
-        } else if(turnCosts) { 
+        } else if (turnCosts) {
             graph = new GraphStorageTurnCosts(dir, true);
             prepare = NoOpAlgorithmPreparation.createAlgoPrepare(graph, defaultAlgorithm, new CarFlagEncoder());
         } else {
             graph = new GraphStorage(dir);
             prepare = NoOpAlgorithmPreparation.createAlgoPrepare(graph, defaultAlgorithm, new CarFlagEncoder());
         }
-                
+
         if (!graph.loadExisting())
             return false;
 
@@ -453,7 +453,7 @@ public class GraphHopper implements GraphHopperAPI {
         initIndex();
         return true;
     }
-    
+
     private boolean supportsVehicle(EdgePropertyEncoder encoder) {
         return acceptWay.accepts(encoder);
     }
@@ -468,8 +468,8 @@ public class GraphHopper implements GraphHopperAPI {
             rsp.addError(new IllegalArgumentException("Vehicle " + request.vehicle() + " unsupported. Supported are: " + acceptWay()));
             return rsp;
         }
-        
-        if(request.turnCosts() == null){
+
+        if (request.turnCosts() == null) {
             //if turn costs calculation has not been set, the calculation which fits best to requested vehicle and weight calculation will be chosen
             request.turnCosts(new DefaultTurnCostsCalc(request.vehicle(), request.type()));
         }

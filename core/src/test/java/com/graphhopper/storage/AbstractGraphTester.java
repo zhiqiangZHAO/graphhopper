@@ -825,7 +825,7 @@ public abstract class AbstractGraphTester {
         }
         return -1;
     }
-    
+
     public static int getIdOf(Graph g, double latitude, double longitude) {
         int s = g.nodes();
         for (int i = 0; i < s; i++) {

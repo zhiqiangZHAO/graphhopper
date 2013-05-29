@@ -18,14 +18,11 @@
  */
 package com.graphhopper.routing.ch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Iterator;
-
-import org.junit.Test;
 
 import com.graphhopper.routing.AbstractRoutingAlgorithmTester;
 import com.graphhopper.routing.Dijkstra;
@@ -203,7 +200,7 @@ public class PrepareContractionHierarchiesTest {
 
     void initRoundaboutGraph(Graph g) {
         AbstractRoutingAlgorithmTester.initNodes(g, 32);
-        
+
         //              roundabout:
         //16-0-9-10--11   12<-13
         //    \       \  /      \

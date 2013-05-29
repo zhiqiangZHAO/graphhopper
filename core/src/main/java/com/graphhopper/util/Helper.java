@@ -358,15 +358,15 @@ public class Helper {
         return NumberFormat.getInstance(Locale.FRANCE).format(no);
     }
 
-	public static long intToLong(int left, int right) {
-		return (long) left << 32 | (long)right & 0xFFFFFFFFL;
-	}
+    public static long intToLong(int left, int right) {
+        return (long) left << 32 | (long) right & 0xFFFFFFFFL;
+    }
 
-	public static int longToIntLeft(long number) {
-		return (int)(number >>> 32);
-	}
-	
-	public static int longToIntRight(long number) {
-		return (int) (number & 0xFFFFFFFFL);
-	}
+    public static int longToIntLeft(long number) {
+        return (int) (number >>> 32);
+    }
+
+    public static int longToIntRight(long number) {
+        return (int) (number & 0xFFFFFFFFL);
+    }
 }

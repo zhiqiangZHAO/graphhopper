@@ -15,13 +15,12 @@ import com.graphhopper.util.EdgeIterator;
 import com.graphhopper.util.Helper;
 
 /**
- * Helper object which gives node cost entries
- * for a given OSM-relation of type "restriction"
+ * Helper object which gives node cost entries for a given OSM-relation of type
+ * "restriction"
  */
 public class OSMRestrictionRelation {
-    
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     public static final int TYPE_UNSUPPORTED = 0;
     public static final int TYPE_NO_LEFT_TURN = 1;
     public static final int TYPE_NO_RIGHT_TURN = 2;
@@ -30,26 +29,27 @@ public class OSMRestrictionRelation {
     public static final int TYPE_ONLY_LEFT_TURN = 5;
     public static final int TYPE_ONLY_STRAIGHT_ON = 6;
     public static final int TYPE_NO_U_TURN = 7;
-
     protected long fromOsm;
     protected int via;
     protected long toOsm;
     protected int restriction;
 
     /**
-     * @return <code>true</code>, if restriction type is supported and a via node has been found
+     * @return <code>true</code>, if restriction type is supported and a via
+     * node has been found
      */
     public boolean isValid() {
-        return restriction != TYPE_UNSUPPORTED && via >= 0 && fromOsm >=0 && toOsm >= 0;
+        return restriction != TYPE_UNSUPPORTED && via >= 0 && fromOsm >= 0 && toOsm >= 0;
     }
 
     /**
      * transforms this relation into a collection of node cost entries
-     * 
+     *
      * @param g the graph which provides node cost tables
      * @param edgeOutFilter an edge filter which only allows outgoing edges
      * @param edgeInFilter an edge filter which only allows incoming edges
-     * @return a collection of node cost entries which can be added to the graph later
+     * @return a collection of node cost entries which can be added to the graph
+     * later
      */
     public Collection<TurnCostsEntry> getAsEntries(GraphTurnCosts g,
             EdgeFilter edgeOutFilter, EdgeFilter edgeInFilter, DataAccess osmidsOfEdges) {
@@ -58,7 +58,7 @@ public class OSMRestrictionRelation {
             return entries;
         }
         try {
-            
+
             // get all incoming edges and receive the edge which is defined by osmFrom 
             final EdgeIterator edgesIn = g.getEdges(via, edgeInFilter);
             EdgeIterator edgeFrom = null;
@@ -67,8 +67,8 @@ public class OSMRestrictionRelation {
                     edgeFrom = edgesIn;
                     break;
                 }
-            } 
-            
+            }
+
             //get all outgoing edges of the via node 
             final EdgeIterator edgesOut = g.getEdges(via, edgeOutFilter);
 
@@ -102,24 +102,24 @@ public class OSMRestrictionRelation {
                                     .edgeFrom(edgeFrom.edge())
                                     .edgeTo(edgesOut.edge()));
                         }
-                    } ;
+                    };
                 }
             }
         } catch (Exception e) {
-            logger.warn("Could not built node costs table for relation of node "+via+".", e);
+            logger.warn("Could not built node costs table for relation of node " + via + ".", e);
         }
         //TODO remove duplicate entries
         return entries;
 
     }
-    
+
     private long osmid(int edgeId, DataAccess osmIds) {
         long ptr = (long) edgeId * 2;
         int left = osmIds.getInt(ptr);
         int right = osmIds.getInt(ptr + 1);
         return Helper.intToLong(left, right);
     }
-    
+
     public final static int getRestrictionType(String restrictionType) {
         if ("no_left_turn".equals(restrictionType)) {
             return OSMRestrictionRelation.TYPE_NO_LEFT_TURN;
@@ -138,5 +138,4 @@ public class OSMRestrictionRelation {
         }
         return OSMRestrictionRelation.TYPE_UNSUPPORTED;
     }
-
 }

@@ -44,7 +44,7 @@ public class GraphBuilder {
         this.level = level;
         return this;
     }
-    
+
     /**
      * If true builder will create a Graph with turn cost tables
      *
@@ -78,11 +78,11 @@ public class GraphBuilder {
     public LevelGraphStorage levelGraphBuild() {
         return (LevelGraphStorage) levelGraph(true).build();
     }
-    
+
     public GraphStorageTurnCosts turnCostsGraphBuild() {
         return (GraphStorageTurnCosts) turnCosts(true).build();
     }
-    
+
     public LevelGraphStorage levelTurnCostGraphBuild() {
         return (LevelGraphStorage) levelGraph(true).turnCosts(true).build();
     }
@@ -93,14 +93,14 @@ public class GraphBuilder {
     public LevelGraphStorage levelGraphCreate() {
         return (LevelGraphStorage) levelGraph(true).create();
     }
-    
+
     /**
      * Creates a GraphStorage with turn costs tables
      */
     public GraphStorageTurnCosts turnCostsGraphCreate() {
         return (GraphStorageTurnCosts) turnCosts(true).create();
     }
-    
+
     /**
      * Creates a GraphStorage with turn costs tables
      */
@@ -123,7 +123,7 @@ public class GraphBuilder {
         GraphStorage graph;
         if (level)
             graph = new LevelGraphStorage(dir, turnCosts);
-        else if(turnCosts)
+        else if (turnCosts)
             graph = new GraphStorageTurnCosts(dir);
         else
             graph = new GraphStorage(dir);
