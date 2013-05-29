@@ -52,7 +52,7 @@ public abstract class OSMReaderHelper {
     private AcceptWay acceptWay;
     protected TLongArrayList wayNodes = new TLongArrayList(10);
     private Map<String, String> osmProperties = new HashMap<String, String>();
-    private long edgeOsmId;
+    private long osmWayID;
     private DouglasPeucker dpAlgo = new DouglasPeucker();
 
     public OSMReaderHelper(Graph g, long expectedNodes) {
@@ -89,11 +89,11 @@ public abstract class OSMReaderHelper {
     public void preProcess(InputStream osmXml) {
     }
 
-    public abstract boolean addNode(long osmId, double lat, double lon);
+    public abstract boolean addNode(long osmNodeID, double lat, double lon);
 
-    public abstract int addEdge(TLongList nodes, int flags, long edgeOsmid);
+    public abstract int addEdge(TLongList nodes, int flags, long osmWayID);
 
-    int addEdge(int fromIndex, int toIndex, PointList pointList, int flags, long osmid) {
+    int addEdge(int fromIndex, int toIndex, PointList pointList, int flags, long osmWayID) {
         if (fromIndex < 0 || toIndex < 0)
             throw new AssertionError("to or from index is invalid for this edge "
                     + fromIndex + "->" + toIndex + ", points:" + pointList);
@@ -123,7 +123,7 @@ public abstract class OSMReaderHelper {
 
         final EdgeIterator iter = g.edge(fromIndex, toIndex, towerNodeDistance, flags);
         if (g instanceof GraphStorageTurnCosts) {
-            storeEdgeOSMId(iter.edge(), osmid);
+            storeOSMWayID(iter.edge(), osmWayID);
         }
         if (nodes > 2) {
             dpAlgo.simplify(pillarNodes);
@@ -132,7 +132,7 @@ public abstract class OSMReaderHelper {
         return nodes;
     }
 
-    abstract void storeEdgeOSMId(int edgeId, long osmId);
+    abstract void storeOSMWayID(int edgeId, long osmWayID);
 
     String getInfo() {
         return "Found " + zeroCounter + " zero distances.";
@@ -183,7 +183,7 @@ public abstract class OSMReaderHelper {
         if (includeWay > 0) {
             int flags = acceptWay.encodeTags(includeWay, osmProperties);
             if (flags != 0)
-                addEdge(wayNodes, flags, edgeOsmId);
+                addEdge(wayNodes, flags, osmWayID);
         }
     }
 
@@ -197,7 +197,7 @@ public abstract class OSMReaderHelper {
         wayNodes.clear();
         osmProperties.clear();
         try {
-            edgeOsmId = Long.parseLong(sReader.getAttributeValue(null, "id"));
+            osmWayID = Long.parseLong(sReader.getAttributeValue(null, "id"));
         } catch (Exception e) {
             logger.error("could not read osm id of edge", e);
         }

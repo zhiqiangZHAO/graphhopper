@@ -53,8 +53,7 @@ public class OSMReader {
     private long locations;
     private long skippedLocations;
     private GraphStorage graphStorage;
-    private OSMReaderHelper helper;
-    private Boolean negativeIds;
+    private OSMReaderHelper helper;    
 
     public OSMReader(GraphStorage storage, long expectedNodes) {
         this.graphStorage = storage;
@@ -160,20 +159,13 @@ public class OSMReader {
     }
 
     private void processNode(XMLStreamReader sReader) throws XMLStreamException {
-        long osmId;
+        long osmNodeID;
         try {
-            osmId = Long.parseLong(sReader.getAttributeValue(null, "id"));
+            osmNodeID = Long.parseLong(sReader.getAttributeValue(null, "id"));
         } catch (Exception ex) {
-            logger.error("cannot get id from xml node:" + sReader.getAttributeValue(null, "id"), ex);
+            logger.error("cannot get node id from xml:" + sReader.getAttributeValue(null, "id"), ex);
             return;
         }
-
-        if (negativeIds == null)
-            negativeIds = osmId < 0;
-        else if (negativeIds != osmId < 0)
-            throw new IllegalStateException("You cannot mix positive and negative ids. See #42");
-        if (negativeIds)
-            osmId = -osmId;
 
         double lat = -1;
         double lon = -1;
@@ -181,13 +173,13 @@ public class OSMReader {
             lat = Double.parseDouble(sReader.getAttributeValue(null, "lat"));
             lon = Double.parseDouble(sReader.getAttributeValue(null, "lon"));
             if (isInBounds(lat, lon)) {
-                helper.addNode(osmId, lat, lon);
+                helper.addNode(osmNodeID, lat, lon);
                 locations++;
             } else {
                 skippedLocations++;
             }
         } catch (Exception ex) {
-            throw new RuntimeException("cannot handle lon/lat of node " + osmId + ": " + lat + "," + lon, ex);
+            throw new RuntimeException("cannot handle lon/lat of node " + osmNodeID + ": " + lat + "," + lon, ex);
         }
     }
 

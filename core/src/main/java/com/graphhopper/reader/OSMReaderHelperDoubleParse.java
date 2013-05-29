@@ -63,7 +63,7 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
     // tower node is <= -3
     private static final int TOWER_NODE = -2;
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private LongIntMap nodeOsmIdToIndexMap;
+    private LongIntMap osmNodeIDToIndexMap;
     /* we cannot hold a map for osmId->edgeId, because different edgeIds can have the same osmId
      instead we hold for each edgeId the corresponding OSM id and compare it later when we need it
      @see OSMRestrictionRelation#getAsEntries(...) */
@@ -97,53 +97,53 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
         // memory overhead due to open addressing and full rehash:
 //        nodeOsmIdToIndexMap = new BigLongIntMap(expectedNodes, EMPTY);
         // smaller memory overhead for bigger data sets because of avoiding a "rehash"
-        nodeOsmIdToIndexMap = new GHLongIntBTree(200);
+        osmNodeIDToIndexMap = new GHLongIntBTree(200);
     }
 
     @Override
-    public boolean addNode(long osmId, double lat, double lon) {
-        int nodeType = nodeOsmIdToIndexMap.get(osmId);
+    public boolean addNode(long osmNodeID, double lat, double lon) {
+        int nodeType = osmNodeIDToIndexMap.get(osmNodeID);
         if (nodeType == EMPTY)
             return false;
 
         if (nodeType == TOWER_NODE) {
-            addTowerNode(osmId, lat, lon);
+            addTowerNode(osmNodeID, lat, lon);
         } else if (nodeType == PILLAR_NODE) {
             int tmp = (pillarId + 1) * 4;
             pillarLats.ensureCapacity(tmp);
             pillarLats.setInt(pillarId, Helper.degreeToInt(lat));
             pillarLons.ensureCapacity(tmp);
             pillarLons.setInt(pillarId, Helper.degreeToInt(lon));
-            nodeOsmIdToIndexMap.put(osmId, pillarId + 3);
+            osmNodeIDToIndexMap.put(osmNodeID, pillarId + 3);
             pillarId++;
         }
         return true;
     }
 
-    private int addTowerNode(long osmId, double lat, double lon) {
+    private int addTowerNode(long osmNodeID, double lat, double lon) {
         g.setNode(towerId, lat, lon);
         int id = -(towerId + 3);
-        nodeOsmIdToIndexMap.put(osmId, id);
+        osmNodeIDToIndexMap.put(osmNodeID, id);
         towerId++;
         return id;
     }
 
     @Override
     public long foundNodes() {
-        return nodeOsmIdToIndexMap.size();
+        return osmNodeIDToIndexMap.size();
     }
 
     @Override
-    public int addEdge(TLongList osmIds, int flags, long edgeOsmid) {
-        PointList pointList = new PointList(osmIds.size());
+    public int addEdge(TLongList osmNodeIDs, int flags, long osmWayID) {
+        PointList pointList = new PointList(osmNodeIDs.size());
         int successfullyAdded = 0;
         int firstNode = -1;
-        int lastIndex = osmIds.size() - 1;
+        int lastIndex = osmNodeIDs.size() - 1;
         int lastInBoundsPillarNode = -1;
         try {
-            for (int i = 0; i < osmIds.size(); i++) {
-                long osmId = osmIds.get(i);
-                int tmpNode = nodeOsmIdToIndexMap.get(osmId);
+            for (int i = 0; i < osmNodeIDs.size(); i++) {
+                long osmId = osmNodeIDs.get(i);
+                int tmpNode = osmNodeIDToIndexMap.get(osmId);
                 if (tmpNode == EMPTY)
                     continue;
                 // skip osmIds with no associated pillar or tower id (e.g. !OSMReader.isBounds)
@@ -160,7 +160,7 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
                         tmpNode = -tmpNode - 3;
                         if (pointList.size() > 1 && firstNode >= 0) {
                             // TOWER node
-                            successfullyAdded += addEdge(firstNode, tmpNode, pointList, flags, edgeOsmid);
+                            successfullyAdded += addEdge(firstNode, tmpNode, pointList, flags, osmWayID);
                             pointList.clear();
                             pointList.add(g.getLatitude(tmpNode), g.getLongitude(tmpNode));
                         }
@@ -187,7 +187,7 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
                     tmpNode = -tmpNode - 3;
                     pointList.add(g.getLatitude(tmpNode), g.getLongitude(tmpNode));
                     if (firstNode >= 0) {
-                        successfullyAdded += addEdge(firstNode, tmpNode, pointList, flags, edgeOsmid);
+                        successfullyAdded += addEdge(firstNode, tmpNode, pointList, flags, osmWayID);
                         pointList.clear();
                         pointList.add(g.getLatitude(tmpNode), g.getLongitude(tmpNode));
                     }
@@ -195,28 +195,28 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
                 }
             }
         } catch (RuntimeException ex) {
-            logger.error("Couldn't properly add edge with osm ids:" + osmIds, ex);
+            logger.error("Couldn't properly add edge with osm ids:" + osmNodeIDs, ex);
         }
         return successfullyAdded;
     }
 
     @Override
-    void storeEdgeOSMId(int edgeId, long osmId) {
+    void storeOSMWayID(int edgeId, long osmWayID) {
         long ptr = (long) edgeId * 2;
-        osmIDsOfEdges.setInt(ptr, Helper.longToIntLeft(osmId));
-        osmIDsOfEdges.setInt(ptr + 1, Helper.longToIntRight(osmId));
+        osmIDsOfEdges.setInt(ptr, Helper.longToIntLeft(osmWayID));
+        osmIDsOfEdges.setInt(ptr + 1, Helper.longToIntRight(osmWayID));
     }
 
     /**
      * @return converted tower node
      */
-    private int handlePillarNode(int tmpNode, long osmId, PointList pointList, boolean convertToTowerNode) {
+    private int handlePillarNode(int tmpNode, long osmNodeID, PointList pointList, boolean convertToTowerNode) {
         tmpNode = tmpNode - 3;
         int intlat = pillarLats.getInt(tmpNode);
         int intlon = pillarLons.getInt(tmpNode);
         if (intlat == Integer.MAX_VALUE || intlon == Integer.MAX_VALUE)
             throw new RuntimeException("Conversation pillarNode to towerNode already happended!? "
-                    + "osmId:" + osmId + " pillarIndex:" + tmpNode);
+                    + "osmId:" + osmNodeID + " pillarIndex:" + tmpNode);
 
         double tmpLat = Helper.intToDegree(intlat);
         double tmpLon = Helper.intToDegree(intlon);
@@ -225,13 +225,14 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
             // convert pillarNode type to towerNode, make pillar values invalid
             pillarLons.setInt(tmpNode, Integer.MAX_VALUE);
             pillarLats.setInt(tmpNode, Integer.MAX_VALUE);
-            tmpNode = addTowerNode(osmId, tmpLat, tmpLon);
+            tmpNode = addTowerNode(osmNodeID, tmpLat, tmpLon);
         } else
             pointList.add(tmpLat, tmpLon);
 
         return tmpNode;
     }
 
+    @Override
     public void processRelations(XMLStreamReader sReader) throws XMLStreamException {
         if (g instanceof GraphTurnCosts) {
             OSMRestrictionRelation restriction = parseRestriction(sReader);
@@ -266,7 +267,7 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
                             restriction.toOsm = Long.valueOf(ref);
                         }
                     } else if ("node".equals(type) && ref != null && "via".equals(role)) {
-                        int tmpNode = nodeOsmIdToIndexMap.get(Long.parseLong(ref));
+                        int tmpNode = osmNodeIDToIndexMap.get(Long.parseLong(ref));
                         if (tmpNode < TOWER_NODE) {
                             tmpNode = -tmpNode - 3;
                             restriction.via = tmpNode;
@@ -292,9 +293,9 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
 
     private void printInfo(String str) {
         LoggerFactory.getLogger(getClass()).info("finished " + str + " processing."
-                + " nodes: " + g.nodes() + ", osmIdMap.size:" + nodeOsmIdToIndexMap.size()
-                + ", osmIdMap:" + nodeOsmIdToIndexMap.memoryUsage() + "MB"
-                + ", osmIdMap.toString:" + nodeOsmIdToIndexMap + " "
+                + " nodes: " + g.nodes() + ", osmIdMap.size:" + osmNodeIDToIndexMap.size()
+                + ", osmIdMap:" + osmNodeIDToIndexMap.memoryUsage() + "MB"
+                + ", osmIdMap.toString:" + osmNodeIDToIndexMap + " "
                 + Helper.memInfo());
     }
 
@@ -320,24 +321,24 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
     @Override
     void finishedReading() {
         // todo: is this necessary before removing it?
-        nodeOsmIdToIndexMap.optimize();
+        osmNodeIDToIndexMap.optimize();
         printRelationInfo();
         dir.remove(pillarLats);
         dir.remove(pillarLons);
         dir.remove(osmIDsOfEdges);
         pillarLons = null;
         pillarLats = null;
-        nodeOsmIdToIndexMap = null;
+        osmNodeIDToIndexMap = null;
     }
 
     private void setHasHighways(long osmId) {
-        int tmpIndex = nodeOsmIdToIndexMap.get(osmId);
+        int tmpIndex = osmNodeIDToIndexMap.get(osmId);
         if (tmpIndex == EMPTY) {
             // osmId is used exactly once
-            nodeOsmIdToIndexMap.put(osmId, PILLAR_NODE);
+            osmNodeIDToIndexMap.put(osmId, PILLAR_NODE);
         } else if (tmpIndex > EMPTY) {
             // mark node as tower node as it occured at least twice times
-            nodeOsmIdToIndexMap.put(osmId, TOWER_NODE);
+            osmNodeIDToIndexMap.put(osmId, TOWER_NODE);
         } else {
             // tmpIndex is already negative (already tower node)
         }
@@ -370,7 +371,7 @@ public class OSMReaderHelperDoubleParse extends OSMReaderHelper {
                     event = sReader.next(), tmpCounter++) {
                 if (tmpCounter % 50000000 == 0)
                     logger.info(nf(tmpCounter) + " (preprocess), osmIdMap:"
-                            + nf(nodeOsmIdToIndexMap.size()) + " (" + nodeOsmIdToIndexMap.memoryUsage() + "MB) "
+                            + nf(osmNodeIDToIndexMap.size()) + " (" + osmNodeIDToIndexMap.memoryUsage() + "MB) "
                             + Helper.memInfo());
 
                 switch (event) {
