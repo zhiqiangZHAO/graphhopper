@@ -175,8 +175,8 @@ public abstract class AbstractRoutingAlgorithmTester {
         int edge_5_8 = graph.edge(5, 8, 3000, footEncoder.flags(5, true) | carEncoder.flags(20, false)).edge();
         graph.edge(8, 5, 3000, footEncoder.flags(5, true));
 
-        int edge_2_8 = graph.edge(2, 8, 3000, footEncoder.flags(5, true) | carEncoder.flags(20, false)).edge();
-        graph.edge(8, 2, 3000, footEncoder.flags(5, true) | carEncoder.flags(20, false));
+        int edge_2_8 = graph.edge(2, 8, 4000, footEncoder.flags(5, true) | carEncoder.flags(20, false)).edge();
+        graph.edge(8, 2, 4000, footEncoder.flags(5, true) | carEncoder.flags(20, false));
 
         int edge_8_3 = graph.edge(8, 3, 1000, footEncoder.flags(5, true) | carEncoder.flags(20, false)).edge();
         graph.edge(3, 8, 1000, footEncoder.flags(5, true) | carEncoder.flags(20, false));
@@ -299,10 +299,10 @@ public abstract class AbstractRoutingAlgorithmTester {
 
 //    //TODO routing algorithms currently do not support P-turns (see http://www.easts.info/on-line/journal_06/1426.pdf) 
 //    @Test public void testCalcWithTurnRestrictions_PTurnInShortestPath() {
-//        Graph graph = createTestGraphPTurn(createTurnCostsGraph(), TurnCostEncoder.restriction());
-//        Path p1 = prepareGraph(graph, new ShortestCalc(), carEncoder).createAlgo().turnCosts(turnRestrictions).calcPath(3, 0);
+//        Graph graph = createTestGraphPTurn(createTurnCostsGraph());
+//        Path p1 = prepareGraph(graph, new FastestCalc(carEncoder), carEncoder).createAlgo().calcPath(3, 0);
 //        assertEquals(Helper.createTList(3, 5, 8, 9, 10, 5, 6, 7, 0), p1.calcNodes());
-//        assertEquals(p1.toString(), 23, p1.distance(), 1e-6);
+//        assertEquals(p1.toString(), 26, p1.distance(), 1e-6);
 //    }
     /*
      * 0---------1
@@ -321,34 +321,35 @@ public abstract class AbstractRoutingAlgorithmTester {
      * Shortest path from 3 to 0 should be 3,5,8,9,10,5,6,7,0 (which contains a p-turn)  
      * 
      */
-    protected Graph createTestGraphPTurn(GraphTurnCosts graph, int leftTurnCosts) {
+    protected Graph createTestGraphPTurn(GraphTurnCosts graph) {
         initNodes(graph, 11);
         //outer lanes
         graph.edge(0, 1, 10, true);
-        graph.edge(1, 2, 10, true);
+        graph.edge(1, 2, 20, true);
         graph.edge(2, 3, 5, true);
         graph.edge(3, 4, 5, true);
 
         //inner lanes
 
         graph.edge(5, 8, 3, true);
-        EdgeIterator edgeTo = graph.edge(5, 6, 3, true);
-        graph.edge(5, 10, 3, true);
+        int e56 = graph.edge(5, 6, 3, true).edge();
+        int e510 = graph.edge(5, 10, 3, true).edge();
         graph.edge(8, 9, 3, true);
         graph.edge(9, 10, 3, true);
         graph.edge(6, 7, 3, false);
         graph.edge(7, 8, 3, false);
 
         //connections
-        EdgeIterator edgeFrom = graph.edge(3, 5, 4, true);
+        int e35= graph.edge(3, 5, 4, true).edge();
         graph.edge(7, 0, 4, true);
-
+        
         //turn costs
-        graph.turnCosts(5, edgeFrom.edge(), edgeTo.edge(), leftTurnCosts);
+        graph.turnCosts(5, e35, e56, TurnCostEncoder.restriction());
+        graph.turnCosts(5, e35, e510, TurnCostEncoder.costs(5, 5));
 
         return graph;
     }
-
+    
     // see wikipedia-graph.svg !
     protected Graph createWikipediaTestGraph() {
         Graph graph = createGraph();

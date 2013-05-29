@@ -68,6 +68,7 @@ public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
     @Override
     public RoutingAlgorithm type(WeightCalculation wc) {
         this.weightCalc = wc;
+        turnCosts(new DefaultTurnCostsCalc(flagEncoder, weightCalc));
         return this;
     }
 
