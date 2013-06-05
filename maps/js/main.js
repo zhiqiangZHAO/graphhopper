@@ -100,10 +100,10 @@ $(document).ready(function(e) {
 
 function resolveCoords(fromStr, toStr) { 
     routingLayer.clearLayers();
-    if(fromStr != ghRequest.from.input)
+    if(fromStr !== ghRequest.from.input || !ghRequest.from.isResolved())
         ghRequest.from = new GHInput(fromStr);
     
-    if(toStr != ghRequest.to.input)
+    if(toStr !== ghRequest.to.input || !ghRequest.to.isResolved())
         ghRequest.to = new GHInput(toStr);
     
     if(ghRequest.from.lat && ghRequest.to.lat) {
@@ -260,7 +260,7 @@ function resolve(fromOrTo, point) {
     return getInfoFromLocation(point).done(function() {        
         $("#" + fromOrTo + "Input").val(point.input);
         if(point.resolvedText)
-            $("#" + fromOrTo + "Found").html(point.resolvedText);
+            $("#" + fromOrTo + "Found").html(point.resolvedText);        
         
         $("#" + fromOrTo + "Flag").show();
         $("#" + fromOrTo + "Indicator").hide();
@@ -573,12 +573,11 @@ function initForm() {
             var from = $("#fromInput").val()
             var to = $("#toInput").val();
             // do not resolve 'to'
-            if(to == "To") {
-                if(from != ghRequest.from.input)
-                    ghRequest.from = new GHInput(from);
+            if(to == "To") {                
+                ghRequest.from = new GHInput(from);
                 $.when(resolveFrom()).done(function() {                    
                     focus(ghRequest.from);
-                });
+                });                
             } else 
                 resolveCoords(from, to);
         }
