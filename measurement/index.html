@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Java Routing with GraphHopper</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link type="image/png" rel="icon" href="favicon.ico"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">      
+        <link href="css/style.css" media="screen" rel="stylesheet" type="text/css" />
+        <script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
+        <script type="text/javascript" src="../js/dygraph-combined.js"></script>
+        <script type="text/javascript">            
+            $(document).ready(function(e) {
+                var x = [1, 2, 3, 4];
+                var y = [1, 7, 3, 4];
+                $.getJSON("/public/measurement/tmp.json", function(data) {
+                    console.log( "success" );
+                    alert(data);
+                });
+                handleGraphs($("#main"), y, "preparationTime", x, "preparation time", "date");
+            });
+            
+            
+            // dateHisto is an array with an object (time,count) entry
+            function handleGraphs(mydiv, dateHisto, id, x, name, xLabel) {
+                if(!name)
+                    name = id;
+                if(!xLabel)
+                    xLabel = "x";
+
+                if(dateHisto.length < 1)
+                    return;
+
+                var values = [];
+                $.each(dateHisto, function(index, hit) {
+                    values.push([x[index], hit]);
+                });
+
+                var chartDivId = id + '-chart';
+                var wStr = 'width:350px;';
+                var chartContainer = $('<div id="'+chartDivId+'-box" class="chart-box" style="'+
+                    wStr+'"><div class="chart-header">' + name +'</div></div>');
+                var chartDiv = $('<div id="'+chartDivId+'"/>').attr('style', wStr+' height:200px');
+                chartContainer.append(chartDiv);
+                mydiv.append(chartContainer);
+                // we need getElementById here ...
+                var options = {
+                    labelsDivWidth: 380,
+                    labelsDivStyles: {
+                        'backgroundColor': 'transparent'
+                    },
+                    labelsSeparateLines: true,
+                    labels: ['Date', xLabel],
+                    xlabel: xLabel,
+                    colors:['#2da8b0']
+                };
+
+                new Dygraph(document.getElementById(chartDivId), values, options);
+            }
+        </script>
+    </head>
+    <body>
+        <div id="main">            
+        </div>        
+    </body>
+</html>
