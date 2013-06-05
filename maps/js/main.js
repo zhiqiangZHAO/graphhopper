@@ -566,8 +566,9 @@ function initForm() {
         e.preventDefault();
     });
     
+    // use keyup instead keypress otherwise the val() calls could contain partial values
     // if FROM will be submitted
-    $('#fromInput').keypress(function(e) {
+    $('#fromInput').keyup(function(e) {
         if(e.which == 13) {
             var from = $("#fromInput").val()
             var to = $("#toInput").val();
@@ -584,7 +585,7 @@ function initForm() {
     });
     
     // if TO will be submitted
-    $('#toInput').keypress(function(e) {
+    $('#toInput').keyup(function(e) {
         if(e.which == 13) {
             var from = $("#fromInput").val();            
             if(from == "From")  {
