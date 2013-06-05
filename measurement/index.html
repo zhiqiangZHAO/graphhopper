@@ -4,42 +4,117 @@
         <title>Java Routing with GraphHopper</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link type="image/png" rel="icon" href="favicon.ico"/>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">      
-        <link href="css/style.css" media="screen" rel="stylesheet" type="text/css" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
         <script type="text/javascript" src="../js/dygraph-combined.js"></script>
         <script type="text/javascript">            
             $(document).ready(function(e) {
-                var x = [1, 2, 3, 4];
-                var y = [1, 7, 3, 4];
-                $.getJSON("/public/measurement/tmp.json", function(data) {
-                    console.log( "success" );
-                    alert(data);
-                });
-                handleGraphs($("#main"), y, "preparationTime", x, "preparation time", "date");
+                // do not display 'nicht wohlgeformt' http://stackoverflow.com/q/335409/194609
+                $.ajaxSetup({'beforeSend': function(xhr){
+                        if (xhr.overrideMimeType)
+                            xhr.overrideMimeType("text/plain");
+                    }});
+                var urls = [];
+                $.ajax({
+                    type: "GET",
+                    url: "/public/measurement/",
+                    dataType: "text",
+                    success: function(allText) {
+                        var allTextLines = allText.split(/"/);                        
+                        var key = '.properties';
+                        for (var j=0; j<allTextLines.length; j++) {
+                            var line = allTextLines[j];
+                            var index = line.indexOf(key);
+                            if(index > 0 && index == line.length - key.length) {
+                                urls.push(line);
+                            }
+                        }
+                        console.log(urls);
+                        
+                        plot(urls);
+                    }
+                });               
             });
             
+            function plot(urls) {            
+                var res = [];
+                var dates = [];
+                for(var i = 0; i < urls.length; i++) {
+                    var myurl = urls[i];
+                    var index1 = myurl.indexOf("measurement");
+                    var index2 = myurl.indexOf(".properties");
+                    if(index1 >= 0 && index2 >= 0) {
+                        var dateStr = myurl.substring(index1+11, index2);
+                        var parts = dateStr.match(/(\d+)/g);
+                        dates.push(new Date(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5]));
+                    } else {
+                        dates.push(new Date(0));
+                    }
+                    $.ajax({
+                        type: "GET",
+                        url: myurl,
+                        dataType: "text",
+                        success: function(data) {
+                            var map = processProperties(data);
+                            res.push(map);
+                        },
+                        async: false
+                    });
+                }
+                
+                console.log(dates);
+                var plot = "graph";
+                var values = [];
+                var labels = ["date"];
+                for(var i = 0; i < res.length; i++) {
+                    var map = res[i];                    
+                    var mainEntry = map[plot];
+                    var arr = [dates[i]];
+                    values.push(arr);
+                    for(var entry in mainEntry) {
+                        arr.push(mainEntry[entry]);
+                        if(i == 0)
+                            labels.push(entry);
+                    }
+                }
+                handleGraphs($("#main"), values, "preparationTime", "preparation time", labels);                
+            }
+            
+            function processProperties(allText) {
+                var allTextLines = allText.split(/\r\n|\n/);
+                var result = {};
+                for (var j=0; j<allTextLines.length; j++) {
+                    var line = allTextLines[j];                    
+                    var index = line.indexOf('=');
+                    if(index > 0) {
+                        var key = line.substr(0, index);
+                        var value = line.substr(index + 1);
+                        index = key.indexOf(".");
+                        if(index > 0) {
+                            var mainKey = key.substr(0, index);
+                            key = key.substr(index + 1);
+                            
+                            var mainEntry = result[mainKey];
+                            if(!mainEntry)
+                                result[mainKey] = mainEntry = {};
+                            
+                            mainEntry[key] = value;
+                        }
+                    }
+                }
+                return result;
+            }
             
             // dateHisto is an array with an object (time,count) entry
-            function handleGraphs(mydiv, dateHisto, id, x, name, xLabel) {
+            function handleGraphs(mydiv, values, id, name, labels) {
                 if(!name)
                     name = id;
-                if(!xLabel)
-                    xLabel = "x";
-
-                if(dateHisto.length < 1)
-                    return;
-
-                var values = [];
-                $.each(dateHisto, function(index, hit) {
-                    values.push([x[index], hit]);
-                });
 
                 var chartDivId = id + '-chart';
-                var wStr = 'width:350px;';
+                var wStr = 'width:450px;';
                 var chartContainer = $('<div id="'+chartDivId+'-box" class="chart-box" style="'+
                     wStr+'"><div class="chart-header">' + name +'</div></div>');
-                var chartDiv = $('<div id="'+chartDivId+'"/>').attr('style', wStr+' height:200px');
+                var chartDiv = $('<div id="'+chartDivId+'"/>').attr('style', wStr+' height:400px');
                 chartContainer.append(chartDiv);
                 mydiv.append(chartContainer);
                 // we need getElementById here ...
@@ -49,8 +124,8 @@
                         'backgroundColor': 'transparent'
                     },
                     labelsSeparateLines: true,
-                    labels: ['Date', xLabel],
-                    xlabel: xLabel,
+                     labels: labels,
+//                    xlabel: xLabels,
                     colors:['#2da8b0']
                 };
 
