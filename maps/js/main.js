@@ -19,18 +19,17 @@ var iconFrom = L.icon({
 });
 
 var bounds = {};
-var ghRequest = new GHRequest();
-ghRequest.algoVehicle = "car";
-ghRequest.algoType = "shortest";
-
 LOCAL=false;
 var host;
 if(LOCAL)
     host = "http://localhost:8989";
 else {
     // cross origin:
-    host = "http://217.92.216.224:8080";
+    host = "http://graphhopper.gpsies.com";
 }
+var ghRequest = new GHRequest(host);
+ghRequest.algoType = "fastest";
+//ghRequest.algorithm = "dijkstra";
 
 $(document).ready(function(e) {
     // I'm really angry about you history.js :/ (triggering double events) ... but let us just use the url rewriting thing
@@ -43,20 +42,59 @@ $(document).ready(function(e) {
     //        });
     //    }
     initForm();
-    requestBounds().done(function(){
+    ghRequest.getInfo(function(json) {
+        // OK bounds            
+        var tmp = json.bbox;              
+        bounds.initialized = true;
+        bounds.minLon = tmp[0];
+        bounds.minLat = tmp[1];
+        bounds.maxLon = tmp[2];
+        bounds.maxLat = tmp[3];
+        var vehiclesDiv = $("#vehicles");
+        function createButton(text) {
+            var button = $("<button/>")            
+            button.attr('id', text);
+            button.html(text.charAt(0) + text.substr(1).toLowerCase());
+            button.click(function() {
+                ghRequest.vehicle = text;
+                resolveFrom();
+                resolveTo();
+                routeLatLng(ghRequest);
+            });
+            return button;
+        }
         
-        var params = parseUrlWithHisto()        
-        if(params.minPathPrecision)
-            ghRequest.minPathPrecision = params.minPathPrecision;
-        var fromAndTo = params.from && params.to;
+        if(json.supportedVehicles) {
+            var vehicles = json.supportedVehicles.split(",");
+            if(vehicles.length > 1)
+                for(var i = 0; i < vehicles.length; i++) {
+                    vehiclesDiv.append(createButton(vehicles[i]));
+                }
+        }
+    }, function(err) {
+        // error bounds
+        console.log(err);
+        $('#error').html('GraphHopper API offline? ' + host);
+    }).done(function() {
+        var params = parseUrlWithHisto();
+        ghRequest.init(params);
+        initMap();
+        var fromAndTo = params.from && params.to;    
         var routeNow = params.point && params.point.length == 2 || fromAndTo;
-        initMap(routeNow);
         if(routeNow) {
             if(fromAndTo)
                 resolveCoords(params.from, params.to);
             else
                 resolveCoords(params.point[0], params.point[1]);                
         }
+    }).error(function() {
+        bounds = {
+            "minLon" : -180, 
+            "minLat" : -90, 
+            "maxLon" : 180, 
+            "maxLat" : 90
+        };
+        initMap();
     });
 });
 
@@ -81,36 +119,63 @@ function resolveCoords(fromStr, toStr) {
     }
 }
 
-function initMap(routeNow) {
+function initMap() {
     var mapDiv = $("#map");
-    var minSize = Math.min($(window).width(), $(window).height()) * 0.9;
-    mapDiv.width(minSize).height(minSize);
-
+    var width = $(window).width() - 260;
+    if(width < 100)
+        width = $(window).width() - 5;
+    var height = $(window).height() - 5;
+    mapDiv.width(width).height(height);
     console.log("init map at " + JSON.stringify(bounds));
-    map = L.map('map');
     
-    if(!routeNow)
-        map.fitBounds(new L.LatLngBounds(new L.LatLng(bounds.minLat, bounds.minLon), 
-            new L.LatLng(bounds.maxLat, bounds.maxLon)));
-    
-    // cloudmade provider:
-    //    L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png', {
-    //        key: '43b079df806c4e03b102055c4e1a8ba8',
-    //        styleId: 997
-    //    }).addTo(map);
-
-    // mapquest provider:
-    var mapquestUrl = 'http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
-    subDomains = ['otile1','otile2','otile3','otile4'],
-    mapquestAttrib = 'Data &copy; <a href="http://www.openstreetmap.org/">OpenStreetMap</a>,'
-    +'<a href="http://open.mapquest.co.uk">MapQuest</a>. '
-    +'Geocoder: <a href="http://wiki.openstreetmap.org/wiki/Nominatim">Nominatim</a>. '
+    // mapquest provider
+    var moreAttr = 'Data &copy; <a href="http://www.openstreetmap.org/">OSM</a>,'
     + 'JS: <a href="http://leafletjs.com/">Leaflet</a>';
+    var mapquest = L.tileLayer('http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
+        attribution: '<a href="http://open.mapquest.co.uk">MapQuest</a>,' + moreAttr, 
+        subdomains: ['otile1','otile2','otile3','otile4']
+    });
+    
+    var wrk = L.tileLayer('http://{s}.wanderreitkarte.de/topo/{z}/{x}/{y}.png', {
+        attribution: '<a href="http://wanderreitkarte.de">WanderReitKarte</a>,' + moreAttr, 
+        subdomains: ['topo4','topo','topo2','topo3']
+    });
+    
+    var cloudmade = L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png', {
+        attribution: '<a href="http://cloudmade.com">Cloudmade</a>,' + moreAttr,
+        key: '43b079df806c4e03b102055c4e1a8ba8',
+        styleId: 997
+    });
+    
+    var osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: moreAttr
+    });
+    
+    var osmde = L.tileLayer('http://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
+        attribution: moreAttr
+    });
+    
+    // default
+    map = L.map('map' , {
+        layers: [mapquest]
+    });
+    
+    var baseMaps = {
+        "MapQuest": mapquest,
+        "WanderReitKarte": wrk,
+        "Cloudmade": cloudmade,
+        "OpenStreetMap": osm,
+        "OpenStreetMap.de": osmde
+    };
+    // no layers for small browser windows
+    if($(window).width() > 400)
+        L.control.layers(baseMaps).addTo(map);
+
+    map.fitBounds(new L.LatLngBounds(new L.LatLng(bounds.minLat, bounds.minLon), 
+        new L.LatLng(bounds.maxLat, bounds.maxLon)));
+    
     map.attributionControl.setPrefix('');
-    L.tileLayer(mapquestUrl, {
-        attribution: mapquestAttrib, 
-        subdomains: subDomains
-    }).addTo(map);
+
     var myStyle = {
         "color": 'black',
         "weight": 2,
@@ -128,25 +193,28 @@ function initMap(routeNow) {
             [bounds.minLon, bounds.minLat]]
         }
     };
-    L.geoJson(geoJson, {
-        "style": myStyle
-    }).addTo(map); 
+    
+    if(bounds.initialized)
+        L.geoJson(geoJson, {
+            "style": myStyle
+        }).addTo(map); 
     
     routingLayer = L.geoJson().addTo(map);    
     clickToRoute = true;
-    function onMapClick(e) {        
+    function onMapClick(e) {       
+        var latlng = e.latlng;
         if(clickToRoute) {
             // set start point
             routingLayer.clearLayers();
             clickToRoute = false;
-            ghRequest.from.setCoord(e.latlng.lat, e.latlng.lng);
+            ghRequest.from.setCoord(latlng.lat, latlng.lng);
             resolveFrom();            
         } else {
             // set end point
-            ghRequest.to.setCoord(e.latlng.lat, e.latlng.lng);
+            ghRequest.to.setCoord(latlng.lat, latlng.lng);
             resolveTo();            
             // do not wait for resolving
-            routeLatLng(ghRequest);            
+            routeLatLng(ghRequest);
         }
     }
 
@@ -155,9 +223,24 @@ function initMap(routeNow) {
 
 function setFlag(latlng, isFrom) {
     if(latlng.lat) {
-        L.marker([latlng.lat, latlng.lng], {
-            icon: (isFrom? iconFrom : iconTo)
+        var marker = L.marker([latlng.lat, latlng.lng], {
+            icon: (isFrom? iconFrom : iconTo),
+            draggable: true            
         }).addTo(routingLayer).bindPopup(isFrom? "Start" : "End");                  
+        marker.on('dragend', function(e) {
+            routingLayer.clearLayers();
+            // inconsistent leaflet API: event.target.getLatLng vs. mouseEvent.latlng?
+            var latlng = e.target.getLatLng();
+            if(isFrom) {
+                ghRequest.from.setCoord(latlng.lat, latlng.lng);
+                resolveFrom();                                
+            } else {
+                ghRequest.to.setCoord(latlng.lat, latlng.lng);
+                resolveTo();
+            }
+            // do not wait for resolving
+            routeLatLng(ghRequest);
+        });
     } 
 }
 
@@ -257,43 +340,54 @@ function getInfoFromLocation(locCoord) {
     }
 }
 
+function createCallback(errorFallback) {
+    return function(err) {
+        if (err.statusText && err.statusText != "OK")
+            alert(err.statusText);
+        else
+            alert(errorFallback);
+
+        console.log(errorFallback + " " + JSON.stringify(err));
+    };
+}
+
 function routeLatLng(request) {    
     clickToRoute = true;
     $("#info").empty();
     $("#info").show();
-    var distDiv = $("<div/>");
-    $("#info").append(distDiv);
+    var descriptionDiv = $("<div/>");
+    $("#info").append(descriptionDiv);
     
     var from = request.from.toString();
     var to = request.to.toString();
     if(!from || !to) {
-        distDiv.html('<small>routing not possible. location(s) not found in the area</small>');
+        descriptionDiv.html('<small>routing not possible. location(s) not found in the area</small>');
         return;
     }
     
-    routingLayer.clearLayers();        
-        
-    // approximative fit
-    //    var minLat = Math.min(request.from.lat, request.to.lat);
-    //    var minLon = Math.min(request.from.lng, request.to.lng);
-    //    var maxLat = Math.max(request.from.lat, request.to.lat);
-    //    var maxLon = Math.max(request.from.lng, request.to.lng);
-    //    var tmpB = new L.LatLngBounds(new L.LatLng(minLat, minLon), new L.LatLng(maxLat, maxLon));
-    //    map.fitBounds(tmpB);
-    
+    routingLayer.clearLayers();    
     setFlag(request.from, true);
     setFlag(request.to, false);    
     
+    $("#vehicles button").removeClass();
+    $("button#"+request.vehicle).addClass("bold");
+
     var urlForAPI = "point=" + from + "&point=" + to;
-    var urlForHistory = "?point=" + request.from.input + "&point=" + request.to.input;
+    var urlForHistory = "?point=" + request.from.input + "&point=" + request.to.input + "&vehicle=" + request.vehicle;
     if(request.minPathPrecision != 1) {
         urlForHistory += "&minPathPrecision=" + request.minPathPrecision;
         urlForAPI += "&minPathPrecision=" + request.minPathPrecision;
     }
     History.pushState(request, browserTitle, urlForHistory);
-    request.doRequest(host, urlForAPI, function (json) {        
-        if(json.info.routeNotFound) {
-            distDiv.html('route not found');            
+    request.doRequest(urlForAPI, function (json) {        
+        if(json.info.errors) {
+            var tmpErrors = json.info.errors;
+            for (var i = 0; i < tmpErrors.length; i++) {
+                descriptionDiv.append("<div class='error'>" + tmpErrors[i].message + "</div>");
+            }
+            return;
+        } else if(json.info.routeNotFound) {
+            descriptionDiv.html('route not found');
             return;
         }
         
@@ -304,40 +398,69 @@ function routeLatLng(request) {
         };
         
         routingLayer.addData(geojsonFeature);        
+        if(json.route.bbox) {
+            var minLon = json.route.bbox[0];
+            var minLat = json.route.bbox[1];
+            var maxLon = json.route.bbox[2];
+            var maxLat = json.route.bbox[3];
+            var tmpB = new L.LatLngBounds(new L.LatLng(minLat, minLon), new L.LatLng(maxLat, maxLon));
+            map.fitBounds(tmpB);
+        }
         
-        var minLon = json.route.bbox[0];
-        var minLat = json.route.bbox[1];
-        var maxLon = json.route.bbox[2];
-        var maxLat = json.route.bbox[3];
-        var tmpB = new L.LatLngBounds(new L.LatLng(minLat, minLon), new L.LatLng(maxLat, maxLon));
-        map.fitBounds(tmpB);
-        
-        var tmpTime = round(json.route.time / 60, 1000);
-        if(tmpTime > 60) 
-            tmpTime = floor(tmpTime / 60, 1) + "h " + round(tmpTime % 60, 1) + "min";
-        else
+        var tmpTime = round(json.route.time / 60, 1000);        
+        if(tmpTime > 60) {
+            if(tmpTime / 60 > 24)
+                tmpTime = floor(tmpTime / 60 / 24, 1) + "d " + round(((tmpTime / 60) % 24), 1) + "h";
+            else
+                tmpTime = floor(tmpTime / 60, 1) + "h " + round(tmpTime % 60, 1) + "min";
+        } else
             tmpTime = round(tmpTime % 60, 1) + "min";
-        distDiv.html("distance: " + round(json.route.distance, 100) + "km<br/>"
-            +"time: " + tmpTime + "<br/>"
-            +"took: " + round(json.info.took, 1000) + "s<br/>"
-            +"points: " + json.route.data.coordinates.length); 
-        $("#info").append(distDiv);
-        var osrmLink = $("<a>OSRM</a> ");
-        osrmLink.attr("href", "http://map.project-osrm.org/?loc=" + from + "&loc=" + to);
-        $("#info").append("<span>Compare with: </span>");
-        $("#info").append(osrmLink);
+        var dist = round(json.route.distance, 100);
+        if(dist > 100)
+            dist = round(dist, 1);
+        descriptionDiv.html("<b>"+ dist + "km</b> will take " + tmpTime);        
+
+        var hiddenDiv = $("<div/>");
+        hiddenDiv.hide();
+        
+        var toggly = $("<button style='font-size:9px; float: right; padding: 0px'>more</button>");
+        toggly.click(function() {
+            hiddenDiv.toggle();
+        })
+        $("#info").prepend(toggly);
+        hiddenDiv.html("took: " + round(json.info.took, 1000) + "s, "
+            +"points: " + json.route.data.coordinates.length);
+        $("#info").append(hiddenDiv);
+        
+        var startOsmLink = $("<a>start</a>");
+        startOsmLink.attr("href", "http://www.openstreetmap.org/?zoom=14&mlat="+request.from.lat+"&mlon="+request.from.lng);
+        var endOsmLink = $("<a>end</a>");
+        endOsmLink.attr("href", "http://www.openstreetmap.org/?zoom=14&mlat="+request.to.lat+"&mlon="+request.to.lng);
+        hiddenDiv.append("<br/><span>View on OSM: </span>").append(startOsmLink).append(endOsmLink);
+        
+        var osrmLink = $("<a>OSRM</a>");
+        osrmLink.attr("href", "http://map.project-osrm.org/?loc=" + from + "&loc=" + to);        
+        hiddenDiv.append("<br/><span>Compare with: </span>");
+        hiddenDiv.append(osrmLink);
         var googleLink = $("<a>Google</a> ");
         var addToGoogle = "";
         var addToBing = "";
-        if(request.algoVehicle == "foot") {
+        if(request.vehicle == "foot") {
             addToGoogle = "&dirflg=w";
             addToBing = "&mode=W";
+        } else if(request.vehicle == "bike") {
+            addToGoogle = "&dirflg=b";
+        // ? addToBing = "&mode=B";
         }
         googleLink.attr("href", "http://maps.google.com/?q=from:" + from + "+to:" + to + addToGoogle);
-        $("#info").append(googleLink);
+        hiddenDiv.append(googleLink);
         var bingLink = $("<a>Bing</a> ");        
         bingLink.attr("href", "http://www.bing.com/maps/default.aspx?rtp=adr." + from + "~adr." + to + addToBing);
-        $("#info").append(bingLink);
+        hiddenDiv.append(bingLink);
+        
+        if(host.indexOf("gpsies.com") > 0)
+            hiddenDiv.append("<br/><br/>The routing API is hosted by <a href='http://gpsies.com'>Gpsies.com</a>");            
+        
         $('.defaulting').each(function(index, element) {
             $(element).css("color", "black");
         });
@@ -382,29 +505,6 @@ function decodePath(encoded, geoJson) {
     return array;
 }
 
-
-function requestBounds() {
-    var url = host + "/api/info?type=jsonp";
-    console.log(url);    
-    return $.ajax({
-        "url": url,
-        "success": function(json) {
-            var tmp = json.bbox;  
-            bounds.initialized = true;
-            bounds.minLon = tmp[0];
-            bounds.minLat = tmp[1];
-            bounds.maxLon = tmp[2];
-            bounds.maxLat = tmp[3];
-        },
-        "error" : function(e) {
-            $('#warn').html('GraphHopper API offline? ' + host);
-        },
-        "timeout" : 3000,
-        "type" : "GET",
-        "dataType": 'jsonp'
-    });
-}
-
 function getCenter(bounds) {    
     var center = {
         lat : 0, 
@@ -433,7 +533,7 @@ function parseUrl(query) {
         query = query.substring(index + 1);
     var res = {};        
     var vars = query.split("&");
-    for (var i=0;i < vars.length;i++) {
+    for (var i = 0; i < vars.length;i++) {
         var indexPos = vars[i].indexOf("=");
         if(indexPos < 0) 
             continue;

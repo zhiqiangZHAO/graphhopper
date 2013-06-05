@@ -1,18 +1,35 @@
-GHRequest = function(str) {
+GHRequest = function(host) {
     this.minPathPrecision = 1;
-    if (!str)
-        str = "";
-    this.from = new GHInput(str);
-    this.to = new GHInput(str);
-    this.algoType = "shortest";
-    this.algoVehicle = "car";
+    this.host = host;
+    this.from = new GHInput("");
+    this.to = new GHInput("");    
+    this.vehicle = "car";
 };
 
-GHRequest.prototype.doRequest = function(host, demoUrl, callback) {
+GHRequest.prototype.init = function(params) {    
+    if(params.minPathPrecision)
+        this.minPathPrecision = params.minPathPrecision;    
+    
+    if(params.vehicle)
+        this.vehicle = params.vehicle;
+    if(params.algoType)
+        this.algoType = params.algoType;    
+    if(params.algorithm)
+        this.algorithm = params.algorithm;
+}
+
+GHRequest.prototype.doRequest = function(demoUrl, callback) {
     var encodedPolyline = true;
     var debug = false;
-    var url = host + "/api/route?" + demoUrl + "&type=jsonp";
-    url += "&algoVehicle=" + this.algoVehicle + "&algoType=" + this.algoType;
+    var url = this.host + "/api/route?" + demoUrl + "&type=jsonp";
+    // car
+    url += "&vehicle=" + this.vehicle;
+    // fastest or shortest
+    if(this.algoType)
+        url += "&algoType=" + this.algoType;
+    // dijkstra, dijkstrabi, astar, astarbi
+    if(this.algorithm)
+        url += "&algorithm=" + this.algorithm;
     if (encodedPolyline)
         url += "&encodedPolyline=true";
     if (debug)
@@ -21,7 +38,7 @@ GHRequest.prototype.doRequest = function(host, demoUrl, callback) {
         "url": url,
         "success": function(json) {
             // convert encoded polyline stuff to normal json
-            if (encodedPolyline) {
+            if (encodedPolyline && json.route) {
                 var tmpArray = decodePath(json.route.coordinates, true);
                 json.route.coordinates = null;
                 json.route.data = {
@@ -31,21 +48,39 @@ GHRequest.prototype.doRequest = function(host, demoUrl, callback) {
             }
             callback(json);
         },
-        "error": createCallback("Error while request"),
+        "error": function(err) {
+            var msg = "API did not response! ";
+            if (err && err.statusText && err.statusText != "OK")
+                msg += err.statusText;
+            
+            console.log(msg + " " + JSON.stringify(err));            
+            var details = "Error for " + url;
+            var json = {
+                "info" : {
+                    "errors" : {
+                        "message" : msg, 
+                        "details" : details
+                    }
+                }
+            };
+            callback(json);
+        },
         "type": "GET",
         "dataType": "jsonp"
     });
 };
 
-function createCallback(errorFallback) {
-    return function(err) {
-        if (err.statusText && err.statusText != "OK")
-            alert(err.statusText);
-        else
-            alert(errorFallback);
-
-        console.log(errorFallback + " " + JSON.stringify(err));
-    };
+GHRequest.prototype.getInfo = function(success, error) {
+    var url = this.host + "/api/info?type=jsonp";
+    console.log(url);    
+    return $.ajax({
+        "url": url,
+        "success": success,
+        "error" : error,
+        "timeout" : 3000,
+        "type" : "GET",
+        "dataType": 'jsonp'
+    });
 }
 
 GHInput = function(str) {

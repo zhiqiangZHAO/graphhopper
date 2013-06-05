@@ -15,14 +15,15 @@
         <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>        
         <script defer type="text/javascript" src="js/jquery.history.js"></script>
         <script type="text/javascript" src="js/ghrequest.js?v=1"></script>
-        <script type="text/javascript" src="js/main.js?v=9"></script>
+        <script type="text/javascript" src="js/main.js?v=10"></script>
         <style>
             body {                
                 color: #000;
                 font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;    
                 line-height: 1.4;    
                 color: #111111;
-                background-color: #EEEEEE
+                background-color: #EEEEEE;
+                    margin: 0;
             }
             #map { 
                 width: 800px;
@@ -57,13 +58,16 @@
                 width: 200px;
             }
             #fromFound, #toFound {
-                font-size: 12px;
+                font-size: 10px;
                 color: gray;
                 padding-top: 4px;
                 padding-bottom: 5px;
             }
-            #warn {
+            .warn {
                 color: orange;
+            }
+            .error {
+                color: red;
             }
             #moreattribution a {
                 text-decoration: none;
@@ -91,18 +95,37 @@
             .small_text {
                 font-size: small;
             }
+            #options {
+                padding-bottom: 10px;
+                padding-left: 20px;
+            }
+            .bold {
+                font-weight: bold;
+            }
+            #header_img {
+                padding-top: 15px;
+                padding-bottom: 15px;
+            }
         </style>
     </head>
     <body>
-        <h1><a class="no_link" href="http://graphhopper.com">
-                <img alt="GraphHopper" src="http://graphhopper.com/img/header.png"/> 
-                <span style="font-size: small; color: gray">Web Demo</span></a></h1>
         <div id="input">
-            <form id="locationform" action="javascript:return false;">
+            <div id="header_img">
+                <a class="no_link" href="http://graphhopper.com">
+                    <img alt="GraphHopper" width="200px" src="http://graphhopper.com/img/header.png"/>                    
+                </a>
+            </div>
+            <div id="options">
+                <span id="vehicles">
+
+                </span>
+                <input id="hiddenButton" type="submit" value="Search">
+            </div>
+            <form id="locationform" action="javascript:return false;">                
                 <div id="fromDiv">
                     <img id="fromIndicator" class="hidden" src="img/indicator.gif"/>
                     <img id="fromFlag" src="img/marker-from.png"/>
-                    <input id="fromInput" class="defaulting" type="text" name="from"  value="From" defaultValue="From"/>                
+                    <input id="fromInput" class="defaulting" type="text" name="from"  value="From" defaultValue="From"/>
                     <div id="fromFound"></div>
                 </div>
                 <div id="toDiv">
@@ -111,18 +134,13 @@
                     <input id="toInput" class="defaulting" type="text" name="to" value="To" defaultValue="To"/>
                     <div id="toFound"></div>
                 </div>
-                <input id="hiddenButton" type="submit">
             </form>            
             <div class="small_text" id="info">                
             </div>
-            <div id="warn">
+            <div id="error" class="error">
             </div>
         </div>
         <div id="map">
-        </div>
-        <div id="moreattribution">
-            <a href="http://graphhopper.com">graphhopper.com</a> is hosted by <a href="https://github.com">GitHub</a>
-            and the routing API is hosted by <a href="http://www.pannous.info">Pannous</a>
         </div>
         <!-- Piwik -->
         <script type="text/javascript">
