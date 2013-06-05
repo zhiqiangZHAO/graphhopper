@@ -15,9 +15,11 @@
                             xhr.overrideMimeType("text/plain");
                     }});
                 var urls = [];
+                var MAIN_URL = "/public/measurement/";
+//                var MAIN_URL = "/js/";
                 $.ajax({
                     type: "GET",
-                    url: "/public/measurement/",
+                    url: MAIN_URL,
                     dataType: "text",
                     success: function(allText) {
                         var allTextLines = allText.split(/"/);                        
@@ -26,7 +28,7 @@
                             var line = allTextLines[j];
                             var index = line.indexOf(key);
                             if(index > 0 && index == line.length - key.length) {
-                                urls.push(line);
+                                urls.push(MAIN_URL + line);
                             }
                         }
                         console.log(urls);
@@ -63,21 +65,25 @@
                 }
                 
                 console.log(dates);
-                var plot = "graph";
-                var values = [];
-                var labels = ["date"];
-                for(var i = 0; i < res.length; i++) {
-                    var map = res[i];                    
-                    var mainEntry = map[plot];
-                    var arr = [dates[i]];
-                    values.push(arr);
-                    for(var entry in mainEntry) {
-                        arr.push(mainEntry[entry]);
-                        if(i == 0)
-                            labels.push(entry);
+                var graphKeys = ["graph", "routing", "prepare", "location2id", "measurement"];
+                
+                for(var graphIndex in graphKeys) {
+                    var values = [];
+                    var labels = ["date"];
+                    var graphKey = graphKeys[graphIndex];
+                    for(var i = 0; i < res.length; i++) {
+                        var map = res[i];                    
+                        var mainEntry = map[graphKey];
+                        var arr = [dates[i]];                        
+                        for(var entry in mainEntry) {                           
+                            arr.push(mainEntry[entry]);
+                            if(i == 0)
+                                labels.push(entry);
+                        }
+                        values.push(arr);
                     }
+                    handleGraphs($("#main"), values, graphKey, graphKey, labels);
                 }
-                handleGraphs($("#main"), values, "preparationTime", "preparation time", labels);                
             }
             
             function processProperties(allText) {
@@ -124,8 +130,8 @@
                         'backgroundColor': 'transparent'
                     },
                     labelsSeparateLines: true,
-                     labels: labels,
-//                    xlabel: xLabels,
+                    labels: labels,
+                    //                    xlabel: xLabels,
                     colors:['#2da8b0']
                 };
 
