@@ -5,9 +5,30 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link type="image/png" rel="icon" href="favicon.ico"/>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <style>
+            body {                
+                color: #000;
+                font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;    
+                line-height: 1.4;    
+                color: #111111;
+                background-color: #EEEEEE;
+                margin: 0;
+            }
+            #main {
+
+            }
+            #tabs {                
+                width: 500px;
+                margin: 0 auto;
+            }
+        </style>
+
         <script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
         <script type="text/javascript" src="../js/dygraph-combined.js"></script>
-        <script type="text/javascript">            
+        <script type="text/javascript">
+            var graphData = [];
+            var dates = [];
+            
             $(document).ready(function(e) {
                 // do not display 'nicht wohlgeformt' http://stackoverflow.com/q/335409/194609
                 $.ajaxSetup({'beforeSend': function(xhr){
@@ -16,7 +37,7 @@
                     }});
                 var urls = [];
                 var MAIN_URL = "/public/measurement/";
-//                var MAIN_URL = "/js/";
+                // var MAIN_URL = "/js/";
                 $.ajax({
                     type: "GET",
                     url: MAIN_URL,
@@ -27,22 +48,26 @@
                         for (var j=0; j<allTextLines.length; j++) {
                             var line = allTextLines[j];
                             var index = line.indexOf(key);
-                            if(index > 0 && index == line.length - key.length) {
+                            if(index > 0 && index == line.length - key.length) {                                
+                                // urls.push(line);
                                 urls.push(MAIN_URL + line);
                             }
                         }
                         console.log(urls);
                         
-                        plot(urls);
+                        grabData(urls);
                     }
-                });               
+                });
+
+                $("#tabs a").click(function() {
+                    $("#charts div").remove();
+                    plot($(this).text());
+                });
             });
             
-            function plot(urls) {            
-                var res = [];
-                var dates = [];
-                for(var i = 0; i < urls.length; i++) {
-                    var myurl = urls[i];
+            function grabData(urls) {
+                for(var resIndex = 0; resIndex < urls.length; resIndex++) {
+                    var myurl = urls[resIndex];
                     var index1 = myurl.indexOf("measurement");
                     var index2 = myurl.indexOf(".properties");
                     if(index1 >= 0 && index2 >= 0) {
@@ -58,58 +83,34 @@
                         dataType: "text",
                         success: function(data) {
                             var map = processProperties(data);
-                            res.push(map);
+                            graphData.push(map);
                         },
                         async: false
                     });
                 }
                 
                 console.log(dates);
-                var graphKeys = ["graph", "routing", "prepare", "location2id", "measurement"];
-                
-                for(var graphIndex in graphKeys) {
-                    var values = [];
-                    var labels = ["date"];
-                    var graphKey = graphKeys[graphIndex];
-                    for(var i = 0; i < res.length; i++) {
-                        var map = res[i];                    
-                        var mainEntry = map[graphKey];
-                        var arr = [dates[i]];                        
-                        for(var entry in mainEntry) {                           
-                            arr.push(mainEntry[entry]);
-                            if(i == 0)
-                                labels.push(entry);
-                        }
-                        values.push(arr);
-                    }
-                    handleGraphs($("#main"), values, graphKey, graphKey, labels);
-                }
             }
             
-            function processProperties(allText) {
-                var allTextLines = allText.split(/\r\n|\n/);
-                var result = {};
-                for (var j=0; j<allTextLines.length; j++) {
-                    var line = allTextLines[j];                    
-                    var index = line.indexOf('=');
-                    if(index > 0) {
-                        var key = line.substr(0, index);
-                        var value = line.substr(index + 1);
-                        index = key.indexOf(".");
-                        if(index > 0) {
-                            var mainKey = key.substr(0, index);
-                            key = key.substr(index + 1);
-                            
-                            var mainEntry = result[mainKey];
-                            if(!mainEntry)
-                                result[mainKey] = mainEntry = {};
-                            
-                            mainEntry[key] = value;
-                        }
+            function plot(graphKey) {
+                var values = {};
+                for(var resIndex = 0; resIndex < graphData.length; resIndex++) {
+                    var map = graphData[resIndex];                    
+                    var mainEntry = map[graphKey];             
+                    for(var entry in mainEntry) {
+                        var val = mainEntry[entry];
+                        if(!values[entry])
+                            values[entry] = [];
+                        values[entry].push([dates[resIndex], val]);
                     }
+                    
+                }                
+                
+                for(var val in values) {
+                    var id = graphKey + "_" + val;
+                    handleGraphs($("#charts"), values[val], id, id, ["dates", val]);                
                 }
-                return result;
-            }
+            }            
             
             // dateHisto is an array with an object (time,count) entry
             function handleGraphs(mydiv, values, id, name, labels) {
@@ -137,10 +138,44 @@
 
                 new Dygraph(document.getElementById(chartDivId), values, options);
             }
+            
+            function processProperties(allText) {
+                var allTextLines = allText.split(/\r\n|\n/);
+                var result = {};
+                for (var j=0; j<allTextLines.length; j++) {
+                    var line = allTextLines[j];                    
+                    var index = line.indexOf('=');
+                    if(index > 0) {
+                        var key = line.substr(0, index);
+                        var value = parseFloat(line.substr(index + 1));
+                        index = key.indexOf(".");
+                        if(index > 0) {
+                            var mainKey = key.substr(0, index);
+                            key = key.substr(index + 1);
+                            
+                            var mainEntry = result[mainKey];
+                            if(!mainEntry)
+                                result[mainKey] = mainEntry = {};
+                            
+                            mainEntry[key] = value;
+                        }
+                    }
+                }
+                return result;
+            }
         </script>
     </head>
     <body>
-        <div id="main">            
-        </div>        
+        <div id="main">
+            <div id="tabs">
+                <a href="#graph">graph</a>
+                <a href="#location2id">location2id</a>
+                <a href="#routing">routing</a>
+                <a href="#prepare">prepare</a>
+                <a href="#measurement">measurement</a>
+            </div>
+            <div id="charts">            
+            </div>        
+        </div>
     </body>
 </html>
