@@ -37,11 +37,10 @@ import java.util.zip.ZipInputStream;
  */
 public class OSMInputFile implements Sink {
 
-    private boolean eof;
     private InputStream bis;
     private boolean autoClose;
+    private boolean eof;
     // for xml parsing
-    private XMLStreamReader parser;
     // for pbf parsing
     private boolean binary = false;
     private final LinkedList<OSMElement> itemQueue = new LinkedList<OSMElement>();
@@ -53,11 +52,19 @@ public class OSMInputFile implements Sink {
         autoClose = true;
     }
 
-    public OSMInputFile open() throws XMLStreamException {
-        if (binary)
-            openPBFReader(bis);
-        else
-            openXMLStream(bis);
+    public OSMInputFile open() {
+        incomingData = true;
+        eof = false;
+        if (binary) {
+            if (workerThreads <= 0)
+                workerThreads = 2;
+            PbfReader reader = new PbfReader(bis, this, workerThreads);
+            new Thread(reader, "PBF Reader").start();
+        }
+        else {
+            XmlReader reader = new XmlReader(bis, this);
+            new Thread(reader, "Xml Reader").start();
+        }
         return this;
     }
 
@@ -112,67 +119,36 @@ public class OSMInputFile implements Sink {
         }
     }
 
-    public OSMInputFile(InputStream in) throws XMLStreamException {
-        openXMLStream(in);
-    }
-
-    private void openXMLStream(InputStream in)
-            throws XMLStreamException {
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        parser = factory.createXMLStreamReader(bis, "UTF-8");
-
-        int event = parser.next();
-        if (event != XMLStreamConstants.START_ELEMENT || !parser.getLocalName().equalsIgnoreCase("osm")) {
-            throw new IllegalArgumentException("File is not a valid OSM stream");
-        }
-
-        eof = false;
-    }
-
     public OSMElement getNext() throws XMLStreamException {
         if (eof) {
             throw new IllegalStateException("EOF reached");
         }
 
-        OSMElement item;
-        if (binary) {
-            item = getNextPBF();
-        } else {
-            item = getNextXML();
-        }
-        if (item != null) {
-            return item;
-        }
+        OSMElement next = null;
+        do {
+            synchronized (itemQueue) {
+                // try to read next object
+                next = itemQueue.pollFirst();
 
-        eof = true;
-        return null;
-    }
-
-    private OSMElement getNextXML() throws XMLStreamException {
-
-        int event = parser.next();
-        while (event != XMLStreamConstants.END_DOCUMENT) {
-            if (event == XMLStreamConstants.START_ELEMENT) {
-                String name = parser.getLocalName();
-                long id = 0;
-                switch (name.charAt(0)) {
-                    case 'n':
-                        id = Long.parseLong(parser.getAttributeValue(null, "id"));
-                        return new OSMNode(id, parser);
-
-                    case 'w': {
-                        id = Long.parseLong(parser.getAttributeValue(null, "id"));
-                        return new OSMWay(id, parser);
+                if (next == null) {
+                    // if we have no items to process but parser is still working: wait
+                    if (incomingData)
+                        try {
+                            itemQueue.wait();
+                        } catch (InterruptedException e) {
+                            // ignored
+                        }
+                        // we are done, stop waiting
+                    else {
+                        eof = true;
+                        break;
                     }
-                    case 'r':
-                        id = Long.parseLong(parser.getAttributeValue(null, "id"));
-                        return new OSMRelation(id, parser);
-                }
+                } else
+                    itemQueue.notifyAll();
             }
-            event = parser.next();
-        }
-        parser.close();
-        return null;
+        } while (next == null);
+
+        return next;
     }
 
     public boolean eof() {
@@ -180,21 +156,10 @@ public class OSMInputFile implements Sink {
     }
 
     public void close() throws XMLStreamException, IOException {
-        if (!binary)
-            parser.close();
         eof = true;
         if (autoClose) {
             bis.close();
         }
-    }
-
-    private void openPBFReader(InputStream stream) {
-        incomingData = true;
-
-        if (workerThreads <= 0)
-            workerThreads = 2;
-        PbfReader reader = new PbfReader(stream, this, workerThreads);
-        new Thread(reader, "PBF Reader").start();
     }
 
     @Override
@@ -221,29 +186,5 @@ public class OSMInputFile implements Sink {
         }
     }
 
-    private OSMElement getNextPBF() {
-        OSMElement next = null;
-        do {
-            synchronized (itemQueue) {
-                // try to read next object
-                next = itemQueue.pollFirst();
 
-                if (next == null) {
-                    // if we have no items to process but parser is still working: wait
-                    if (incomingData)
-                        try {
-                            itemQueue.wait();
-                        } catch (InterruptedException e) {
-                            // ignored
-                        }
-                    // we are done, stop waiting
-                    else
-                        break;
-                } else
-                    itemQueue.notifyAll();
-            }
-        } while (next == null);
-
-        return next;
-    }
 }
