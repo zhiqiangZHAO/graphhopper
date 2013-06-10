@@ -21,47 +21,43 @@ package com.graphhopper.reader;
 import com.graphhopper.reader.pbf.Sink;
 import com.graphhopper.reader.pbf.PbfReader;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import java.io.*;
-import java.util.LinkedList;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
 /**
- * A readable OSM file.
+ * A readable OSM file returning objects ala OSMElement.
  *
  * @author Nop
  */
 public class OSMInputFile implements Sink {
 
     private InputStream bis;
-    private boolean autoClose;
     private boolean eof;
-    // for xml parsing
-    // for pbf parsing
+    // false for xml parsing, true for pbf parsing
     private boolean binary = false;
-    private final LinkedList<OSMElement> itemQueue = new LinkedList<OSMElement>();
-    private boolean incomingData;
+    private final BlockingQueue<OSMElement> itemQueue;
+    private transient boolean hasIncomingData;
     private int workerThreads = -1;
 
     public OSMInputFile(File file) throws IOException {
         bis = decode(file);
-        autoClose = true;
+        itemQueue = new LinkedBlockingQueue<OSMElement>(50000);
     }
 
     public OSMInputFile open() {
-        incomingData = true;
+        hasIncomingData = true;
         eof = false;
         if (binary) {
             if (workerThreads <= 0)
                 workerThreads = 2;
             PbfReader reader = new PbfReader(bis, this, workerThreads);
             new Thread(reader, "PBF Reader").start();
-        }
-        else {
+        } else {
             XmlReader reader = new XmlReader(bis, this);
             new Thread(reader, "Xml Reader").start();
         }
@@ -76,6 +72,7 @@ public class OSMInputFile implements Sink {
         return this;
     }
 
+    // should we move this to Helper?
     private InputStream decode(File file) throws IOException {
         final String name = file.getName();
 
@@ -118,36 +115,26 @@ public class OSMInputFile implements Sink {
             throw new IllegalArgumentException("Input file is not of valid type " + file.getPath());
         }
     }
-
+    
     public OSMElement getNext() throws XMLStreamException {
-        if (eof) {
+        if (eof)
             throw new IllegalStateException("EOF reached");
-        }
 
         OSMElement next = null;
-        do {
-            synchronized (itemQueue) {
-                // try to read next object
-                next = itemQueue.pollFirst();
-
-                if (next == null) {
-                    // if we have no items to process but parser is still working: wait
-                    if (incomingData)
-                        try {
-                            itemQueue.wait();
-                        } catch (InterruptedException e) {
-                            // ignored
-                        }
-                        // we are done, stop waiting
-                    else {
-                        eof = true;
-                        break;
-                    }
-                } else
-                    itemQueue.notifyAll();
+        while (next == null) {
+            // we are done, stop waiting
+            if (!hasIncomingData && itemQueue.isEmpty()) {
+                eof = true;
+                break;
             }
-        } while (next == null);
 
+            // we cannot block via itemQueue.take as hasIncomingData can change
+            try {
+                next = itemQueue.poll(10, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException ex) {
+                break;
+            }
+        }
         return next;
     }
 
@@ -157,34 +144,20 @@ public class OSMInputFile implements Sink {
 
     public void close() throws XMLStreamException, IOException {
         eof = true;
-        if (autoClose) {
-            bis.close();
-        }
+        bis.close();
     }
 
     @Override
     public void process(OSMElement item) {
-        synchronized (itemQueue) {
-            itemQueue.addLast(item);
-            itemQueue.notifyAll();
-            // keep queue from overrunning
-            if (itemQueue.size() > 50000) {
-                try {
-                    itemQueue.wait();
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }
+        try {
+            itemQueue.put(item);
+        } catch (InterruptedException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
     public void complete() {
-        synchronized (itemQueue) {
-            incomingData = false;
-            itemQueue.notifyAll();
-        }
+        hasIncomingData = false;
     }
-
-
 }
