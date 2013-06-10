@@ -84,7 +84,7 @@ public class Path {
      * We need to remember fromNode explicitely as its not saved in one edgeId
      * of edgeIds.
      */
-    protected Path fromNode(int node) {
+    public Path fromNode(int node) {
         fromNode = node;
         return this;
     }

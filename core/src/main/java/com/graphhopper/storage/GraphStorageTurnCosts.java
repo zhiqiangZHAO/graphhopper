@@ -232,7 +232,7 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
         int turnCostIndex;
         long turnCostPtr;
 
-        private TurnCostIteratable(int node, int edgeFrom, int edgeTo) {
+        public TurnCostIteratable(int node, int edgeFrom, int edgeTo) {
             this.nodeVia = node;
             this.iteratorEdgeFrom = edgeFrom;
             this.iteratorEdgeTo = edgeTo;

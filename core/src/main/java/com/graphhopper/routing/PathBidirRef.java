@@ -32,7 +32,7 @@ import com.graphhopper.util.GHUtility;
  */
 public class PathBidirRef extends Path {
 
-    protected EdgeEntry edgeTo;
+    public EdgeEntry edgeTo;
     private boolean switchWrapper = false;
 
     public PathBidirRef(Graph g, EdgePropertyEncoder encoder) {

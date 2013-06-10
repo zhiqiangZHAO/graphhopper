@@ -18,6 +18,9 @@
  */
 package com.graphhopper.routing;
 
+import com.graphhopper.routing.edgebased.EdgeAStar;
+import com.graphhopper.routing.edgebased.EdgeDijkstra;
+import com.graphhopper.routing.edgebased.EdgeDijkstraBidirectionRef;
 import com.graphhopper.routing.util.CarFlagEncoder;
 import com.graphhopper.routing.util.FastestCalc;
 import com.graphhopper.routing.util.ShortestCalc;
@@ -46,12 +49,18 @@ public class RoutingAlgorithmFactory {
     public RoutingAlgorithm createAlgo(Graph g, EdgePropertyEncoder encoder) {
         if ("dijkstrabi".equalsIgnoreCase(algoStr)) {
             return new DijkstraBidirectionRef(g, encoder);
+        } else if ("dijkstrabiEdge".equalsIgnoreCase(algoStr)) {
+            return new EdgeDijkstraBidirectionRef(g, encoder);
         } else if ("dijkstraNative".equalsIgnoreCase(algoStr)) {
             return new DijkstraBidirection(g, encoder);
         } else if ("dijkstra".equalsIgnoreCase(algoStr)) {
             return new Dijkstra(g, encoder);
+        } else if ("dijkstraEdge".equalsIgnoreCase(algoStr)) {
+            return new EdgeDijkstra(g, encoder);
         } else if ("astarbi".equalsIgnoreCase(algoStr)) {
             return new AStarBidirection(g, encoder).approximation(approx);
+        } else if ("astarEdge".equalsIgnoreCase(algoStr)) {
+            return new EdgeAStar(g, encoder).approximation(approx);
         } else if ("dijkstraOneToMany".equalsIgnoreCase(algoStr)) {
             return new DijkstraOneToMany(g, encoder);
         } else

@@ -16,13 +16,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.graphhopper.routing;
+package com.graphhopper.routing.edgebased;
 
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.util.PriorityQueue;
 
+import com.graphhopper.routing.Path;
 import com.graphhopper.routing.util.EdgePropertyEncoder;
 import com.graphhopper.storage.EdgeEntry;
 import com.graphhopper.storage.Graph;
@@ -34,17 +35,19 @@ import com.graphhopper.util.EdgeIterator;
  * when considering turn costs, but will be around three times slower than classic Dijkstra.
  *
  * @see http://www.easts.info/on-line/journal_06/1426.pdf
+ * 
+ * TODO we better should reuse the code of Dijkstra instead instead of copying it. should be done later
  *
  * @author Karl Hübner
  */
-public class DijkstraEdge extends AbstractRoutingAlgorithm {
+public class EdgeDijkstra extends AbstractEdgeBasedRoutingAlgorithm {
 
     protected TIntObjectMap<EdgeEntry> map = new TIntObjectHashMap<EdgeEntry>();
     protected PriorityQueue<EdgeEntry> heap = new PriorityQueue<EdgeEntry>();
     protected boolean alreadyRun;
     protected int visitedNodes;
 
-    public DijkstraEdge(Graph graph, EdgePropertyEncoder encoder) {
+    public EdgeDijkstra(Graph graph, EdgePropertyEncoder encoder) {
         super(graph, encoder);
     }
 
@@ -70,17 +73,11 @@ public class DijkstraEdge extends AbstractRoutingAlgorithm {
             int neighborNode = currEdge.endNode;
             EdgeIterator iter = neighbors(neighborNode);
             while (iter.next()) {
-                if (!accept(iter) || // we don't want to traverse the same edge we just found before
-                        (currEdge.edge != EdgeIterator.NO_EDGE && iter.edge() == currEdge.edge))
+                if (!accept(iter, currEdge))
                     continue;
 
-                if((iter.edge() & 0x80000000) == 0x80000000){
-                    //since we need to distinguish between backward and forward direction we only can accept 2147483647 edges 
-                    throw new IllegalStateException("graph has too many edges :(");
-                }
-
                 //we need to distinguish between backward and forward direction when storing end weights
-                int key = iter.edge() | directionFlag(iter);
+                int key = createIterKey(iter, false);
 
                 int tmpNode = iter.adjNode();
                 double tmpWeight = weightCalc.getWeight(iter.distance(), iter.flags()) + currEdge.weight + turnCostCalc.getTurnCosts(neighborNode, currEdge.edge, iter.edge());
@@ -108,13 +105,6 @@ public class DijkstraEdge extends AbstractRoutingAlgorithm {
                 throw new AssertionError("cannot happen?");
         }
         return currEdge;
-    }
-
-    private int directionFlag(EdgeIterator iter) {
-        if(iter.baseNode() > iter.adjNode()){
-            return 0x80000000;    
-        }
-        return 0;
     }
 
     protected boolean finished(EdgeEntry currEdge, int to) {
