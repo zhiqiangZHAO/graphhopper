@@ -121,7 +121,7 @@ function resolveCoords(fromStr, toStr) {
 
 function initMap() {
     var mapDiv = $("#map");
-    var width = $(window).width() - 260;
+    var width = $(window).width() - 270;
     if(width < 100)
         width = $(window).width() - 5;
     var height = $(window).height() - 5;
@@ -130,7 +130,7 @@ function initMap() {
     
     // mapquest provider
     var moreAttr = 'Data &copy; <a href="http://www.openstreetmap.org/">OSM</a>,'
-        + 'JS: <a href="http://leafletjs.com/">Leaflet</a>';
+    + 'JS: <a href="http://leafletjs.com/">Leaflet</a>';
     var mapquest = L.tileLayer('http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
         attribution: '<a href="http://open.mapquest.co.uk">MapQuest</a>,' + moreAttr, 
         subdomains: ['otile1','otile2','otile3','otile4']
@@ -172,7 +172,7 @@ function initMap() {
         L.control.layers(baseMaps).addTo(map);
 
     map.fitBounds(new L.LatLngBounds(new L.LatLng(bounds.minLat, bounds.minLon), 
-    new L.LatLng(bounds.maxLat, bounds.maxLon)));
+        new L.LatLng(bounds.maxLat, bounds.maxLon)));
     
     map.attributionControl.setPrefix('');
 
@@ -186,11 +186,11 @@ function initMap() {
         "geometry": {            
             "type": "LineString",
             "coordinates":[
-                [bounds.minLon, bounds.minLat], 
-                [bounds.maxLon, bounds.minLat], 
-                [bounds.maxLon, bounds.maxLat], 
-                [bounds.minLon, bounds.maxLat],
-                [bounds.minLon, bounds.minLat]]
+            [bounds.minLon, bounds.minLat], 
+            [bounds.maxLon, bounds.minLat], 
+            [bounds.maxLon, bounds.maxLat], 
+            [bounds.minLon, bounds.maxLat],
+            [bounds.minLon, bounds.minLat]]
         }
     };
     
@@ -270,6 +270,17 @@ function resolve(fromOrTo, point) {
 
 var getInfoTmpCounter = 0;
 function getInfoFromLocation(locCoord) {
+    // make sure that the demo route always works even if external geocoding is down!
+    if(locCoord.input.toLowerCase() == "madrid") {
+        locCoord.lat = 40.416698;
+        locCoord.lng = -3.703551;
+        locCoord.resolvedText = "Madrid, Área metropolitana de Madrid y Corredor del Henares, Madrid, Community of Madrid, Spain, European Union";
+    }
+    if(locCoord.input.toLowerCase() == "moscow") {
+        locCoord.lat = 55.751608;
+        locCoord.lng = 37.618775;
+        locCoord.resolvedText = "Borowizki-Straße Moscow Russian Federation";
+    }
     if(locCoord.resolvedText) {
         var tmpDefer = $.Deferred();
         tmpDefer.resolve([locCoord]);
@@ -284,7 +295,7 @@ function getInfoFromLocation(locCoord) {
         // in every case overwrite name
         locCoord.resolvedText = "Error while looking up coordinate";
         url = nominatim_reverse + "?lat=" + locCoord.lat + "&lon="
-            + locCoord.lng + "&format=json&zoom=16&json_callback=reverse_callback" + getInfoTmpCounter;
+        + locCoord.lng + "&format=json&zoom=16&json_callback=reverse_callback" + getInfoTmpCounter;
         return $.ajax({
             url: url,
             type : "GET",
@@ -313,7 +324,7 @@ function getInfoFromLocation(locCoord) {
     } else {
         // see https://trac.openstreetmap.org/ticket/4683 why limit=3 and not 1
         url = nominatim + "?format=json&q=" + encodeURIComponent(locCoord.input)
-            +"&limit=3&json_callback=search_callback" + getInfoTmpCounter;
+        +"&limit=3&json_callback=search_callback" + getInfoTmpCounter;
         if(bounds.initialized) {
             // minLon, minLat, maxLon, maxLat => left, top, right, bottom
             url += "&bounded=1&viewbox=" + bounds.minLon + ","+bounds.maxLat + ","+bounds.maxLon +","+ bounds.minLat;
@@ -326,7 +337,7 @@ function getInfoFromLocation(locCoord) {
             timeout: 3000,
             jsonpCallback: 'search_callback' + getInfoTmpCounter
         }).fail(createCallback("[nominatim] Problem while looking up location " + locCoord.input)).
-            pipe(function(jsonArgs) {
+        pipe(function(jsonArgs) {
             var json = jsonArgs[0];
             if(!json) {
                 locCoord.resolvedText = "No area description found";                
@@ -385,7 +396,9 @@ function routeLatLng(request) {
         urlForHistory += "&minPathPrecision=" + request.minPathPrecision;
         urlForAPI += "&minPathPrecision=" + request.minPathPrecision;
     }
-    History.pushState(request, browserTitle, urlForHistory);
+    
+    if (History.enabled)
+        History.pushState(request, browserTitle, urlForHistory);
     descriptionDiv.html('<img src="img/indicator.gif"/> Search Route ...');
     request.doRequest(urlForAPI, function (json) {        
         if(json.info.errors) {
@@ -394,10 +407,11 @@ function routeLatLng(request) {
                 descriptionDiv.append("<div class='error'>" + tmpErrors[i].message + "</div>");
             }
             return;
-        } else if(!json.info.routeFound) {
-            descriptionDiv.html('Route not found! Disconnected areas?');
-            return;
-        }
+        } 
+        //        else if(!json.info.routeFound) {
+        //            descriptionDiv.html('Route not found! Disconnected areas?');
+        //            return;
+        //        }
         var geojsonFeature = {
             "type": "Feature",                   
             // "style": myStyle,                
@@ -427,18 +441,20 @@ function routeLatLng(request) {
             dist = round(dist, 1);
         descriptionDiv.html("<b>"+ dist + "km</b> will take " + tmpTime);        
 
-        var hiddenDiv = $("<div/>");
+        var hiddenDiv = $("<div id='routeDetails'/>");
         hiddenDiv.hide();
         
         var toggly = $("<button style='font-size:9px; float: right; padding: 0px'>more</button>");
         toggly.click(function() {
             hiddenDiv.toggle();
         })
-        $("#info").prepend(toggly);
-        hiddenDiv.html("took: " + round(json.info.took, 1000) + "s, "
-            +"points: " + json.route.data.coordinates.length);
+        $("#info").prepend(toggly);        
+        hiddenDiv.append("<span>took: " + round(json.info.took, 1000) + "s, "
+            +"points: " + json.route.data.coordinates.length + "</span>");
         $("#info").append(hiddenDiv);
         
+        var exportLink = $("#exportLink a");
+        exportLink.attr('href', urlForHistory);
         var startOsmLink = $("<a>start</a>");
         startOsmLink.attr("href", "http://www.openstreetmap.org/?zoom=14&mlat="+request.from.lat+"&mlon="+request.from.lng);
         var endOsmLink = $("<a>end</a>");
@@ -457,7 +473,7 @@ function routeLatLng(request) {
             addToBing = "&mode=W";
         } else if(request.vehicle == "bike") {
             addToGoogle = "&dirflg=b";
-            // ? addToBing = "&mode=B";
+        // ? addToBing = "&mode=B";
         }
         googleLink.attr("href", "http://maps.google.com/?q=from:" + from + "+to:" + to + addToGoogle);
         hiddenDiv.append(googleLink);
@@ -466,7 +482,7 @@ function routeLatLng(request) {
         hiddenDiv.append(bingLink);
         
         if(host.indexOf("gpsies.com") > 0)
-            hiddenDiv.append("<br/><br/>The routing API is hosted by <a href='http://gpsies.com'>Gpsies.com</a>");            
+            hiddenDiv.append("<div id='hosting'>The routing API is hosted by <a href='http://gpsies.com'>Gpsies.com</a></div>");
         
         $('.defaulting').each(function(index, element) {
             $(element).css("color", "black");
@@ -564,10 +580,7 @@ function parseUrl(query) {
 function initForm() {
     $('#locationform').submit(function(e) {
         // no page reload        
-        e.preventDefault();
-        
-        console.log('NOW');
-        
+        e.preventDefault();        
         var fromStr = $("#fromInput").val();
         var toStr = $("#toInput").val();
         if(toStr == "To" && fromStr == "From") {
