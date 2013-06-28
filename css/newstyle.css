@@ -1,0 +1,113 @@
+body {
+}
+
+#main {    
+/*    padding-top: 30px;*/   
+}
+a {
+    color: #3872f2;    
+}
+a:hover {
+    color: #3091f7;
+}
+.main-links {
+    list-style: none outside none;
+    margin: 0;
+}
+.main-links li{
+    display: inline;
+}
+.navbar-inverse .navbar-inner {
+    background-color: white;
+    background-image: linear-gradient(to bottom, white, #e7e7e7);
+}
+.navbar-inverse .nav .active > a, .navbar-inverse .nav .active > a:hover, .navbar-inverse .nav .active > a:focus {
+/*    background-color: #9f9f9f;*/
+    background-image: linear-gradient(to bottom, #9f9f9f, #e7e7e7);
+    color: black;
+}
+.navbar-inverse .brand:hover, .navbar-inverse .nav > li > a:hover, .navbar-inverse .brand:focus, .navbar-inverse .nav > li > a:focus {
+    color: gray;
+}
+.navbar-inverse .brand, .navbar-inverse .nav > li > a {
+    color: #000000;
+    text-shadow: none;
+}
+.navbar-fixed-top {
+    margin-bottom: 20px;
+}
+.navbar-fixed-top, .navbar-fixed-bottom {
+    position: static;
+}
+#myCarousel {
+    min-width: 300px;
+    max-width: 800px;
+}
+.carousel .item {
+    min-height: 400px;    
+}
+.carousel .item .container {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.carousel-caption h2, .carousel-caption .lead {
+    color: #FFFFFF;
+    line-height: 1.25;
+    margin: 0;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);    
+    padding-right: 40px;
+    padding-left: 40px;
+}
+.carousel-caption a {
+    margin-top: 10px;
+    margin-left: 40px;
+}
+.carousel-control {
+    background-color: transparent;
+    border: 0 none;
+    font-size: 100px;
+    height: 80px;
+    margin-top: 105px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+}
+.btn-primary {
+    background-color: #009218;
+    background-image: linear-gradient(to bottom, #00c621, #009218);
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .btn-primary.disabled, .btn-primary[disabled] {
+    background-color: #009218;
+    color: #FFFFFF;
+}
+
+.feature {
+    padding-top: 10px;
+}
+
+#android_img {
+    margin: auto auto;
+    opacity:0.6;
+    padding: 20px;
+    z-index: -2;
+    position: absolute;
+    top: 10px;
+    right: 10px;    
+}
+#everywhere_img {
+    float: left;
+    margin-top: 10px;
+    margin-left: 50px;
+}
+#osm_logo {
+    z-index: -1;
+    position: absolute;
+    top: 40px;
+    right: 0;
+}
+
+#foot-footer {
+    color: gray;
+    font-size: 9px;
+}
