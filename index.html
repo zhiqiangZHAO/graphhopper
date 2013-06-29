@@ -14,14 +14,14 @@
         <script type="text/javascript">
             function showTab(hash) {
                 if(!hash)
-                    hash = "home";
+                    hash = "#home";
                 // tab is already active so we only need to show the content
                 $("#mytabs ul[data-tabs] li > a[href='" + hash + "']").tab('show');
             }
             // emulate click on tab i.e. with history
             function clickTab(hash) {
                 if(!hash)
-                    hash = "home";
+                    hash = "#home";
                 $("ul[data-tabs] li > a[href='" + hash + "']").click();
             }
             jQuery(document).ready(function ($) {
