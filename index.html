@@ -13,11 +13,15 @@
         <script src="js/bootstrap.min.js"></script>      
         <script type="text/javascript">
             function showTab(hash) {
+                if(!hash)
+                    hash = "home";
                 // tab is already active so we only need to show the content
                 $("#mytabs ul[data-tabs] li > a[href='" + hash + "']").tab('show');
             }
             // emulate click on tab i.e. with history
-            function clickTab(hash) {                    
+            function clickTab(hash) {
+                if(!hash)
+                    hash = "home";
                 $("ul[data-tabs] li > a[href='" + hash + "']").click();
             }
             jQuery(document).ready(function ($) {
