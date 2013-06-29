@@ -80,14 +80,27 @@ a:hover {
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
     z-index: 10;
 }
-.btn-primary {
-    background-color: #009218;
-    background-image: linear-gradient(to bottom, #00c621, #009218);
-}
 
-.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .btn-primary.disabled, .btn-primary[disabled] {
-    background-color: #009218;
-    color: #FFFFFF;
+.mybtn {
+	color: #FFFFFF;
+	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+	background-color: #009218;
+	*background-color: #009218;
+	background-image: -moz-linear-gradient(top, #00C621, #009218);
+	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#00C621), to(#009218));
+	background-image: -webkit-linear-gradient(top, #00C621, #009218);
+	background-image: -o-linear-gradient(top, #00C621, #009218);
+	background-image: linear-gradient(to bottom, #00C621, #009218);
+	background-repeat: repeat-x;
+	border-color: #009218;
+	border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00C621', endColorstr='#009218', GradientType=0);
+	filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+}
+.mybtn:hover, .mybtn:active, .mybtn.active, .mybtn.disabled, .mybtn[disabled] {
+	color: #FFFFFF;
+	background-color: #009218;
+	*background-color: #003bb3;
 }
 
 .feature {
