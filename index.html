@@ -9,9 +9,54 @@
         <link href="css/bootstrap.min.css" rel="stylesheet" media="screen"/>
         <link href="css/bootstrap-responsive.css" rel="stylesheet" media="screen"/>
         <link href="css/newstyle.css" rel="stylesheet" media="screen"/>
+        <script src="js/jquery-1.7.2.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>      
+        <script type="text/javascript">
+            function showTab(hash) {
+                // tab is already active so we only need to show the content
+                $("#mytabs ul[data-tabs] li > a[href='" + hash + "']").tab('show');
+            }
+            // emulate click on tab i.e. with history
+            function clickTab(hash) {                    
+                $("ul[data-tabs] li > a[href='" + hash + "']").click();
+            }
+            jQuery(document).ready(function ($) {
+                // interval: 15000
+                $('#myCarousel').carousel({
+                    interval: false
+                });
+                // Chrome and Safari always emit a popstate event on page load, but Firefox doesn't.
+                window.addEventListener("popstate", function(e) {
+                    var hash = document.location.hash;
+                    if (hash)
+                        showTab(hash);
+                });
+                
+                $('#mytabs a[data-toggle]').click(function (e) {
+                    // avoid moving to id=hash
+                    e.preventDefault();
+                    console.log(this.hash);
+                    // use new history API to append hash nevertheless
+                    if(history)
+                        history.pushState({ hash: this.hash }, "", this.hash);
+                    
+                    $(this).tab('show');                    
+                });
+                
+                // small hack to make links to other tabs in the text working too (otherwise tabs 'active' won't move somehow)
+                $('#main a[data-toggle]').click(function (e) {
+                    clickTab(this.hash);
+                });
+                
+                // read hash from URL and click the tab
+                var hash = window.location.hash;
+                if (hash)
+                    showTab(hash);                    
+            });            
+        </script>
     </head>
     <body>
-        <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">
                     <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -252,41 +297,7 @@
                     The Windows logo is a registered trademark of Microsoft Corporation.
                 </div>
             </div>
-        </div>
-        <script src="http://code.jquery.com/jquery.js"></script>
-        <script src="js/bootstrap.min.js"></script>      
-        <script type="text/javascript">
-            jQuery(document).ready(function ($) {
-                // interval: 15000
-                $('#myCarousel').carousel({
-                    interval: false
-                });
-            
-                //                $("#mytabs").tab();
-                $('#mytabs a[data-toggle]').click(function (e) {
-                    // avoid moving to id=hash
-                    e.preventDefault();
-                    // use new history API to append hash nevertheless
-                    if(history)
-                        history.pushState({}, "", this.hash);
-                    
-                    // console.log(this.hash);
-                    $(this).parent().removeClass("active");                    
-                    //                    $(this).parent().css("background-color", "red");
-                    $(this).tab('show');                    
-                });
-                
-                // small hack to make links to other tabs in the text working too (otherwise tabs 'active' won't move somehow)
-                $('#main a[data-toggle]').click(function (e) {                    
-                    $("ul[data-tabs] li > a[href='" + this.hash + "']").click();
-                });
-                
-                // read hash from URL and click the tab
-                var hash = window.location.hash;
-                if (hash)
-                    $("ul[data-tabs] li > a[href='" + hash + "']").click();
-            });            
-        </script>
+        </div>       
         <!-- Piwik -->
         <script type="text/javascript">
             var pkBaseURL = (("https:" == document.location.protocol) ? "https://www.pannous.info/piwik/" : "http://www.pannous.info/piwik/");

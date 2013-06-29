@@ -17,19 +17,19 @@ a:hover {
 .main-links li{
     display: inline;
 }
-.navbar-inverse .navbar-inner {
+.navbar .navbar-inner {
     background-color: white;
     background-image: linear-gradient(to bottom, white, #e7e7e7);
 }
-.navbar-inverse .nav .active > a, .navbar-inverse .nav .active > a:hover, .navbar-inverse .nav .active > a:focus {
+.navbar .nav .active > a, .navbar .nav .active > a:hover, .navbar .nav .active > a:focus {
 /*    background-color: #9f9f9f;*/
     background-image: linear-gradient(to bottom, #9f9f9f, #e7e7e7);
     color: black;
 }
-.navbar-inverse .brand:hover, .navbar-inverse .nav > li > a:hover, .navbar-inverse .brand:focus, .navbar-inverse .nav > li > a:focus {
+.navbar .brand:hover, .navbar .nav > li > a:hover, .navbar .brand:focus, .navbar .nav > li > a:focus {
     color: gray;
 }
-.navbar-inverse .brand, .navbar-inverse .nav > li > a {
+.navbar .brand, .navbar .nav > li > a {
     color: #000000;
     text-shadow: none;
 }
