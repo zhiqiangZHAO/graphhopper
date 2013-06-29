@@ -23,7 +23,12 @@
                 if(!hash)
                     hash = "#home";
                 $("ul[data-tabs] li > a[href='" + hash + "']").click();
+            }            
+            function openEmail(email) {
+                window.location = "mailto:" + email.replace(/dotty/g, ".").replace(/atty/g, "@").replace(/ /g, "");
+                return false;
             }
+            
             jQuery(document).ready(function ($) {
                 // interval: 15000
                 $('#myCarousel').carousel({
@@ -173,9 +178,8 @@
                     Feel free to sell and extend GraphHopper. If you contribute your changes back you won't
                     have problems keeping the code base up to date.
                     <h2>OpenStreetMap Support</h2>
-                    The OpenStreetMap is directly supported from GraphHopper and without OpenStreetMap and 
-                    its community probably GraphHopper wouldn't be here. We will improve and create
-                    the best OSM-driven Open Source routing engine.
+                    OpenStreetMap is directly supported from GraphHopper. Without OpenStreetMap and 
+                    its community probably GraphHopper wouldn't be useful at all for many people.                    
                     <h2>Development</h2>
                     <a href="#developers" data-toggle="tab">Development</a> happens at GitHub with (currently) two active contributors. You can clone the project
                     at GitHub or sign up at the mailing list.
@@ -186,16 +190,16 @@
                     On Android we provide an integration with Mapsforge which makes offline navigation one step closer.
                     Due to the usage of memory mapped files and Contraction Hierarchies
                     we avoid allocating too much memory which makes it possible to run German-wide queries with only 
-                    32MB in a few seconds. We provide an Eclipse project as well as the maven android integration to be used in other IDEs.
+                    32MB in a few seconds. We provide an Eclipse project as well as the Maven-Android integration to be used in other IDEs.
                     <h4>Web</h4>
                     With the web module we provide code to query GraphHopper over HTTP and decrease bandwidth usage as much as possible.
                     For that we use polyline encoding from Google, the Ramer–Douglas–Peucker algorithm and a simple GZIP servlet filter.                 
                     On the client side we provide Java and JavaScript code (via Leaflet) to consume that service and visualize the routes.
                     <h4>Desktop</h4>
-                    GraphHopper can also works on the Desktop in a native Java application without internet access.
+                    GraphHopper also works on the Desktop in a Java application without internet access.
                     E.g. you could use the rough user interface called MiniGraphUI provided in the tools module.
-                    To have a proper and fast map visualization we'll have to wait for mapsforge 0.4 which will support Desktop via Swing/AWT.
-                    Or you have to use an older version of it.
+                    To have a proper and fast map visualization we'll have to wait for mapsforge 0.4 which will support the desktop via Swing/AWT.
+                    Or you have to use an older version of it. Contact us for more details.
                     <h2>Customizable API</h2>
                     We've build the GraphHopper class which makes simple things easy.
                     Still you can use the low level API of GraphHopper and you'll see that
@@ -211,14 +215,15 @@
                 <div id="contact" class="tab-pane">
                     <h2>Contact</h2>                    
                     <p>Twitter: <a href="https://twitter.com/timetabling">timetabling</a></p>
-                    <p>Email: peter dotty karich atty gmx dotty de (replace the atty with @ and the dotty with .)</p>
+                    <p>Email: <a onclick="openEmail('peter dotty karich atty gmx dotty de')">peter dotty karich atty gmx dotty de</a></p>
                 </div>
                 <div id="enterprise" class="tab-pane">
                     <h2>Consulting</h2>
                     <p>
-                        I'm available for your consulting work! No need to put 
-                        this back to the Open Source project, but if you do you'll 
-                        get the work at half the price!
+                        I'm available for your company to integrate GraphHopper in your products or add new features.
+                        Feel free to <a onclick="openEmail('peter dotty karich atty gmx dotty de')">contact me</a>!
+                        Questions regarding GraphHopper usage etc should go to the 
+                        <a href="http://lists.openstreetmap.org/listinfo/graphhopper">mailing list</a> instead.
                     </p>
 
                     <h2>
