@@ -31,11 +31,11 @@
                                 <a href="http://graphhopper.com/maps">Maps</a>
                             </li>
                             <li class="">
-                                <a href="https://github.com/graphhopper/graphhopper/wiki/Developers">Developer</a>
-                            </li>
-                            <li class="">
                                 <a href="#enterprise" data-toggle="tab">Enterprise</a>
                             </li>
+                            <li class="">
+                                <a href="#developers" data-toggle="tab">Developers</a>
+                            </li>                            
                             <li class="">
                                 <a href="#thanks" data-toggle="tab">Testimonials</a>
                             </li>                            
@@ -129,6 +129,9 @@
                     The OpenStreetMap is directly supported from GraphHopper and without OpenStreetMap and 
                     its community probably GraphHopper wouldn't be here. We will improve and create
                     the best OSM-driven Open Source routing engine.
+                    <h2>Development</h2>
+                    <a href="#developers" data-toggle="tab">Development</a> happens at GitHub with (currently) two active contributors. You can clone the project
+                    at GitHub or sign up at the mailing list.
                     <h2>Written in Java</h2>
                     GraphHopper is written in Java and runs on Linux, OSX, Windows and Android. Other 
                     environments which supports at least Java 5 will work too.
@@ -151,6 +154,17 @@
                     Still you can use the low level API of GraphHopper and you'll see that
                     it was created to allow fast and memory efficient use of the underlying
                     datastructures and algorithms.
+                </div>
+                <div id="developers" class="tab-pane">
+                    <h2>Developers</h2>                    
+                    You can clone the project at GitHub and sign up at the mailing list!
+                    See the <a href="https://github.com/graphhopper/graphhopper/wiki/Developers">Developer wiki</a>
+                    for more information.
+                </div>
+                <div id="contact" class="tab-pane">
+                    <h2>Contact</h2>                    
+                    <p>Twitter: <a href="https://twitter.com/timetabling">timetabling</a></p>
+                    <p>Email: peter dotty karich atty gmx dotty de (replace the atty with @ and the dotty with .)</p>
                 </div>
                 <div id="enterprise" class="tab-pane">
                     <h2>Consulting</h2>
@@ -180,7 +194,7 @@
                         </li>
                     </ul>
                 </div>
-                <div id="thanks" class="tab-pane">                    
+                <div id="thanks" class="tab-pane">
                     <h2>
                         The GraphHopper Team says thanks to
                     </h2>
@@ -220,8 +234,16 @@
                         </li>-->
                         <li class="muted">·</li>
                         <li>
-                            <a href="http://karussell.wordpress.com/about">Contact</a>
+                            <a href="https://twitter.com/graphhopp">Twitter</a>
                         </li>
+                        <li class="muted">·</li>                        
+                        <li>
+                            <a href="http://karussell.wordpress.com/about">Contact</a>
+                            <!--
+                        sometimes this does not work on the second click?
+                            <a href="#contact" data-toggle="tab">Contact</a>
+                            -->
+                        </li>                        
                     </ul>
                 </div>
                 <div id="foot-footer">
@@ -240,7 +262,7 @@
                     interval: false
                 });
             
-                $("#mytabs").tab();
+                //                $("#mytabs").tab();
                 $('#mytabs a[data-toggle]').click(function (e) {
                     // avoid moving to id=hash
                     e.preventDefault();
@@ -248,9 +270,18 @@
                     if(history)
                         history.pushState({}, "", this.hash);
                     
+                    // console.log(this.hash);
+                    $(this).parent().removeClass("active");                    
+                    //                    $(this).parent().css("background-color", "red");
                     $(this).tab('show');                    
                 });
                 
+                // small hack to make links to other tabs in the text working too (otherwise tabs 'active' won't move somehow)
+                $('#main a[data-toggle]').click(function (e) {                    
+                    $("ul[data-tabs] li > a[href='" + this.hash + "']").click();
+                });
+                
+                // read hash from URL and click the tab
                 var hash = window.location.hash;
                 if (hash)
                     $("ul[data-tabs] li > a[href='" + hash + "']").click();

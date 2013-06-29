@@ -133,3 +133,8 @@ a:hover {
 .footer {
     padding-top: 30px;
 }
+#mytabs li img {
+    width: 10px;
+    padding-left: 5px;
+    margin-top: -10px;
+}
