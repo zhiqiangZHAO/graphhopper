@@ -31,15 +31,13 @@
                 });
                 // Chrome and Safari always emit a popstate event on page load, but Firefox doesn't.
                 window.addEventListener("popstate", function(e) {
-                    var hash = document.location.hash;
-                    if (hash)
-                        showTab(hash);
+                    var hash = document.location.hash;                    
+                    showTab(hash);
                 });
                 
                 $('#mytabs a[data-toggle]').click(function (e) {
-                    // avoid moving to id=hash
+                    // avoid moving window focus to id=hash
                     e.preventDefault();
-                    console.log(this.hash);
                     // use new history API to append hash nevertheless
                     if(history)
                         history.pushState({ hash: this.hash }, "", this.hash);
