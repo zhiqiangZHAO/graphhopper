@@ -39,9 +39,17 @@ a:hover {
 .navbar-fixed-top, .navbar-fixed-bottom {
     position: static;
 }
-#myCarousel {
-    min-width: 300px;
+.tab-pane, #myCarousel, #foot-footer {
     max-width: 800px;
+}
+.it {
+    font-style: italic;
+}
+#myCarousel {
+    min-width: 300px;    
+}
+#home .item {
+/*    width: 600px;*/
 }
 .carousel .item {
     min-height: 400px;    
@@ -84,6 +92,7 @@ a:hover {
 
 .feature {
     padding-top: 10px;
+/*    float: right;*/
 }
 
 #android_img {
@@ -100,11 +109,12 @@ a:hover {
     margin-top: 10px;
     margin-left: 50px;
 }
-#osm_logo {
+#osm_logo {    
     z-index: -1;
-    position: absolute;
+/*    position: absolute;
     top: 40px;
-    right: 0;
+    right: 0;*/
+/*    float: right;*/
 }
 
 #foot-footer {
@@ -114,4 +124,12 @@ a:hover {
 
 .tab-pane {
     min-height: 400px;
+}
+
+.carousel {    
+    margin-bottom: 0px;
+}
+
+.footer {
+    padding-top: 30px;
 }

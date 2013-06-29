@@ -1,104 +1,261 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Java Routing with GraphHopper</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GraphHopper Road Routing in Java powered by OpenStreetMaps</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>       
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="keywords" content="road routing,shortest path,openstreetmap,android,navigation,routenplaner,onboard"/>            
         <link type="image/png" rel="icon" href="favicon.ico"/>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">      
-        <link href="css/style.css" media="screen" rel="stylesheet" type="text/css" />
-        <script type="text/javascript">
-            var lang = navigator.language;
-            if(lang && lang.indexOf("de") >= 0 && window.location.hash.indexOf("forward=false") < 0)
-                window.location = "index_de.html";
-            
-            window.location.hash = "";
-        </script>
+        <link href="css/bootstrap.min.css" rel="stylesheet" media="screen"/>
+        <link href="css/bootstrap-responsive.css" rel="stylesheet" media="screen"/>
+        <link href="css/newstyle.css" rel="stylesheet" media="screen"/>
     </head>
     <body>
-        <div id="main">
-            <div id="countrylist">
-                <img alt="English" src="img/country_us.png"> <a href="index_de.html"><img alt="Deutsch" src="img/country_de.png"></a>
-            </div>
-            <div id="header_img" class="center">
-                <img alt="GraphHopper" src="img/header.png">
-            </div>
-            <h2 id="header">
-                A routing engine for roads and more
-            </h2>
-
-            <div id="intro" class="solid">
-                GraphHopper offers memory efficient algorithms in Java for road routing.
-                E.g. <a href="http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra</a> and 
-                <a href="http://en.wikipedia.org/wiki/A*_search_algorithm">A*</a>
-                but also optimized algorithms like <a href="http://en.wikipedia.org/wiki/Contraction_hierarchies">Contraction Hierarchies</a>.
-                It stands under the Apache License and is heavily (automated) tested although 
-                still in alpha - i.e. the library itself is quite stable but the API not.
-            </div>
-            <div id="containerlist">
-                <div class="subproject left">
-                    <div class="subheader">                    
-                        <a href="https://github.com/graphhopper/graphhopper">The Core</a>
-                        <a href="https://github.com/graphhopper/graphhopper/"><img class="subimg" src="img/core.png"/></a>
-                    </div>
-                    <div class="subtext">
-                        The core of GraphHopper can be used in a server,
-                        on the Desktop or on Android.
-                        <ul>
-                            <li>Small and fast</li>
-                            <li>Memory efficient</li>                        
-                            <li>Well tested</li>
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <div id="mytabs" class="nav-collapse collapse">
+                        <ul class="nav nav-tabs" data-tabs="tabs">
+                            <li class="active">
+                                <a href="#home" data-toggle="tab">Home</a>
+                            </li>
+                            <li class="">
+                                <a href="#overview" data-toggle="tab">Overview</a>
+                            </li>
+                            <li class="">
+                                <a href="http://graphhopper.com/maps">Maps</a>
+                            </li>
+                            <li class="">
+                                <a href="https://github.com/graphhopper/graphhopper/wiki/Developers">Developer</a>
+                            </li>
+                            <li class="">
+                                <a href="#enterprise" data-toggle="tab">Enterprise</a>
+                            </li>
+                            <li class="">
+                                <a href="#thanks" data-toggle="tab">Testimonials</a>
+                            </li>                            
                         </ul>
                     </div>
                 </div>
+            </div>
+        </div>        
 
-                <div class="subproject right">
-                    <div class="subheader">
-                        <a href="http://graphhopper.com/maps/?point=madrid&point=moscow">View Web Demo</a>
-                        <a href="http://graphhopper.com/maps/"><img class="subimg" src="img/web.png"/></a>
+        <div id="main">
+            <div class="container tab-content">
+                <div id="home" class="tab-pane active">
+                    <!--
+                    <div id="header_img" class="center">
+                        <img alt="GraphHopper" src="img/header.png">
                     </div>
-                    <div class="subtext">
-                        The <a href="https://github.com/graphhopper/graphhopper/tree/master/web">web subproject</a> creates a simple routing service returning JSON which is then used via Leaflet.
+                    <p>Fast road routing in Java. For server-side and Android.</p>
+                    -->
+                    <!-- Carousel -->
+                    <div id="myCarousel" class="carousel slide">
+                        <div class="carousel-inner">
+                            <div class="item active">
+                                <img alt="GraphHopper" src="img/header.png">                            
+                                <div class="row-fluid">
+                                    <div class="span7">                                        
+                                        <div class="feature lead">
+                                            Highlights:
+                                            <ul>
+                                                <li>Fast and memory efficient road routing</li>
+                                                <li>Apache 2.0 Licensed</li>
+                                                <li>Works out of the box with OpenStreetMap</li>
+                                                <li>Large test suite</li>                                        
+                                                <li>Implemented in Java™</li>                                        
+                                                <li>Scales from big server to mobile device</li>
+                                                <li>Custom routing options</li>
+                                            </ul>
+                                        </div>
+                                        <div class="carousel-caption">
+                                            <h2>Fast road routing in Java</h2>
+                                            <p class="lead">GraphHopper uses OpenStreetMap and is Open Source.</p>
+                                            <a href="https://github.com/graphhopper/graphhopper" class="btn btn-primary btn-large">Get Sources</a>                                    
+                                        </div>
+                                    </div>
+                                    <div id="osm_logo" class="span5">
+                                        <img src="img/osm_marriage.png" alt="">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="item">
+                                <img src="img/web-demo.png" alt="">
+                                <div class="container">
+                                    <div class="carousel-caption">
+                                        <h2>Powerful Routing Service</h2>
+                                        <p class="lead">World wide coverage. Car, pedestrian and bike!</p>                                    
+                                        <a href="http://graphhopper.com/maps" class="btn btn-primary btn-large">GraphHopper Maps</a>                                    
+                                        powered by OpenStreetMap
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="item">
+                                <img id="android_img" src="img/android-demo.png" alt="">
+                                <img id="everywhere_img" src="img/everywhere.png" alt="">
+                                <div class="container">
+                                    <div class="carousel-caption">
+                                        <h2>Runs Everywhere</h2>
+                                        <p class="lead">GraphHopper works on the server-side and on Android™.</p>
+                                        <a class="btn btn-large btn-primary" href="#">Download App</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <a class="left carousel-control" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+                        <a class="right carousel-control" href="#myCarousel" data-slide="next">&rsaquo;</a>
                     </div>
+                    <!-- /.carousel -->
                 </div>
-                <div class="subproject left">
-                    <div class="subheader">
-                        <a href="https://code.google.com/p/graphhopper/downloads/list">Get Android Demo</a>
-                        <a href="https://code.google.com/p/graphhopper/downloads/list"><img class="subimg" src="img/android.png"/></a>
-                    </div>
-                    <div class="subtext">
-                        This is an offline road routing example to show how to combine GraphHopper and Mapsforge on Android.
-                        You can directly use the <a href="https://github.com/graphhopper/graphhopper/tree/master/android">Eclipse project</a> to get started.                        
-                    </div>
-                </div>           
-                <div class="subproject right">
-                    <div class="subheader">
-                        <a href="https://github.com/graphhopper/graphhopper/wiki">The Wiki</a>                    
-                        <a href="https://github.com/graphhopper/graphhopper/wiki"><img class="subimg" src="img/wiki.png"/></a>                                        
-                    </div>
-                    <div class="subtext">
-                        <div>
-                            <div>
-                                Read through the documentation e.g. for
-                                <a href="https://github.com/graphhopper/graphhopper/wiki/Developers">developers</a>
-                                or for
-                                <a href="https://github.com/graphhopper/graphhopper/wiki/Android">Android</a>.
-                            </div>
-                            <div>
-                                <br/>
-                                Your questions will be answered on our
-                                <a href="http://lists.openstreetmap.org/listinfo/graphhopper">mailing list</a>.
-                            </div>
-                        </div>                    
-                    </div>
+                <div id="overview" class="tab-pane">
+                    <h2>Overview</h2>
+                    GraphHopper offers memory efficient algorithms in Java for road routing.
+                    E.g. <a href="http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra</a> and 
+                    <a href="http://en.wikipedia.org/wiki/A*_search_algorithm">A*</a>
+                    but also optimized algorithms like <a href="http://en.wikipedia.org/wiki/Contraction_hierarchies">Contraction Hierarchies</a>.
+                    It stands under the Apache License and is build on a large test suite.
+                    <h2>License</h2>
+                    We chose the Apache License to make it easy for you to embed GraphHopper in your products.
+                    Feel free to sell and extend GraphHopper. If you contribute your changes back you won't
+                    have problems keeping the code base up to date.
+                    <h2>OpenStreetMap Support</h2>
+                    The OpenStreetMap is directly supported from GraphHopper and without OpenStreetMap and 
+                    its community probably GraphHopper wouldn't be here. We will improve and create
+                    the best OSM-driven Open Source routing engine.
+                    <h2>Written in Java</h2>
+                    GraphHopper is written in Java and runs on Linux, OSX, Windows and Android. Other 
+                    environments which supports at least Java 5 will work too.
+                    <h4>Android</h4>
+                    On Android we provide an integration with Mapsforge which makes offline navigation one step closer.
+                    Due to the usage of memory mapped files and Contraction Hierarchies
+                    we avoid allocating too much memory which makes it possible to run German-wide queries with only 
+                    32MB in a few seconds. We provide an Eclipse project as well as the maven android integration to be used in other IDEs.
+                    <h4>Web</h4>
+                    With the web module we provide code to query GraphHopper over HTTP and decrease bandwidth usage as much as possible.
+                    For that we use polyline encoding from Google, the Ramer–Douglas–Peucker algorithm and a simple GZIP servlet filter.                 
+                    On the client side we provide Java and JavaScript code (via Leaflet) to consume that service and visualize the routes.
+                    <h4>Desktop</h4>
+                    GraphHopper can also works on the Desktop in a native Java application without internet access.
+                    E.g. you could use the rough user interface called MiniGraphUI provided in the tools module.
+                    To have a proper and fast map visualization we'll have to wait for mapsforge 0.4 which will support Desktop via Swing/AWT.
+                    Or you have to use an older version of it.
+                    <h2>Customizable API</h2>
+                    We've build the GraphHopper class which makes simple things easy.
+                    Still you can use the low level API of GraphHopper and you'll see that
+                    it was created to allow fast and memory efficient use of the underlying
+                    datastructures and algorithms.
+                </div>
+                <div id="enterprise" class="tab-pane">
+                    <h2>Consulting</h2>
+                    <p>
+                        I'm available for your consulting work! No need to put 
+                        this back to the Open Source project, but if you do you'll 
+                        get the work at half the price!
+                    </p>
+
+                    <h2>
+                        <span class="it">Coming soon:</span> GraphHopper Enterprise
+                    </h2>
+                    <!--
+                    Although GraphHopper is already very business friendly the Enterprise
+                    version will im
+                    -->
+                    <ul>
+                        <li>
+                            Optimized to efficiently calculate many to many paths. 
+                            Useable for ridesharing applications and more.
+                        </li>                        
+                        <li>
+                            Even faster response times
+                        </li>                        
+                        <li>
+                            Include support or a source code license!
+                        </li>
+                    </ul>
+                </div>
+                <div id="thanks" class="tab-pane">                    
+                    <h2>
+                        The GraphHopper Team says thanks to
+                    </h2>
+                    <ul>
+                        <li>NetBeans - for the best <a href="http://netbeans.org/">Java IDE</a>
+                        </li>
+                        <li id="pannous">
+                            <a href="http://gpsies.com/">Gpsies</a> - for the GraphHopper API hosting
+                        </li>
+                        <li>
+                            YourKit is kindly supporting open source projects with its full-featured 
+                            <a href="http://www.yourkit.com/java/profiler/index.jsp">Java Profiler</a>.
+                            YourKit, LLC is the creator of innovative and intelligent tools for profiling
+                            Java and .NET applications.
+                        </li>
+                        <li id="open-source">
+                            Xubuntu, Trove4J, Log4J, Guice, Maven and other Open Soure software.
+                        </li>
+                        <li id="brother">
+                            Images and icons for our website via <a href="http://the-houbler.com/">The-Houbler.com</a>
+                            and <a href="http://www.famfamfam.com/lab/icons/">famfamfam icons</a>!
+                        </li>
+                    </ul>
+                </div>
+                <div class="footer">
+                    <ul class="main-links">
+                        <li>
+                            <a href="https://github.com/graphhopper/graphhopper">Get Sources</a>
+                        </li>
+                        <li class="muted">·</li>
+                        <li>
+                            <a href="http://graphhopper.com/maps">Maps</a>
+                        </li>
+                        <li class="muted">·</li>
+                        <li>
+                            <a href="https://github.com/graphhopper/graphhopper/wiki/Android">Android App</a>
+                        </li>
+                        <li class="muted">·</li>
+                        <li>
+                            <a href="http://karussell.wordpress.com/about">Contact</a>
+                        </li>
+                    </ul>
+                </div>
+                <div id="foot-footer">
+                    OpenStreetMap is a registered trademark of the OpenStreetMap Foundation.
+                    The Linux logo trademarks are owned by Linus Torvalds
+                    The Windows logo is a registered trademark of Microsoft Corporation.
                 </div>
             </div>
-            <div id="footer">
-                <div id="contact"><a href="http://karussell.wordpress.com/about">Imprint</a></div>
-                <div id="testimonials"><a href="thanks.html">Testimonials</a></div>
-            </div>
-            <div class="clearfix"> </div>
         </div>
+        <script src="http://code.jquery.com/jquery.js"></script>
+        <script src="js/bootstrap.min.js"></script>      
+        <script type="text/javascript">
+            jQuery(document).ready(function ($) {
+                // interval: 15000
+                $('#myCarousel').carousel({
+                    interval: false
+                });
+            
+                $("#mytabs").tab();
+                $('#mytabs a[data-toggle]').click(function (e) {
+                    // avoid moving to id=hash
+                    e.preventDefault();
+                    // use new history API to append hash nevertheless
+                    if(history)
+                        history.pushState({}, "", this.hash);
+                    
+                    $(this).tab('show');                    
+                });
+                
+                var hash = window.location.hash;
+                if (hash)
+                    $("ul[data-tabs] li > a[href='" + hash + "']").click();
+            });            
+        </script>
         <!-- Piwik -->
         <script type="text/javascript">
             var pkBaseURL = (("https:" == document.location.protocol) ? "https://www.pannous.info/piwik/" : "http://www.pannous.info/piwik/");
