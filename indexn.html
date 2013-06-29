@@ -18,96 +18,131 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <div class="nav-collapse collapse">
-                        <ul class="nav">
+                    <div id="mytabs" class="nav-collapse collapse">
+                        <ul class="nav nav-tabs" data-tabs="tabs">
                             <li class="active">
-                                <a href="./index.html">Home</a>
+                                <a href="#home" data-toggle="tab">Home</a>
                             </li>
                             <li class="">
-                                <a href="./overview.html">Overview</a>
+                                <a href="#overview" data-toggle="tab">Overview</a>
                             </li>
                             <li class="">
                                 <a href="http://graphhopper.com/maps">Maps</a>
                             </li>
                             <li class="">
-                                <a href="./developer.html">Developer</a>
+                                <a href="#developer" data-toggle="tab">Developer</a>
                             </li>
                             <li class="">
-                                <a href="./enterprise.html">Enterprise</a>
+                                <a href="#enterprise" data-toggle="tab">Enterprise</a>
                             </li>
                             <li class="">
-                                <a href="./thanks.html">Testimonials</a>
+                                <a href="#thanks" data-toggle="tab">Testimonials</a>
                             </li>                            
                         </ul>
                     </div>
                 </div>
             </div>
-        </div>
+        </div>        
+
         <div id="main">
-            <div class="container">
-                <!--
-                <div id="header_img" class="center">
-                    <img alt="GraphHopper" src="img/header.png">
-                </div>
-                <p>Fast road routing in Java. For server-side and Android.</p>
-                -->
-                <!-- Carousel -->
-                <div id="myCarousel" class="carousel slide">
-                    <div class="carousel-inner">
-                        <div class="item active">
-                            <img alt="GraphHopper" src="img/header.png">                            
-                            <div class="container">                                                                
-                                <div id="osm_logo">
-                                    <img src="img/osm_marriage.png" alt="">
-                                </div>
-                                <div class="feature lead container">
-                                    Highlights:
-                                    <ul>
-                                        <li>Fast and memory efficient road routing</li>
-                                        <li>Apache 2.0 Licensed</li>
-                                        <li>Works out of the box with OpenStreetMap</li>
-                                        <li>Large test suite</li>                                        
-                                        <li>Implemented in Java™</li>                                        
-                                        <li>Scales from big server to mobile device</li>
-                                        <li>Custom routing options</li>
-                                    </ul>
-                                </div>
-                                <div class="carousel-caption">
-                                    <h2>Fast road routing in Java</h2>
-                                    <p class="lead">GraphHopper uses OpenStreetMap and is Open Source.</p>
-                                    <a href="https://github.com/graphhopper/graphhopper" class="btn btn-primary btn-large">Get Sources</a>                                    
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="item">
-                            <img src="img/web-demo.png" alt="">
-                            <div class="container">
-                                <div class="carousel-caption">
-                                    <h2>Powerful Routing Service</h2>
-                                    <p class="lead">World wide coverage. Car, pedestrian and bike!</p>                                    
-                                    <a href="http://graphhopper.com/maps" class="btn btn-primary btn-large">GraphHopper Maps</a>                                    
-                                    powered by OpenStreetMap
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="item">
-                            <img id="android_img" src="img/android-demo.png" alt="">
-                            <img id="everywhere_img" src="img/everywhere.png" alt="">
-                            <div class="container">
-                                <div class="carousel-caption">
-                                    <h2>Runs Everywhere</h2>
-                                    <p class="lead">GraphHopper works on the server-side and on Android™.</p>
-                                    <a class="btn btn-large btn-primary" href="#">Download App</a>
-                                </div>
-                            </div>
-                        </div>
+            <div class="container tab-content">
+                <div id="home" class="tab-pane active">
+                    <!--
+                    <div id="header_img" class="center">
+                        <img alt="GraphHopper" src="img/header.png">
                     </div>
-                    <a class="left carousel-control" href="#myCarousel" data-slide="prev">&lsaquo;</a>
-                    <a class="right carousel-control" href="#myCarousel" data-slide="next">&rsaquo;</a>
+                    <p>Fast road routing in Java. For server-side and Android.</p>
+                    -->
+                    <!-- Carousel -->
+                    <div id="myCarousel" class="carousel slide">
+                        <div class="carousel-inner">
+                            <div class="item active">
+                                <img alt="GraphHopper" src="img/header.png">                            
+                                <div class="container">                                                                
+                                    <div id="osm_logo">
+                                        <img src="img/osm_marriage.png" alt="">
+                                    </div>
+                                    <div class="feature lead container">
+                                        Highlights:
+                                        <ul>
+                                            <li>Fast and memory efficient road routing</li>
+                                            <li>Apache 2.0 Licensed</li>
+                                            <li>Works out of the box with OpenStreetMap</li>
+                                            <li>Large test suite</li>                                        
+                                            <li>Implemented in Java™</li>                                        
+                                            <li>Scales from big server to mobile device</li>
+                                            <li>Custom routing options</li>
+                                        </ul>
+                                    </div>
+                                    <div class="carousel-caption">
+                                        <h2>Fast road routing in Java</h2>
+                                        <p class="lead">GraphHopper uses OpenStreetMap and is Open Source.</p>
+                                        <a href="https://github.com/graphhopper/graphhopper" class="btn btn-primary btn-large">Get Sources</a>                                    
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="item">
+                                <img src="img/web-demo.png" alt="">
+                                <div class="container">
+                                    <div class="carousel-caption">
+                                        <h2>Powerful Routing Service</h2>
+                                        <p class="lead">World wide coverage. Car, pedestrian and bike!</p>                                    
+                                        <a href="http://graphhopper.com/maps" class="btn btn-primary btn-large">GraphHopper Maps</a>                                    
+                                        powered by OpenStreetMap
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="item">
+                                <img id="android_img" src="img/android-demo.png" alt="">
+                                <img id="everywhere_img" src="img/everywhere.png" alt="">
+                                <div class="container">
+                                    <div class="carousel-caption">
+                                        <h2>Runs Everywhere</h2>
+                                        <p class="lead">GraphHopper works on the server-side and on Android™.</p>
+                                        <a class="btn btn-large btn-primary" href="#">Download App</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <a class="left carousel-control" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+                        <a class="right carousel-control" href="#myCarousel" data-slide="next">&rsaquo;</a>
+                    </div>
+                    <!-- /.carousel -->
                 </div>
-                <!-- /.carousel -->
+                <div id="overview" class="tab-pane">
+                    overview
+                </div>
+                <div id="developer" class="tab-pane">
+                    developer
+                </div>
+                <div id="enterprise" class="tab-pane">
+                    enterprise
+                </div>
+                <div id="thanks" class="tab-pane">                    
+                    The GraphHopper Team says thanks to
+                    <ul>
+                        <li>NetBeans - for the best <a href="http://netbeans.org/">Java IDE</a>
+                        </li>
+                        <li id="pannous">
+                            <a href="http://gpsies.com/">Gpsies</a> - for the GraphHopper API hosting
+                        </li>
+                        <li>
+                            YourKit is kindly supporting open source projects with its full-featured 
+                            <a href="http://www.yourkit.com/java/profiler/index.jsp">Java Profiler</a>.
+                            YourKit, LLC is the creator of innovative and intelligent tools for profiling
+                            Java and .NET applications.
+                        </li>
+                        <li id="open-source">
+                            Xubuntu, Trove4J, Log4J, Guice, Maven and other Open Soure software.
+                        </li>
+                        <li id="brother">
+                            Images and icons for our website via <a href="http://the-houbler.com/">The-Houbler.com</a>
+                            and <a href="http://www.famfamfam.com/lab/icons/">famfamfam icons</a>!
+                        </li>
+                    </ul>
+                </div>
                 <div>
                     <ul class="main-links">
                         <li>
@@ -136,11 +171,28 @@
         </div>
         <script src="http://code.jquery.com/jquery.js"></script>
         <script src="js/bootstrap.min.js"></script>      
-        <script type="text/javascript">            
-            // interval: 15000
-            $('#myCarousel').carousel({
-                interval: false
-            })            
+        <script type="text/javascript">
+            jQuery(document).ready(function ($) {
+                // interval: 15000
+                $('#myCarousel').carousel({
+                    interval: false
+                });
+            
+                $("#mytabs").tab();
+                $('#mytabs a[data-toggle]').click(function (e) {
+                    // avoid moving to id=hash
+                    e.preventDefault();
+                    // use new history API to append hash nevertheless
+                    if(history)
+                        history.pushState({}, "", this.hash);
+                    
+                    $(this).tab('show');                    
+                });
+                
+                var hash = window.location.hash;
+                if (hash)
+                    $("ul[data-tabs] li > a[href='" + hash + "']").click();
+            });            
         </script>
         <!-- Piwik -->
         <script type="text/javascript">

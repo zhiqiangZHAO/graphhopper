@@ -111,3 +111,7 @@ a:hover {
     color: gray;
     font-size: 9px;
 }
+
+.tab-pane {
+    min-height: 400px;
+}
