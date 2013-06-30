@@ -1,5 +1,11 @@
 body {
 }
+.lead {
+    font-size: 20px;    
+}
+li {
+    line-height: 22px;
+}
 
 #main {    
 /*    padding-top: 30px;*/   

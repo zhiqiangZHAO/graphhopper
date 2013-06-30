@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>GraphHopper Road Routing in Java powered by OpenStreetMaps</title>
+        <title>GraphHopper Road Routing in Java with OpenStreetMaps</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>       
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="keywords" content="road routing,shortest path,openstreetmap,android,navigation,routenplaner,onboard"/>            
@@ -80,17 +80,20 @@
                                 <a href="#overview" data-toggle="tab">Overview</a>
                             </li>
                             <li class="">
-                                <a href="http://graphhopper.com/maps">Maps</a>
+                                <a href="http://graphhopper.com/maps/?point=madrid&point=moscow&vehicle=car">Maps</a>
                             </li>
                             <li class="">
                                 <a href="#enterprise" data-toggle="tab">Enterprise</a>
                             </li>
                             <li class="">
                                 <a href="#developers" data-toggle="tab">Developers</a>
-                            </li>                            
+                            </li>
                             <li class="">
                                 <a href="#thanks" data-toggle="tab">Testimonials</a>
-                            </li>                            
+                            </li>
+                            <li class="">
+                                <a href="https://karussell.wordpress.com/category/graphhopper/">Blog</a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -143,7 +146,7 @@
                                     <div class="carousel-caption">
                                         <h2>Powerful Routing Service</h2>
                                         <p class="lead">World wide coverage. Car, pedestrian and bike!</p>                                    
-                                        <a href="http://graphhopper.com/maps" class="btn btn-large mybtn">GraphHopper Maps</a>                                    
+                                        <a href="http://graphhopper.com/maps/?point=madrid&point=moscow&vehicle=car" class="btn btn-large mybtn">GraphHopper Maps</a>                                    
                                         powered by OpenStreetMap
                                     </div>
                                 </div>
@@ -175,31 +178,38 @@
                     It stands under the Apache License and is build on a large test suite.
                     <h2>License</h2>
                     We chose the Apache License to make it easy for you to embed GraphHopper in your products.
-                    Feel free to sell and extend GraphHopper. If you contribute your changes back you won't
-                    have problems keeping the code base up to date.
+                    We suggest to contribute back your changes (as GraphHopper will evolve fast) 
+                    but of course this is not necessary.
                     <h2>OpenStreetMap Support</h2>
-                    OpenStreetMap is directly supported from GraphHopper. Without OpenStreetMap and 
-                    its community probably GraphHopper wouldn't be useful at all for many people.                    
+                    OpenStreetMap is directly supported from GraphHopper. Without the amazing data from
+                    OpenStreetMap GraphHopper wouldn't be possible at all.
+                    Other map data will need a custom import procedure.
                     <h2>Development</h2>
-                    <a href="#developers" data-toggle="tab">Development</a> happens at GitHub with (currently) two active contributors. You can clone the project
-                    at GitHub or sign up at the mailing list.
+                    <a href="#developers" data-toggle="tab">Development</a> happens at GitHub with (currently) 
+                    two active contributors. You can clone the project at GitHub or sign up at the mailing list.
                     <h2>Written in Java</h2>
                     GraphHopper is written in Java and runs on Linux, OSX, Windows and Android. Other 
                     environments which supports at least Java 5 will work too.
                     <h4>Android</h4>
                     On Android we provide an integration with Mapsforge which makes offline navigation one step closer.
                     Due to the usage of memory mapped files and Contraction Hierarchies
-                    we avoid allocating too much memory which makes it possible to run German-wide queries with only 
-                    32MB in a few seconds. We provide an Eclipse project as well as the Maven-Android integration to be used in other IDEs.
+                    we avoid allocating too much memory which makes it possible to run Germany-wide queries with only 
+                    32MB in a few seconds. We provide an Eclipse project as well as the Maven-Android integration to be 
+                    used in other IDEs.
                     <h4>Web</h4>
-                    With the web module we provide code to query GraphHopper over HTTP and decrease bandwidth usage as much as possible.
-                    For that we use polyline encoding from Google, the Ramer–Douglas–Peucker algorithm and a simple GZIP servlet filter.                 
-                    On the client side we provide Java and JavaScript code (via Leaflet) to consume that service and visualize the routes.
+                    With the web module we provide code to query GraphHopper over HTTP and decrease bandwidth usage as
+                    much as possible.
+                    For that we use the polyline encoding from Google, the Ramer–Douglas–Peucker algorithm and a simple 
+                    GZIP servlet filter.                 
+                    On the client side we provide Java and JavaScript code (via Leaflet) to consume that service and 
+                    visualize the routes.
                     <h4>Desktop</h4>
                     GraphHopper also works on the Desktop in a Java application without internet access.
                     E.g. you could use the rough user interface called MiniGraphUI provided in the tools module.
-                    To have a proper and fast map visualization we'll have to wait for mapsforge 0.4 which will support the desktop via Swing/AWT.
-                    Or you have to use an older version of it. Contact us for more details.
+                    To have a proper and fast map visualization we'll have to wait for mapsforge 0.4 which will 
+                    support the desktop via Swing/AWT.
+                    Or you have to use an older version of it. Ask on the mailing list for more up to date 
+                    information.
                     <h2>Customizable API</h2>
                     We've build the GraphHopper class which makes simple things easy.
                     Still you can use the low level API of GraphHopper and you'll see that
@@ -237,12 +247,15 @@
                         <li>
                             Optimized to efficiently calculate many to many paths. 
                             Useable for ridesharing applications and more.
+                        </li>
+                        <li>
+                            More features like offline address search for Android.
                         </li>                        
                         <li>
-                            Even faster response times
-                        </li>                        
+                            Even faster response times.
+                        </li>
                         <li>
-                            Include support or a source code license!
+                            Optionally include a support or source code license!
                         </li>
                     </ul>
                 </div>
@@ -251,10 +264,12 @@
                         The GraphHopper Team says thanks to
                     </h2>
                     <ul>
-                        <li>NetBeans - for the best <a href="http://netbeans.org/">Java IDE</a>
+                        <li><a href="http://openstreetmap.org/">OpenStreetMap</a> - the best map data world wide!
+                        </li>
+                        <li><a href="http://netbeans.org/">NetBeans</a> - for the best Java IDE!
                         </li>
                         <li id="pannous">
-                            <a href="http://gpsies.com/">Gpsies</a> - for the GraphHopper API hosting
+                            <a href="http://gpsies.com/">Gpsies</a> - for hosting our GraphHopper API
                         </li>
                         <li>
                             YourKit is kindly supporting open source projects with its full-featured 
@@ -266,7 +281,9 @@
                             Xubuntu, Trove4J, Log4J, Guice, Maven and other Open Soure software.
                         </li>
                         <li id="brother">
-                            Images and icons for our website via <a href="http://the-houbler.com/">The-Houbler.com</a>
+                            Images and icons for our website via 
+                            <a href="http://the-houbler.com/">The-Houbler.com</a>,
+                            <a href="http://wikipedia.org/">Wikipedia</a>,
                             and <a href="http://www.famfamfam.com/lab/icons/">famfamfam icons</a>!
                         </li>
                     </ul>
