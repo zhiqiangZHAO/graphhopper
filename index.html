@@ -80,6 +80,9 @@
                                 <a href="#overview" data-toggle="tab">Overview</a>
                             </li>
                             <li class="">
+                                <a href="#download" data-toggle="tab">Download</a>
+                            </li>
+                            <li class="">
                                 <a href="http://graphhopper.com/maps/?point=madrid&point=moscow&vehicle=car">Maps</a>
                             </li>
                             <li class="">
@@ -131,7 +134,7 @@
                                         <div class="carousel-caption">
                                             <h2>Fast road routing in Java</h2>
                                             <p class="lead">GraphHopper uses OpenStreetMap and is Open Source.</p>
-                                            <a href="https://github.com/graphhopper/graphhopper" class="btn btn-large mybtn">Get Sources</a>                                    
+                                            <a href="#download" data-toggle="tab" class="btn btn-large mybtn">Download</a>
                                         </div>
                                     </div>
                                     <div id="osm_logo" class="span5">
@@ -159,7 +162,7 @@
                                     <div class="carousel-caption">
                                         <h2>Runs Everywhere</h2>
                                         <p class="lead">GraphHopper works on the server-side and on Android™.</p>
-                                        <a class="btn btn-large mybtn" href="https://code.google.com/p/graphhopper/downloads/list">Download App</a>
+                                        <a href="#download" class="btn btn-large mybtn" data-toggle="tab">Download App</a>
                                     </div>
                                 </div>
                             </div>
@@ -169,12 +172,67 @@
                     </div>
                     <!-- /.carousel -->
                 </div>
+                <div id="download" class="tab-pane">
+
+                    <div>
+                        <h3>Sources</h3>
+                        <a href="https://github.com/graphhopper/graphhopper/">Get Source</a>
+                    </div>
+                    
+                    <div class="download-table">
+                        <h3>Download</h3>
+                        <table border="0" width="300px">
+                            <tr>                            
+                                <th>Jar</th>
+                                <th>War</th>
+                                <th>Android</th>
+                            </tr>
+                            <tr>                            
+                                <td>
+                                    <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper/0.1-SNAPSHOT/">Preview</a>
+                                </td>
+                                <td>
+                                    <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-web/0.1-SNAPSHOT/">Preview</a>
+                                </td>
+                                <td>
+                                    <a href="https://code.google.com/p/graphhopper/downloads/list">Preview</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div>
+                        <h3>Maven</h3>
+
+                        <div>Dependency</div>
+                        <textarea class="xmltextarea">
+<dependency>
+    <groupId>com.graphhopper</groupId>
+    <artifactId>graphhopper</artifactId>
+    <version>0.1-SNAPSHOT</version>
+</dependency></textarea>
+
+                        <div>Repository</div>
+                        <textarea class="xmltextarea">
+<repositories>
+  <repository>
+    <id>sonatype-oss-public</id>
+    <url>https://oss.sonatype.org/content/groups/public/</url>
+    <releases>
+      <enabled>true</enabled>
+    </releases>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+</repositories></textarea>                        
+                    </div>
+                </div>
                 <div id="overview" class="tab-pane">
                     <h2>Overview</h2>
-                    GraphHopper offers memory efficient algorithms in Java for road routing.
+                    GraphHopper offers memory efficient algorithms in Java for routing on graphs.
                     E.g. <a href="http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra</a> and 
                     <a href="http://en.wikipedia.org/wiki/A*_search_algorithm">A*</a>
-                    but also optimized algorithms like <a href="http://en.wikipedia.org/wiki/Contraction_hierarchies">Contraction Hierarchies</a>.
+                    but also optimized road routing algorithms like <a href="http://en.wikipedia.org/wiki/Contraction_hierarchies">Contraction Hierarchies</a>.
                     It stands under the Apache License and is build on a large test suite.
                     <h2>License</h2>
                     We chose the Apache License to make it easy for you to embed GraphHopper in your products.
@@ -291,7 +349,7 @@
                 <div class="footer">
                     <ul class="main-links">
                         <li>
-                            <a href="https://github.com/graphhopper/graphhopper">Get Sources</a>
+                            <a href="#download" data-toggle="tab">Download</a>
                         </li>
                         <li class="muted">·</li>
                         <li>
@@ -307,9 +365,11 @@
                         </li>
                         <li class="muted">·</li>                        
                         <li>
+                            
                             <a href="http://karussell.wordpress.com/about">Contact</a>
                             <!--
                         sometimes this does not work on the second click?
+                            
                             <a href="#contact" data-toggle="tab">Contact</a>
                             -->
                         </li>                        

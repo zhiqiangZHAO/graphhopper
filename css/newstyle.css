@@ -8,7 +8,7 @@ li {
 }
 
 #main {    
-/*    padding-top: 30px;*/   
+    /*    padding-top: 30px;*/   
 }
 a {
     color: #3872f2;    
@@ -28,7 +28,7 @@ a:hover {
     background-image: linear-gradient(to bottom, white, #e7e7e7);
 }
 .navbar .nav .active > a, .navbar .nav .active > a:hover, .navbar .nav .active > a:focus {
-/*    background-color: #9f9f9f;*/
+    /*    background-color: #9f9f9f;*/
     background-image: linear-gradient(to bottom, #9f9f9f, #e7e7e7);
     color: black;
 }
@@ -55,7 +55,7 @@ a:hover {
     min-width: 300px;    
 }
 #home .item {
-/*    width: 600px;*/
+    /*    width: 600px;*/
 }
 .carousel .item {
     min-height: 400px;    
@@ -88,30 +88,30 @@ a:hover {
 }
 
 .mybtn {
-	color: #FFFFFF;
-	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-	background-color: #009218;
-	*background-color: #009218;
-	background-image: -moz-linear-gradient(top, #00C621, #009218);
-	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#00C621), to(#009218));
-	background-image: -webkit-linear-gradient(top, #00C621, #009218);
-	background-image: -o-linear-gradient(top, #00C621, #009218);
-	background-image: linear-gradient(to bottom, #00C621, #009218);
-	background-repeat: repeat-x;
-	border-color: #009218;
-	border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00C621', endColorstr='#009218', GradientType=0);
-	filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+    color: #FFFFFF;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #009218;
+    *background-color: #009218;
+    background-image: -moz-linear-gradient(top, #00C621, #009218);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#00C621), to(#009218));
+    background-image: -webkit-linear-gradient(top, #00C621, #009218);
+    background-image: -o-linear-gradient(top, #00C621, #009218);
+    background-image: linear-gradient(to bottom, #00C621, #009218);
+    background-repeat: repeat-x;
+    border-color: #009218;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00C621', endColorstr='#009218', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
 }
 .mybtn:hover, .mybtn:active, .mybtn.active, .mybtn.disabled, .mybtn[disabled] {
-	color: #FFFFFF;
-	background-color: #009218;
-	*background-color: #003bb3;
+    color: #FFFFFF;
+    background-color: #009218;
+    *background-color: #003bb3;
 }
 
 .feature {
     padding-top: 10px;
-/*    float: right;*/
+    /*    float: right;*/
 }
 
 #android_img {
@@ -130,10 +130,10 @@ a:hover {
 }
 #osm_logo {    
     z-index: -1;
-/*    position: absolute;
-    top: 40px;
-    right: 0;*/
-/*    float: right;*/
+    /*    position: absolute;
+        top: 40px;
+        right: 0;*/
+    /*    float: right;*/
 }
 
 #foot-footer {
@@ -156,4 +156,12 @@ a:hover {
     width: 10px;
     padding-left: 5px;
     margin-top: -10px;
+}
+.download-table tr th{
+    text-align: left;
+}
+.xmltextarea {
+    min-height: 120px;
+    width: 500px;
+    border:none;
 }
