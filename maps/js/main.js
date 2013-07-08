@@ -25,8 +25,8 @@ if(LOCAL)
     host = "http://localhost:8989";
 else {
     // cross origin:
-    // host = "http://graphhopper.gpsies.com";
-    host = "http://graphhopper.com:8989";        
+    host = "http://graphhopper.gpsies.com";
+    // host = "http://graphhopper.com:8989";        
 }
 var ghRequest = new GHRequest(host);
 ghRequest.algoType = "fastest";
