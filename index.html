@@ -37,19 +37,23 @@
                 // Chrome and Safari always emit a popstate event on page load, but Firefox doesn't.
                 window.addEventListener("popstate", function(e) {
                     var hash = document.location.hash;                    
-                    console.log("popstate " + hash);
                     showTab(hash);
                 });
                 
-                $('a[data-toggle]').click(function (e) {
-                    // avoid moving window focus to id=hash
-                    e.preventDefault();
+                $('#mytabs a[data-toggle]').click(function (e) {
+                    // avoid moving window focus to id=hash -> not necessary anymore?
+                    // e.preventDefault();
+                    
                     // use new history API to append hash nevertheless
                     if(history) {
-                        console.log("push " + this.hash);
                         history.pushState({ hash: this.hash }, "", this.hash);
                     }
                     
+                    $(this).tab('show');
+                });
+                
+                // make links with data-toggle outside of mytabs working
+                $('#main a[data-toggle]').click(function (e) {
                     $(this).tab('show');
                 });
                 
@@ -373,7 +377,7 @@
                         <li>
                             <a href="https://twitter.com/graphhopp">Twitter</a>
                         </li>
-                        <li class="muted">·</li>        
+                        <li class="muted">·</li>                        
                         <li>
                             <a href="#thanks" data-toggle="tab">Testimonials</a>
                         </li>
