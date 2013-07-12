@@ -16,13 +16,13 @@
                 if(!hash)
                     hash = "#home";
                 // tab is already active so we only need to show the content
-                $("#mytabs ul[data-tabs] li > a[href='" + hash + "']").tab('show');
+                $("#mytabs li > a[href='" + hash + "']").tab('show');
             }
             // emulate click on tab i.e. with history
             function clickTab(hash) {
                 if(!hash)
                     hash = "#home";
-                $("ul[data-tabs] li > a[href='" + hash + "']").click();
+                $("#mytabs li > a[href='" + hash + "']").click();
             }            
             function openEmail(email) {
                 window.location = "mailto:" + email.replace(/dotty/g, ".").replace(/atty/g, "@").replace(/ /g, "");
@@ -37,22 +37,20 @@
                 // Chrome and Safari always emit a popstate event on page load, but Firefox doesn't.
                 window.addEventListener("popstate", function(e) {
                     var hash = document.location.hash;                    
+                    console.log("popstate " + hash);
                     showTab(hash);
                 });
                 
-                $('#mytabs a[data-toggle]').click(function (e) {
+                $('a[data-toggle]').click(function (e) {
                     // avoid moving window focus to id=hash
                     e.preventDefault();
                     // use new history API to append hash nevertheless
-                    if(history)
+                    if(history) {
+                        console.log("push " + this.hash);
                         history.pushState({ hash: this.hash }, "", this.hash);
+                    }
                     
-                    $(this).tab('show');                    
-                });
-                
-                // small hack to make links to other tabs in the text working too (otherwise tabs 'active' won't move somehow)
-                $('#main a[data-toggle]').click(function (e) {
-                    clickTab(this.hash);
+                    $(this).tab('show');
                 });
                 
                 // read hash from URL and click the tab
@@ -91,8 +89,11 @@
                             <li class="">
                                 <a href="#developers" data-toggle="tab">Developers</a>
                             </li>
-                            <li class="">
+                            <li class="myhide">
                                 <a href="#thanks" data-toggle="tab">Testimonials</a>
+                            </li>
+                            <li class="myhide">
+                                <a href="#contact" data-toggle="tab">Contact</a>
                             </li>
                             <li class="">
                                 <a href="https://karussell.wordpress.com/category/graphhopper/">Blog</a>
@@ -173,12 +174,21 @@
                     <!-- /.carousel -->
                 </div>
                 <div id="download" class="tab-pane">
-
+                    <div class="tshirt">
+                        <div>
+                            <a href="http://karussell.spreadshirt.de/graphhopper-C291144">
+                                <img src="img/tshirt.png"/>
+                            </a>
+                        </div>
+                        <span>
+                            Get your shirt!               
+                        </span>
+                    </div>
                     <div>
                         <h3>Sources</h3>
                         <a href="https://github.com/graphhopper/graphhopper/">Get Source</a>
                     </div>
-                    
+
                     <div class="download-table">
                         <h3>Download</h3>
                         <table border="0" width="300px">
@@ -199,8 +209,7 @@
                                 </td>
                             </tr>
                         </table>
-                    </div>
-                    <div>
+
                         <h3>Maven</h3>
 
                         <div>Dependency</div>
@@ -243,8 +252,8 @@
                     OpenStreetMap GraphHopper wouldn't be possible at all.
                     Other map data will need a custom import procedure.
                     <h2>Development</h2>
-                    <a href="#developers" data-toggle="tab">Development</a> happens at GitHub with (currently) 
-                    two active contributors. You can clone the project at GitHub or sign up at the mailing list.
+                    <a href="#developers" data-toggle="tab">Development</a> happens at GitHub. 
+                    You can clone the project at GitHub or sign up at the mailing list.
                     <h2>Written in Java</h2>
                     GraphHopper is written in Java and runs on Linux, OSX, Windows and Android. Other 
                     environments which supports at least Java 5 will work too.
@@ -276,12 +285,20 @@
                 </div>
                 <div id="developers" class="tab-pane">
                     <h2>Developers</h2>                    
-                    You can clone the project at GitHub and sign up at the mailing list!
-                    See the <a href="https://github.com/graphhopper/graphhopper/wiki/Developers">Developer wiki</a>
-                    for more information.
+                    <ul>
+                        <li>
+                            <a href="https://github.com/graphhopper/graphhopper/">Get Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/graphhopper/graphhopper/issues">Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/graphhopper/graphhopper/wiki/Developers">Developer wiki</a>
+                        </li>
+                    </ul>
                 </div>
                 <div id="contact" class="tab-pane">
-                    <h2>Contact</h2>                    
+                    <h2>Contact</h2>
                     <p>Twitter: <a href="https://twitter.com/timetabling">timetabling</a></p>
                     <p>Email: <a onclick="openEmail('peter dotty karich atty gmx dotty de')">peter dotty karich atty gmx dotty de</a></p>
                 </div>
@@ -297,10 +314,7 @@
                     <h2>
                         <span class="it">Coming soon:</span> GraphHopper Enterprise
                     </h2>
-                    <!--
-                    Although GraphHopper is already very business friendly the Enterprise
-                    version will im
-                    -->
+                    
                     <ul>
                         <li>
                             Optimized to efficiently calculate many to many paths. 
@@ -355,23 +369,17 @@
                         <li>
                             <a href="http://graphhopper.com/maps">Maps</a>
                         </li>
-                        <!-- <li class="muted">·</li>
-                        <li>
-                           <a href="https://code.google.com/p/graphhopper/downloads/list">Android App</a>
-                        </li>-->
                         <li class="muted">·</li>
                         <li>
                             <a href="https://twitter.com/graphhopp">Twitter</a>
                         </li>
                         <li class="muted">·</li>                        
                         <li>
-                            
-                            <a href="http://karussell.wordpress.com/about">Contact</a>
-                            <!--
-                        sometimes this does not work on the second click?
-                            
-                            <a href="#contact" data-toggle="tab">Contact</a>
-                            -->
+                            <a href="#thanks">Testimonials</a>
+                        </li>
+                        <li class="muted">·</li>                        
+                        <li>
+                            <a href="#contact">Contact</a>
                         </li>                        
                     </ul>
                 </div>
