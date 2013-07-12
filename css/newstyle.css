@@ -172,9 +172,13 @@ a:hover {
 }
 .tshirt {
     font-size: 12px;
-    float: right;
+/*    float: right;*/
 }
 
 .myhide {
     display: none;
+}
+
+.clear {
+    clear: both;
 }
