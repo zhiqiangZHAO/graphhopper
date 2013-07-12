@@ -165,3 +165,16 @@ a:hover {
     width: 500px;
     border:none;
 }
+
+.tshirt span {
+    font-style: italic;
+    padding-left: 35px;
+}
+.tshirt {
+    font-size: 12px;
+    float: right;
+}
+
+.myhide {
+    display: none;
+}
