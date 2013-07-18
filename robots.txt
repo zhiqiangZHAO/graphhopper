@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /maps
+Disallow: /public
+Disallow: /measurement
