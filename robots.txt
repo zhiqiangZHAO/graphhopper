@@ -2,3 +2,5 @@ User-agent: *
 Disallow: /maps
 Disallow: /public
 Disallow: /measurement
+Disallow: /api
+Disallow: /routing
