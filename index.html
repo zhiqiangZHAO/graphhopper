@@ -60,7 +60,25 @@
                 // read hash from URL and click the tab
                 var hash = window.location.hash;
                 if (hash)
-                    showTab(hash);                    
+                    showTab(hash);
+                
+                $('#installcommand').click(function(e){
+                    e.preventDefault();
+                    copyToClipboard($(this).attr('title'));
+                })
+                
+                function copyToClipboard(text) {
+                    try{
+                        if (window.clipboardData) 
+                        // Internet Explorer
+                            window.clipboardData.setData("Text", text);
+                        else {
+                            unsafeWindow.netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+                            const clipboardHelper = Components.classes["@mozilla.org/widget/clipboardhelper;1"].getService(Components.interfaces.nsIClipboardHelper);
+                            clipboardHelper.copyString(text);
+                        }
+                    }catch(e){}
+                }
             });            
         </script>
     </head>
@@ -178,25 +196,30 @@
                     <!-- /.carousel -->
                 </div>
                 <div id="download" class="tab-pane">
-                    <div class="span3">
+                    <div class="span5">
                         <div>
-                            <h3>Sources</h3>
-                            <a href="https://github.com/graphhopper/graphhopper/">Get Source</a>                            
+                            <h3>Installation</h3>
+                            <ul>
+                                <li>
+                                    <a href="https://github.com/graphhopper/graphhopper/">Get Source</a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/graphhopper/graphhopper/wiki/QuickStart">Quick Start</a>
+                                </li>
+                            </ul>                            
                         </div>
 
                         <div class="download-table">
                             <h3>Download</h3>
                             <div>
-                                <h4>0.1</h4>
-                                <a href="https://github.com/graphhopper/graphhopper/archive/0.1.zip">Desktop (zip)</a>
-                                ,
+                                <h4>0.1</h4>                                
                                 <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-web/0.1/graphhopper-web-0.1.war">Web (war)</a>
                                 ,
                                 <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.2-SNAPSHOT/graphhopper-android-0.2-20130720.103556-2.apk">Android (apk)</a>
                             </div>
                         </div>                        
                     </div>
-                    <div class="span5 tshirt">
+                    <div class="span3 tshirt">
                         <div>
                             <a href="http://karussell.spreadshirt.de/graphhopper-C291144">
                                 <img src="img/tshirt.png"/>
