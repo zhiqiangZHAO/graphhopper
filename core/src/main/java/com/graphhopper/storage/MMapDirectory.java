@@ -1,12 +1,11 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license 
- *  agreements. See the NOTICE file distributed with this work for 
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor
+ *  license agreements. See the NOTICE file distributed with this work for 
  *  additional information regarding copyright ownership.
  * 
- *  Peter Karich licenses this file to you under the Apache License, 
- *  Version 2.0 (the "License"); you may not use this file except 
- *  in compliance with the License. You may obtain a copy of the 
- *  License at
+ *  GraphHopper licenses this file to you under the Apache License, 
+ *  Version 2.0 (the "License"); you may not use this file except in 
+ *  compliance with the License. You may obtain a copy of the License at
  * 
  *       http://www.apache.org/licenses/LICENSE-2.0
  * 
@@ -20,30 +19,21 @@ package com.graphhopper.storage;
 
 /**
  * Manages memory mapped DataAccess objects.
- *
+ * <p/>
  * @see MMapDataAccess
  * @author Peter Karich
  */
-public class MMapDirectory extends AbstractDirectory {
-
+public class MMapDirectory extends GHDirectory
+{
     // reserve the empty constructor for direct mapped memory
-    private MMapDirectory() {
+    private MMapDirectory()
+    {
         this("");
         throw new IllegalStateException("reserved for direct mapped memory");
     }
 
-    public MMapDirectory(String _location) {
-        super(_location);
-        mkdirs();
-    }
-
-    @Override
-    protected DataAccess create(String id, String location) {
-        return new MMapDataAccess(id, location);
-    }
-
-    @Override
-    public boolean isLoadRequired() {
-        return true;
+    public MMapDirectory( String _location )
+    {
+        super(_location, DAType.MMAP);
     }
 }

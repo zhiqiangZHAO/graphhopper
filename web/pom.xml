@@ -6,14 +6,14 @@
     <groupId>com.graphhopper</groupId>
     <artifactId>graphhopper-web</artifactId>
     <packaging>war</packaging>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
     <name>GraphHopper Web</name>
     <description>Example on how to use GraphHopper in a web-based application</description>
         
     <parent>
-    	<groupId>com.graphhopper</groupId>
-    	<artifactId>graphhopper-parent</artifactId>    	
-    	<version>0.1-SNAPSHOT</version>
+        <groupId>com.graphhopper</groupId>
+        <artifactId>graphhopper-parent</artifactId>    	
+        <version>0.2-SNAPSHOT</version>
     </parent>
     <properties>
         <jetty.version>8.1.10.v20130312</jetty.version>
@@ -111,11 +111,13 @@
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>${jetty.version}</version>
                 <configuration>
+                    <!--
                     <connectors>
                         <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">	
                             <port>8989</port>
                         </connector>
                     </connectors>
+                    -->
                                         
                     <!-- to be used in combination with netbeans compile on save feature -->
                     <scanTargets>

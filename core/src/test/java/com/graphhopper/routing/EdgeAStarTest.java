@@ -26,8 +26,8 @@ import org.junit.Test;
 
 import com.graphhopper.routing.edgebased.EdgeAStar;
 import com.graphhopper.routing.util.AlgorithmPreparation;
-import com.graphhopper.routing.util.EdgePropertyEncoder;
 import com.graphhopper.routing.util.FastestCalc;
+import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.routing.util.NoOpAlgorithmPreparation;
 import com.graphhopper.routing.util.WeightCalculation;
 import com.graphhopper.storage.Graph;
@@ -37,32 +37,38 @@ import com.graphhopper.util.Helper;
  * 
  * @author Karl Hübner
  */
-public class EdgeAStarTest extends AbstractRoutingAlgorithmTester {
+public class EdgeAStarTest extends AbstractRoutingAlgorithmTester
+{
 
     @Override
-    public AlgorithmPreparation prepareGraph(Graph g, final WeightCalculation calc,
-            final EdgePropertyEncoder encoder) {
-        return new NoOpAlgorithmPreparation() {
+    public AlgorithmPreparation prepareGraph( Graph g, final WeightCalculation calc,
+            final FlagEncoder encoder )
+    {
+        return new NoOpAlgorithmPreparation()
+        {
             @Override
-            public RoutingAlgorithm createAlgo() {
-                return new EdgeAStar(_graph, encoder).type(calc);
+            public RoutingAlgorithm createAlgo()
+            {
+                return new EdgeAStar(_graph, encoder).setType(calc);
             }
-        }.graph(g);
+        }.setGraph(g);
     }
 
     @Override
     @Test
-    public void testPerformance() throws IOException {
+    public void testPerformance() throws IOException
+    {
         //the edge based version of astar needs more time because we have much more edges to traverse
         //TODO speed improvements
     }
 
     @Test
-    public void testCalcWithTurnRestrictions_PTurnInShortestPath() {
+    public void testCalcWithTurnRestrictions_PTurnInShortestPath()
+    {
         Graph graph = createTestGraphPTurn(createTurnCostsGraph());
         Path p1 = prepareGraph(graph, new FastestCalc(carEncoder), carEncoder).createAlgo()
                 .calcPath(3, 0);
         assertEquals(Helper.createTList(3, 5, 8, 9, 10, 5, 6, 7, 0), p1.calcNodes());
-        assertEquals(p1.toString(), 26, p1.distance(), 1e-6);
+        assertEquals(p1.toString(), 26, p1.getDistance(), 1e-6);
     }
 }

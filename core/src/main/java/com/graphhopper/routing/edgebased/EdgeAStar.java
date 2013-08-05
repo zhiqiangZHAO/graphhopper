@@ -25,7 +25,7 @@ import java.util.PriorityQueue;
 
 import com.graphhopper.routing.AStar.AStarEdge;
 import com.graphhopper.routing.Path;
-import com.graphhopper.routing.util.EdgePropertyEncoder;
+import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.storage.EdgeEntry;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.util.DistanceCalc;
@@ -33,33 +33,35 @@ import com.graphhopper.util.DistancePlaneProjection;
 import com.graphhopper.util.EdgeIterator;
 
 /**
- * An edge-based version of AStar. End link costs will be stored
- * for each edge instead of for each node. This is necessary when considering
- * turn costs, but will be slower than classic AStar.
+ * An edge-based version of AStar. End link costs will be stored for each edge instead of for each
+ * node. This is necessary when considering turn costs, but will be slower than classic AStar.
  * 
  * @see http://www.easts.info/on-line/journal_06/1426.pdf
  * 
- * TODO we better should reuse the code of AStar instead instead of copying it. should be done later
+ *      TODO we better should reuse the code of AStar instead instead of copying it. should be done
+ *      later
  * 
  * @author Karl Hübner
  */
-public class EdgeAStar extends AbstractEdgeBasedRoutingAlgorithm {
+public class EdgeAStar extends AbstractEdgeBasedRoutingAlgorithm
+{
 
     private DistanceCalc dist = new DistancePlaneProjection();
     private boolean alreadyRun;
     private int visitedCount;
 
-    public EdgeAStar(Graph g, EdgePropertyEncoder encoder) {
+    public EdgeAStar( Graph g, FlagEncoder encoder )
+    {
         super(g, encoder);
     }
 
     /**
      * @param fast
-     *            if true it enables an approximative distance calculation from
-     *            lat,lon values
+     *            if true it enables an approximative distance calculation from lat,lon values
      */
-    public EdgeAStar approximation(boolean approx) {
-        if (approx)
+    public EdgeAStar setApproximation( boolean approx )
+    {
+        if ( approx )
             dist = new DistancePlaneProjection();
         else
             dist = new DistanceCalc();
@@ -67,8 +69,9 @@ public class EdgeAStar extends AbstractEdgeBasedRoutingAlgorithm {
     }
 
     @Override
-    public Path calcPath(int from, int to) {
-        if (alreadyRun)
+    public Path calcPath( int from, int to )
+    {
+        if ( alreadyRun )
             throw new IllegalStateException("Create a new instance per call");
         alreadyRun = true;
         TIntObjectMap<AStarEdge> map = new TIntObjectHashMap<AStarEdge>();
@@ -78,39 +81,45 @@ public class EdgeAStar extends AbstractEdgeBasedRoutingAlgorithm {
         double currWeightToGoal, distEstimation, tmpLat, tmpLon;
         AStarEdge fromEntry = new AStarEdge(EdgeIterator.NO_EDGE, from, 0, 0);
         AStarEdge currEdge = fromEntry;
-        while (true) {
+        while ( true )
+        {
             int currVertex = currEdge.endNode;
             visitedCount++;
-            if (finished(currEdge, to))
+            if ( finished(currEdge, to) )
                 break;
 
-            EdgeIterator iter = neighbors(currVertex);
-            while (iter.next()) {
-                if (!accept(iter, currEdge))
+            EdgeIterator iter = getNeighbors(currVertex);
+            while ( iter.next() )
+            {
+                if ( !accept(iter, currEdge) )
                     continue;
 
                 //we need to distinguish between backward and forward direction when storing end weights
                 int key = createIterKey(iter, true);
 
-                int neighborNode = iter.adjNode();
-                double alreadyVisitedWeight = weightCalc.getWeight(iter.distance(), iter.flags())
+                int neighborNode = iter.getAdjNode();
+                double alreadyVisitedWeight = weightCalc.getWeight(iter.getDistance(),
+                        iter.getFlags())
                         + currEdge.weightToCompare;
                 alreadyVisitedWeight += turnCostCalc.getTurnCosts(currVertex, currEdge.edge,
-                        iter.edge());
+                        iter.getEdge());
                 AStarEdge nEdge = map.get(key);
-                if (nEdge == null || nEdge.weightToCompare > alreadyVisitedWeight) {
+                if ( nEdge == null || nEdge.weightToCompare > alreadyVisitedWeight )
+                {
                     tmpLat = graph.getLatitude(neighborNode);
                     tmpLon = graph.getLongitude(neighborNode);
                     currWeightToGoal = dist.calcDist(toLat, toLon, tmpLat, tmpLon);
                     currWeightToGoal = weightCalc.getMinWeight(currWeightToGoal);
                     distEstimation = alreadyVisitedWeight + currWeightToGoal;
-                    if (nEdge == null) {
-                        nEdge = new AStarEdge(iter.edge(), neighborNode, distEstimation,
+                    if ( nEdge == null )
+                    {
+                        nEdge = new AStarEdge(iter.getEdge(), neighborNode, distEstimation,
                                 alreadyVisitedWeight);
                         map.put(key, nEdge);
-                    } else {
+                    } else
+                    {
                         prioQueueOpenSet.remove(nEdge);
-                        nEdge.edge = iter.edge();
+                        nEdge.edge = iter.getEdge();
                         nEdge.weight = distEstimation;
                         nEdge.weightToCompare = alreadyVisitedWeight;
                     }
@@ -120,32 +129,36 @@ public class EdgeAStar extends AbstractEdgeBasedRoutingAlgorithm {
                 }
             }
 
-            if (prioQueueOpenSet.isEmpty())
+            if ( prioQueueOpenSet.isEmpty() )
                 return new Path(graph, flagEncoder);
 
             currEdge = prioQueueOpenSet.poll();
-            if (currEdge == null)
+            if ( currEdge == null )
                 throw new AssertionError("cannot happen?");
         }
 
         return extractPath(currEdge);
     }
 
-    boolean finished(EdgeEntry currEdge, int to) {
+    boolean finished( EdgeEntry currEdge, int to )
+    {
         return currEdge.endNode == to;
     }
 
     @Override
-    public int visitedNodes() {
+    public int getVisitedNodes()
+    {
         return visitedCount;
     }
 
-    Path extractPath(EdgeEntry currEdge) {
-        return new Path(graph, flagEncoder).edgeEntry(currEdge).extract();
+    Path extractPath( EdgeEntry currEdge )
+    {
+        return new Path(graph, flagEncoder).setEdgeEntry(currEdge).extract();
     }
 
     @Override
-    public String name() {
+    public String getName()
+    {
         return "astar";
     }
 }

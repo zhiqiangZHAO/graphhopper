@@ -27,23 +27,34 @@ if [ "x$ACTION" = "x" ]; then
 fi
 
 function ensureOsmXml { 
-  if [ ! -s "$OSM_XML" ]; then
-    echo "No OSM file found or specified. Press ENTER to get it from: $LINK"
+  if [ "x$OSM_FILE" = "x" ]; then
+    # skip
+    return
+  elif [ ! -s "$OSM_FILE" ]; then
+    echo "File not found '$OSM_FILE'. Press ENTER to get it from: $LINK"
     echo "Press CTRL+C if you do not have enough disc space or you don't want to download several MB."
     read -e
+      
+    echo "## now downloading OSM file from $LINK and extracting to $OSM_FILE"
+    
+    if [ ${OSM_FILE: -4} == ".pbf" ]; then
+       wget -S -nv -O $OSM_FILE $LINK
+    elif [ ${OSM_FILE: -4} == ".ghz" ]; then
+       wget -S -nv -O $OSM_FILE $LINK
+       unzip $FILE -d $NAME-gh             
+    else    
+       # make sure aborting download does not result in loading corrupt osm file
+       TMP_OSM=temp.osm
+       wget -S -nv -O - $LINK | bzip2 -d > $TMP_OSM
+       mv $TMP_OSM $OSM_FILE
+    fi
   
-    echo "## now downloading OSM file from $LINK and extracting to $OSM_XML"
-    # make sure aborting download does not result in loading corrupt osm file
-    TMP_OSM=temp.osm
-    wget -O - $LINK | bzip2 -d > $TMP_OSM
-    mv $TMP_OSM $OSM_XML
-  
-    if [ ! -f "$OSM_XML" ]; then
-      echo "ERROR couldn't download or extract OSM file $OSM_XML ... exiting"
+    if [[ ! -s "$OSM_FILE" ]]; then
+      echo "ERROR couldn't download or extract OSM file $OSM_FILE ... exiting"
       exit
     fi
   else
-    echo "## using existing osm file $OSM_XML"
+    echo "## using existing osm file $OSM_FILE"
   fi
 }
 
@@ -112,9 +123,28 @@ if [ "x$FILE" = "x" ]; then
   exit
 fi
 
-# file without extension if any
+# NAME = file without extension if any
 NAME="${FILE%.*}"
-OSM_XML=$NAME.osm
+
+if [ ${FILE: -4} == ".osm" ]; then
+   OSM_FILE=$FILE
+elif [ ${FILE: -4} == ".pbf" ]; then
+   OSM_FILE=$FILE
+elif [ ${FILE: -7} == ".osm.gz" ]; then
+   OSM_FILE=$FILE   
+elif [ ${FILE: -3} == "-gh" ]; then
+   OSM_FILE=$FILE
+   NAME=${NAME%%???}
+elif [ ${FILE: -4} == ".ghz" ]; then
+   OSM_FILE=$FILE
+   if [[ ! -d "$NAME-gh" ]]; then
+      unzip $FILE -d $NAME-gh
+   fi
+else
+   # no known end -> no import
+   OSM_FILE=
+fi
+
 GRAPH=$NAME-gh
 VERSION=`grep  "<name>" -A 1 pom.xml | grep version | cut -d'>' -f2 | cut -d'<' -f1`
 JAR=core/target/graphhopper-$VERSION-jar-with-dependencies.jar
@@ -122,20 +152,31 @@ JAR=core/target/graphhopper-$VERSION-jar-with-dependencies.jar
 # file without path
 TMP=$(basename "$FILE")
 TMP="${TMP%.*}"
+TMP="${TMP%.*}"
+
 
 if [ "x$TMP" = "xunterfranken" ]; then
  LINK="http://download.geofabrik.de/openstreetmap/europe/germany/bayern/unterfranken.osm.bz2"
- JAVA_OPTS="-XX:PermSize=30m -XX:MaxPermSize=30m -Xmx200m -Xms200m" 
+ JAVA_OPTS="-XX:PermSize=60m -XX:MaxPermSize=60m -Xmx200m -Xms200m" 
 elif [ "x$TMP" = "xgermany" ]; then
  LINK=http://download.geofabrik.de/openstreetmap/europe/germany.osm.bz2
 
  # Info: for import we need a more memory than for just loading it
- JAVA_OPTS="-XX:PermSize=30m -XX:MaxPermSize=30m -Xmx1600m -Xms1600m" 
+ JAVA_OPTS="-XX:PermSize=60m -XX:MaxPermSize=60m -Xmx1800m -Xms1800m" 
 else 
  LINK=`echo $NAME | tr '_' '/'`
- LINK="http://download.geofabrik.de/$LINK-latest.osm.bz2"
+ if [ ${FILE: -4} == ".osm" ]; then 
+   LINK="http://download.geofabrik.de/$LINK-latest.osm.bz2"
+ elif [ ${FILE: -4} == ".ghz" ]; then
+   LINK="http://graphhopper.com/public/maps/0.1/$FILE"      
+ elif [ ${FILE: -4} == ".pbf" ]; then
+   LINK="http://download.geofabrik.de/$LINK-latest.osm.pbf"
+ else
+   # e.g. if directory ends on '-gh'
+   LINK="http://download.geofabrik.de/$LINK-latest.osm.pbf"
+ fi
  if [ "x$JAVA_OPTS" = "x" ]; then
-  JAVA_OPTS="-XX:PermSize=30m -XX:MaxPermSize=30m -Xmx1000m -Xms1000m" 
+  JAVA_OPTS="-XX:PermSize=60m -XX:MaxPermSize=60m -Xmx1000m -Xms1000m" 
  fi
 fi
 
@@ -148,38 +189,47 @@ packageCoreJar
 echo "## now $ACTION. JAVA_OPTS=$JAVA_OPTS"
 
 if [ "x$ACTION" = "xui" ] || [ "x$ACTION" = "xweb" ]; then
- export MAVEN_OPTS="$MAVEN_OPTS $JAVA_OPTS"
- "$MAVEN_HOME/bin/mvn" -f "$GH_HOME/web/pom.xml" -Dgraphhopper.config=$CONFIG \
-      -Dgraphhopper.osmreader.osm=$OSM_XML -Djetty.reload=manual jetty:run
+  export MAVEN_OPTS="$MAVEN_OPTS $JAVA_OPTS"
+  if [ "x$JETTY_PORT" = "x" ]; then  
+    JETTY_PORT=8989
+  fi
+  "$MAVEN_HOME/bin/mvn" -f "$GH_HOME/web/pom.xml" -Djetty.port=$JETTY_PORT -Djetty.reload=manual \
+      -Dgraphhopper.config=$CONFIG \
+      $GH_WEB_OPTS -Dgraphhopper.graph.location="$GRAPH" -Dgraphhopper.osmreader.osm="$OSM_FILE" \
+      jetty:run
 
 
 elif [ "x$ACTION" = "ximport" ]; then
  "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.GraphHopper printVersion=true config=$CONFIG \
       graph.location="$GRAPH" \
-      osmreader.osm="$OSM_XML"
+      osmreader.osm="$OSM_FILE"
 
 
 elif [ "x$ACTION" = "xtest" ]; then
  "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.GraphHopper printVersion=true config=$CONFIG \
-       graph.location="$GRAPH" osmreader.osm="$OSM_XML" prepare.chShortcuts=false \
+       graph.location="$GRAPH" osmreader.osm="$OSM_FILE" prepare.chShortcuts=false \
        graph.testIT=true
 
        
 elif [ "x$ACTION" = "xmeasurement" ]; then
- ARGS="graph.location=$GRAPH osmreader.osm=$OSM_XML prepare.chShortcuts=fastest osmreader.acceptWay=CAR"
+ ARGS="graph.location=$GRAPH osmreader.osm=$OSM_FILE prepare.chShortcuts=fastest osmreader.acceptWay=CAR"
  echo -e "\ncreate graph via $ARGS, $JAR"
+ START=$(date +%s)
  "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.GraphHopper $ARGS prepare.doPrepare=false
+ END=$(date +%s)
+ IMPORT_TIME=$(($END - $START))
 
  function startMeasurement {
     COUNT=5000
-    ARGS="$ARGS prepare.doPrepare=true measurement.count=$COUNT measurement.location=$M_FILE_NAME"
-    echo -e "\nperform measurement via $ARGS, $JAR"
-    "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.util.Measurement $ARGS
+    commit_info=`git log -n 1 --pretty=oneline`     
+    echo -e "\nperform measurement via jar=> $JAR and ARGS=> $ARGS"
+    "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.util.Measurement $ARGS prepare.doPrepare=true measurement.count=$COUNT measurement.location=$M_FILE_NAME \
+            graph.importTime=$IMPORT_TIME measurement.gitinfo="$commit_info"
  }
  
  # use all <last_commits> versions starting from HEAD
  last_commits=$3
- 
+  
  if [ "x$last_commits" = "x" ]; then
    # use current version
    "$MAVEN_HOME/bin/mvn" -f "$GH_HOME/core/pom.xml" -DskipTests clean install assembly:single
@@ -187,6 +237,7 @@ elif [ "x$ACTION" = "xmeasurement" ]; then
    exit
  fi
 
+ current_commit=`git log -n 1 --pretty=oneline | cut -d' ' -f1` 
  commits=$(git rev-list HEAD -n $last_commits)
  for commit in $commits; do
    git checkout $commit -q
@@ -196,6 +247,8 @@ elif [ "x$ACTION" = "xmeasurement" ]; then
    
    "$MAVEN_HOME/bin/mvn" -f "$GH_HOME/core/pom.xml" -DskipTests clean install assembly:single
    startMeasurement
+   echo -e "\nmeasurement.commit=$commit\n" >> $M_FILE_NAME
  done
-
+ # revert checkout
+ git checkout $current_commit
 fi

@@ -1,9 +1,9 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor license
  *  agreements. See the NOTICE file distributed with this work for
  *  additional information regarding copyright ownership.
  *
- *  Peter Karich licenses this file to you under the Apache License,
+ *  GraphHopper licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the
  *  License at
@@ -20,47 +20,55 @@ package com.graphhopper.storage.index;
 
 /**
  * Result of Location2IDIndex lookup
- *
+ * <p/>
  * @author Peter Karich
  */
-public class LocationIDResult {
-
+public class LocationIDResult
+{
     private double weight = Double.MAX_VALUE;
     private int wayIndex = -3;
     private int closestNode = -1;
 
-    public LocationIDResult() {
+    public LocationIDResult()
+    {
     }
 
-    void closestNode(int node) {
+    void setClosestNode( int node )
+    {
         closestNode = node;
     }
 
-    public int closestNode() {
+    public int getClosestNode()
+    {
         return closestNode;
     }
 
-    public void weight(double dist) {
-        weight = dist;
+    public void setWeight( double w )
+    {
+        weight = w;
     }
 
-    public void wayIndex(int wayIndex) {
-        this.wayIndex = wayIndex;
-    }
-
-    public double weight() {
+    public double getWeight()
+    {
         return weight;
+    }
+
+    public void setWayIndex( int wayIndex )
+    {
+        this.wayIndex = wayIndex;
     }
 
     /**
      * @return true if a close node was found
      */
-    public boolean isValid() {
+    public boolean isValid()
+    {
         return closestNode >= 0;
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return closestNode + ", " + weight + ", " + wayIndex;
     }
 }

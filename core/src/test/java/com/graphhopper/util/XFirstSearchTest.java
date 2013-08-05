@@ -1,12 +1,11 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license 
- *  agreements. See the NOTICE file distributed with this work for 
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor
+ *  license agreements. See the NOTICE file distributed with this work for 
  *  additional information regarding copyright ownership.
  * 
- *  Peter Karich licenses this file to you under the Apache License, 
- *  Version 2.0 (the "License"); you may not use this file except 
- *  in compliance with the License. You may obtain a copy of the 
- *  License at
+ *  GraphHopper licenses this file to you under the Apache License, 
+ *  Version 2.0 (the "License"); you may not use this file except in 
+ *  compliance with the License. You may obtain a copy of the License at
  * 
  *       http://www.apache.org/licenses/LICENSE-2.0
  * 
@@ -18,6 +17,7 @@
  */
 package com.graphhopper.util;
 
+import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.storage.GraphBuilder;
 import com.graphhopper.storage.Graph;
 import gnu.trove.set.hash.TIntHashSet;
@@ -29,21 +29,25 @@ import static org.junit.Assert.*;
  *
  * @author Peter Karich
  */
-public class XFirstSearchTest {
-
+public class XFirstSearchTest
+{
     int counter;
     TIntHashSet set = new TIntHashSet();
 
     @Before
-    public void setup() {
+    public void setup()
+    {
         counter = 0;
     }
 
     @Test
-    public void testBFS() {
-        XFirstSearch bfs = new XFirstSearch() {
+    public void testBFS()
+    {
+        XFirstSearch bfs = new XFirstSearch()
+        {
             @Override
-            public boolean goFurther(int v) {
+            public boolean goFurther( int v )
+            {
                 counter++;
                 assertTrue("v " + v + " is already contained in set. iteration:" + counter, !set.contains(v));
                 set.add(v);
@@ -51,7 +55,7 @@ public class XFirstSearchTest {
             }
         };
 
-        Graph g = new GraphBuilder().create();
+        Graph g = new GraphBuilder(new EncodingManager("CAR")).create();
         g.edge(0, 1, 85, true);
         g.edge(0, 2, 217, true);
         g.edge(0, 3, 173, true);
@@ -68,6 +72,6 @@ public class XFirstSearchTest {
         bfs.start(g, 0, false);
 
         assertTrue(counter > 0);
-        assertEquals(g.nodes(), counter);
+        assertEquals(g.getNodes(), counter);
     }
 }

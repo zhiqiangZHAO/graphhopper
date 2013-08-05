@@ -1,9 +1,9 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor license
  *  agreements. See the NOTICE file distributed with this work for
  *  additional information regarding copyright ownership.
  *
- *  Peter Karich licenses this file to you under the Apache License,
+ *  GraphHopper licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the
  *  License at
@@ -19,7 +19,7 @@
 package com.graphhopper.routing;
 
 import com.graphhopper.coll.IntDoubleBinHeap;
-import com.graphhopper.routing.util.EdgePropertyEncoder;
+import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.GraphTurnCosts;
 import com.graphhopper.util.EdgeIterator;
@@ -29,14 +29,14 @@ import gnu.trove.list.array.TIntArrayList;
 import java.util.Arrays;
 
 /**
- * A simple dijkstra tuned to perform one to many queries more efficient than
- * DijkstraSimple. Old data structures are cache between requests and
- * potentially reused. Useful for CH preparation.
- *
+ * A simple dijkstra tuned to perform one to many queries more efficient than DijkstraSimple. Old
+ * data structures are cache between requests and potentially reused. Useful for CH preparation.
+ * <p/>
+ * 
  * @author Peter Karich
  */
-public class DijkstraOneToMany extends AbstractRoutingAlgorithm {
-
+public class DijkstraOneToMany extends AbstractRoutingAlgorithm
+{
     protected double[] weights;
     private TIntList changedNodes;
     private int[] parents;
@@ -46,66 +46,81 @@ public class DijkstraOneToMany extends AbstractRoutingAlgorithm {
     private boolean doClear = true;
     private double limit = Double.MAX_VALUE;
 
-    public DijkstraOneToMany(Graph graph, EdgePropertyEncoder encoder) {
+    public DijkstraOneToMany( Graph graph, FlagEncoder encoder )
+    {
         super(graph, encoder);
-        parents = new int[graph.nodes()];
+        parents = new int[graph.getNodes()];
         Arrays.fill(parents, -1);
 
-        weights = new double[graph.nodes()];
+        weights = new double[graph.getNodes()];
         Arrays.fill(weights, Double.MAX_VALUE);
         heap = new IntDoubleBinHeap();
         changedNodes = new TIntArrayList();
     }
 
-    public DijkstraOneToMany limit(double weight) {
+    public DijkstraOneToMany setLimit( double weight )
+    {
         limit = weight;
         return this;
     }
 
     @Override
-    public Path calcPath(int from, int to) {
+    public Path calcPath( int from, int to )
+    {
         initializeEdgeIds();
         int endNode = findEndNode(from, to);
         PathNative p = new PathNative(graph, flagEncoder, parents, edgeIds);
-        p.fromNode(from);
-        if (endNode < 0)
+        p.setFromNode(from);
+        if ( endNode < 0 )
+        {
             return p;
-        return p.found(endNode).extract();
+        }
+        return p.setEndNode(endNode).extract();
     }
 
-    private void initializeEdgeIds() {
-        if (edgeIds == null) {
-            edgeIds = new int[graph.nodes()];
+    private void initializeEdgeIds()
+    {
+        if ( edgeIds == null )
+        {
+            edgeIds = new int[graph.getNodes()];
             Arrays.fill(edgeIds, EdgeIterator.NO_EDGE);
         }
     }
 
-    public DijkstraOneToMany clear() {
+    public DijkstraOneToMany clear()
+    {
         doClear = true;
         return this;
     }
 
-    public double weight(int endNode) {
+    public double getWeight( int endNode )
+    {
         return weights[endNode];
     }
 
-    public int findEndNode(int from, int to) {
-        if (weights.length < 2)
+    public int findEndNode( int from, int to )
+    {
+        if ( weights.length < 2 )
             return -1;
-        if (graph instanceof GraphTurnCosts && ((GraphTurnCosts) graph).isTurnCostSupport()) {
+        if ( graph instanceof GraphTurnCosts && ((GraphTurnCosts) graph).isTurnCostSupport() )
+        {
             initializeEdgeIds();
         }
 
         int currNode = from;
-        if (doClear) {
+        if ( doClear )
+        {
             doClear = false;
             int vn = changedNodes.size();
-            for (int i = 0; i < vn; i++) {
+            for ( int i = 0; i < vn; i++ )
+            {
                 int n = changedNodes.get(i);
                 weights[n] = Double.MAX_VALUE;
                 parents[n] = -1;
-                if (edgeIds != null)
+                if ( edgeIds != null )
+                {
                     edgeIds[n] = EdgeIterator.NO_EDGE;
+                }
             }
 
             heap.clear();
@@ -113,64 +128,97 @@ public class DijkstraOneToMany extends AbstractRoutingAlgorithm {
 
             weights[currNode] = 0;
             changedNodes.add(currNode);
-        } else {
+        } else
+        {
             // re-use existing data structures
             int parentNode = parents[to];
-            if (parentNode >= 0 || heap.isEmpty())
+            if ( parentNode >= 0 || heap.isEmpty() )
+            {
                 return to;
+            }
             currNode = heap.poll_element();
         }
 
         visitedNodes = 0;
-        if (finished(currNode, to))
+        if ( finished(currNode, to) )
+        {
             return currNode;
-        while (true) {
+        }
+        while ( true )
+        {
             visitedNodes++;
             EdgeIterator iter = graph.getEdges(currNode, outEdgeFilter);
-            while (iter.next()) {
-                if (!accept(iter))
+            while ( iter.next() )
+            {
+                if ( !accept(iter) )
                     continue;
-                int adjNode = iter.adjNode();
-                double tmpWeight = weightCalc.getWeight(iter.distance(), iter.flags()) + weights[currNode];
-                if (edgeIds != null) {
-                    tmpWeight += turnCostCalc.getTurnCosts(currNode, edgeIds[currNode], iter.edge());
+                int adjNode = iter.getAdjNode();
+                double tmpWeight = weightCalc.getWeight(iter.getDistance(), iter.getFlags())
+                        + weights[currNode];
+                if ( edgeIds != null )
+                {
+                    tmpWeight += turnCostCalc.getTurnCosts(currNode, edgeIds[currNode],
+                            iter.getEdge());
                 }
-                if (weights[adjNode] == Double.MAX_VALUE) {
+                if ( weights[adjNode] == Double.MAX_VALUE )
+                {
                     parents[adjNode] = currNode;
                     weights[adjNode] = tmpWeight;
                     heap.insert_(tmpWeight, adjNode);
                     changedNodes.add(adjNode);
-                    if (edgeIds != null)
-                        edgeIds[adjNode] = iter.edge();
-                } else if (weights[adjNode] > tmpWeight) {
+                    if ( edgeIds != null )
+                    {
+                        edgeIds[adjNode] = iter.getEdge();
+                    }
+                } else if ( weights[adjNode] > tmpWeight )
+                {
                     parents[adjNode] = currNode;
                     weights[adjNode] = tmpWeight;
                     heap.update_(tmpWeight, adjNode);
                     changedNodes.add(adjNode);
-                    if (edgeIds != null)
-                        edgeIds[adjNode] = iter.edge();
+                    if ( edgeIds != null )
+                    {
+                        edgeIds[adjNode] = iter.getEdge();
+                    }
                 }
             }
 
-            if (heap.isEmpty())
+            if ( heap.isEmpty() )
+            {
                 return -1;
+            }
             // calling just peek() is important for cache access of a next query
             currNode = heap.peek_element();
-            if (finished(currNode, to))
+            if ( finished(currNode, to) )
+            {
                 return currNode;
+            }
             heap.poll_element();
         }
     }
 
-    public boolean finished(int currNode, int to) {
+    public boolean finished( int currNode, int to )
+    {
         return weights[currNode] >= limit || currNode == to;
     }
 
-    @Override public int visitedNodes() {
+    public void close()
+    {
+        weights = null;
+        parents = null;
+        edgeIds = null;
+        heap = null;
+    }
+
+    @Override
+    public int getVisitedNodes()
+    {
         return visitedNodes;
     }
 
-    @Override public String name() {
+    @Override
+    public String getName()
+    {
         return "dijkstraOneToMany";
     }
 }

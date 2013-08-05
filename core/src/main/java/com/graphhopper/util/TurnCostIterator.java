@@ -5,7 +5,8 @@ import com.graphhopper.routing.util.TurnCostEncoder;
 /**
  * @author Karl Hübner
  */
-public interface TurnCostIterator {
+public interface TurnCostIterator
+{
 
     public static int ANY_EDGE = -2;
 
@@ -13,51 +14,60 @@ public interface TurnCostIterator {
 
     public int edgeFrom();
 
-    public TurnCostIterator edgeFrom(int from);
+    public TurnCostIterator edgeFrom( int from );
 
     public int edgeTo();
 
-    public TurnCostIterator edgeTo(int to);
+    public TurnCostIterator edgeTo( int to );
 
     public int costs();
 
-    public TurnCostIterator costs(int costs);
+    public TurnCostIterator costs( int costs );
+
     /**
      * will be used when no turn cost support is active
      */
-    public static TurnCostIterator noTurnCostSupport = new TurnCostIterator() {
+    public static TurnCostIterator noTurnCostSupport = new TurnCostIterator()
+    {
         @Override
-        public boolean next() {
+        public boolean next()
+        {
             return false;
         }
 
         @Override
-        public TurnCostIterator edgeTo(int to) {
+        public TurnCostIterator edgeTo( int to )
+        {
             return this;
         }
 
         @Override
-        public int edgeTo() {
+        public int edgeTo()
+        {
             return EdgeIterator.NO_EDGE;
         }
 
         @Override
-        public TurnCostIterator edgeFrom(int from) {
+        public TurnCostIterator edgeFrom( int from )
+        {
             return this;
         }
 
         @Override
-        public int edgeFrom() {
+        public int edgeFrom()
+        {
             return EdgeIterator.NO_EDGE;
         }
 
         @Override
-        public TurnCostIterator costs(int costs) {
+        public TurnCostIterator costs( int costs )
+        {
             return this;
         }
 
         @Override
-        public int costs() {
+        public int costs()
+        {
             return TurnCostEncoder.noCosts();
         }
     };

@@ -2,10 +2,12 @@ package com.graphhopper.reader;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.graphhopper.coll.LongIntMap;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.TurnCostEncoder;
 import com.graphhopper.routing.util.TurnCostsEntry;
@@ -18,7 +20,7 @@ import com.graphhopper.util.Helper;
  * Helper object which gives node cost entries for a given OSM-relation of type
  * "restriction"
  */
-public class OSMRestrictionRelation {
+public class OSMRestrictionRelation  {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     public static final int TYPE_UNSUPPORTED = 0;
@@ -33,6 +35,7 @@ public class OSMRestrictionRelation {
     protected int via;
     protected long toOsm;
     protected int restriction;
+    
 
     /**
      * @return <code>true</code>, if restriction type is supported and a via
@@ -63,7 +66,7 @@ public class OSMRestrictionRelation {
             final EdgeIterator edgesIn = g.getEdges(via, edgeInFilter);
             EdgeIterator edgeFrom = null;
             while (edgesIn.next()) {
-                if (osmid(edgesIn.edge(), osmidsOfEdges) == fromOsm) {
+                if (osmid(edgesIn.getEdge(), osmidsOfEdges) == fromOsm) {
                     edgeFrom = edgesIn;
                     break;
                 }
@@ -80,12 +83,12 @@ public class OSMRestrictionRelation {
                     // if we have a restriction of TYPE_NO_* we add restriction only to
                     // the given turn (from, via, to)  
                     while (edgesOut.next()) {
-                        if (edgesOut.edge() != edgeFrom.edge()
-                                && osmid(edgesOut.edge(), osmidsOfEdges) == toOsm) {
+                        if (edgesOut.getEdge() != edgeFrom.getEdge()
+                                && osmid(edgesOut.getEdge(), osmidsOfEdges) == toOsm) {
                             entries.add(new TurnCostsEntry()
                                     .flags(TurnCostEncoder.restriction()).node(via)
-                                    .edgeFrom(edgeFrom.edge())
-                                    .edgeTo(edgesOut.edge()));
+                                    .edgeFrom(edgeFrom.getEdge())
+                                    .edgeTo(edgesOut.getEdge()));
                         }
                     }
 
@@ -95,12 +98,12 @@ public class OSMRestrictionRelation {
                     // if we have a restriction of TYPE_ONLY_* we add restriction to
                     // any turn possibility (from, via, * ) except the given turn
                     while (edgesOut.next()) {
-                        if (edgesOut.edge() != edgeFrom.edge()
-                                && osmid(edgesOut.edge(), osmidsOfEdges) != toOsm) {
+                        if (edgesOut.getEdge() != edgeFrom.getEdge()
+                                && osmid(edgesOut.getEdge(), osmidsOfEdges) != toOsm) {
                             entries.add(new TurnCostsEntry()
                                     .flags(TurnCostEncoder.restriction()).node(via)
-                                    .edgeFrom(edgeFrom.edge())
-                                    .edgeTo(edgesOut.edge()));
+                                    .edgeFrom(edgeFrom.getEdge())
+                                    .edgeTo(edgesOut.getEdge()));
                         }
                     };
                 }
@@ -114,10 +117,34 @@ public class OSMRestrictionRelation {
     }
 
     private long osmid(int edgeId, DataAccess osmIds) {
-        long ptr = (long) edgeId * 2;
+        long ptr = (long) edgeId * 8;
         int left = osmIds.getInt(ptr);
-        int right = osmIds.getInt(ptr + 1);
+        int right = osmIds.getInt(ptr + 4);
         return Helper.intToLong(left, right);
+    }
+    
+    public final static OSMRestrictionRelation createRestriction(OSMRelation rel, LongIntMap osmNodeIDToIndexMap ){
+        if("restriction".equals(rel.getTag("type"))){
+            OSMRestrictionRelation restriction = new OSMRestrictionRelation();
+            restriction.restriction = getRestrictionType(rel.getTag("restriction"));
+            for(OSMRelation.Member member : rel.getMembers() ){
+                if(OSMElement.WAY == member.type()){
+                    if("from".equals(member.role())){
+                        restriction.fromOsm = member.ref();
+                    }else if("to".equals(member.role())){
+                        restriction.toOsm = member.ref();
+                    }
+                }else if(OSMElement.NODE == member.type() && "via".equals(member.role())){
+                    int tmpNode = osmNodeIDToIndexMap.get(member.ref());
+                    if (tmpNode < OSMReaderHelper.TOWER_NODE) {
+                        tmpNode = -tmpNode - 3;
+                        restriction.via = tmpNode;
+                    }
+                }
+            }
+            return restriction;
+        }
+        return null;
     }
 
     public final static int getRestrictionType(String restrictionType) {

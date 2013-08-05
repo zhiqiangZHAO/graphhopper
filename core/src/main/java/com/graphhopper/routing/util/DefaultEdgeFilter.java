@@ -1,9 +1,9 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor license
  *  agreements. See the NOTICE file distributed with this work for
  *  additional information regarding copyright ownership.
  *
- *  Peter Karich licenses this file to you under the Apache License,
+ *  GraphHopper licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the
  *  License at
@@ -23,32 +23,37 @@ import com.graphhopper.util.EdgeIterator;
 /**
  * @author Peter Karich
  */
-public class DefaultEdgeFilter implements EdgeFilter {
-
+public class DefaultEdgeFilter implements EdgeFilter
+{
     private final boolean in;
     private final boolean out;
-    private EdgePropertyEncoder encoder;
+    private FlagEncoder encoder;
 
     /**
-     * Creates an edges filter which accepts both direction of the specified
-     * vehicle type.
+     * Creates an edges filter which accepts both direction of the specified vehicle type.
      */
-    public DefaultEdgeFilter(EdgePropertyEncoder encoder) {
+    public DefaultEdgeFilter( FlagEncoder encoder )
+    {
         this(encoder, true, true);
     }
 
-    public DefaultEdgeFilter(EdgePropertyEncoder encoder, boolean in, boolean out) {
+    public DefaultEdgeFilter( FlagEncoder encoder, boolean in, boolean out )
+    {
         this.encoder = encoder;
         this.in = in;
         this.out = out;
     }
 
-    @Override public boolean accept(EdgeIterator iter) {
-        int flags = iter.flags();
+    @Override
+    public boolean accept( EdgeIterator iter )
+    {
+        int flags = iter.getFlags();
         return out && encoder.isForward(flags) || in && encoder.isBackward(flags);
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString()
+    {
         return encoder.toString() + ", in:" + in + ", out:" + out;
     }
 }

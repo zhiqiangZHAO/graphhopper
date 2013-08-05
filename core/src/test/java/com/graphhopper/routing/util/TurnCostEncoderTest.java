@@ -7,14 +7,17 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
-public class TurnCostEncoderTest {
+public class TurnCostEncoderTest
+{
 
     private static final int CAR_100 = 100;
     private static final int BIKE_300 = 300;
     private static final int MAX_COSTS = 16383;
     private TurnCostEncoder turnCostEncoder = new TurnCostEncoder();
 
-    @Test public void restriction() {
+    @Test
+    public void restriction()
+    {
         int turnCostFlag = TurnCostEncoder.restriction();
 
         assertTrue(turnCostEncoder.isTurnRestricted(turnCostFlag));
@@ -24,8 +27,11 @@ public class TurnCostEncoderTest {
         assertEquals(Double.MAX_VALUE, turnCostEncoder.getTurnCostsForCar(turnCostFlag), 0.0d);
     }
 
-    @Test public void composeRestrictionBoth() {
-        int turnCostFlag = TurnCostEncoder.costs(BIKE_300, CAR_100, TurnCostEncoder.RESTRICTION_BOTH);
+    @Test
+    public void composeRestrictionBoth()
+    {
+        int turnCostFlag = TurnCostEncoder.costs(BIKE_300, CAR_100,
+                TurnCostEncoder.RESTRICTION_BOTH);
 
         assertTrue(turnCostEncoder.isTurnRestricted(turnCostFlag));
         assertTrue(turnCostEncoder.isTurnRestrictedForBike(turnCostFlag));
@@ -34,8 +40,11 @@ public class TurnCostEncoderTest {
         assertEquals(Double.MAX_VALUE, turnCostEncoder.getTurnCostsForCar(turnCostFlag), 0.0d);
     }
 
-    @Test public void composeRestrictionCarOnly() {
-        int turnCostFlag = TurnCostEncoder.costs(BIKE_300, CAR_100, TurnCostEncoder.RESTRICTION_CAR);
+    @Test
+    public void composeRestrictionCarOnly()
+    {
+        int turnCostFlag = TurnCostEncoder
+                .costs(BIKE_300, CAR_100, TurnCostEncoder.RESTRICTION_CAR);
 
         assertFalse(turnCostEncoder.isTurnRestricted(turnCostFlag));
         assertFalse(turnCostEncoder.isTurnRestrictedForBike(turnCostFlag));
@@ -44,8 +53,11 @@ public class TurnCostEncoderTest {
         assertEquals(Double.MAX_VALUE, turnCostEncoder.getTurnCostsForCar(turnCostFlag), 0.0d);
     }
 
-    @Test public void composeRestrictionBikeOnly() {
-        int turnCostFlag = TurnCostEncoder.costs(BIKE_300, CAR_100, TurnCostEncoder.RESTRICTION_BIKE);
+    @Test
+    public void composeRestrictionBikeOnly()
+    {
+        int turnCostFlag = TurnCostEncoder.costs(BIKE_300, CAR_100,
+                TurnCostEncoder.RESTRICTION_BIKE);
 
         assertFalse(turnCostEncoder.isTurnRestricted(turnCostFlag));
         assertTrue(turnCostEncoder.isTurnRestrictedForBike(turnCostFlag));
@@ -54,7 +66,9 @@ public class TurnCostEncoderTest {
         assertEquals(CAR_100, turnCostEncoder.getTurnCostsForCar(turnCostFlag), 0.0d);
     }
 
-    @Test public void composeTurnCostsOnly() {
+    @Test
+    public void composeTurnCostsOnly()
+    {
         int turnCostFlag = TurnCostEncoder.costs(BIKE_300, CAR_100, 0);
 
         assertFalse(turnCostEncoder.isTurnRestricted(turnCostFlag));
@@ -64,35 +78,47 @@ public class TurnCostEncoderTest {
         assertEquals(CAR_100, turnCostEncoder.getTurnCostsForCar(turnCostFlag), 0.0d);
     }
 
-    @Test public void errorNegativeCosts() {
-        try {
+    @Test
+    public void errorNegativeCosts()
+    {
+        try
+        {
             TurnCostEncoder.costs(-BIKE_300, CAR_100, 0);
             fail();
-        } catch (Exception e) {
+        } catch ( Exception e )
+        {
             //ok
         }
 
-        try {
+        try
+        {
             TurnCostEncoder.costs(BIKE_300, -CAR_100, 0);
             fail();
-        } catch (Exception e) {
+        } catch ( Exception e )
+        {
             //ok
         }
 
     }
 
-    @Test public void maxCosts() {
-        try {
+    @Test
+    public void maxCosts()
+    {
+        try
+        {
             TurnCostEncoder.costs(MAX_COSTS + 1, MAX_COSTS, 0);
             fail();
-        } catch (Exception e) {
+        } catch ( Exception e )
+        {
             //ok
         }
 
-        try {
+        try
+        {
             TurnCostEncoder.costs(MAX_COSTS, MAX_COSTS + 1, 0);
             fail();
-        } catch (Exception e) {
+        } catch ( Exception e )
+        {
             //ok
         }
 

@@ -20,9 +20,7 @@ public class DefaultTurnCostsCalcTest {
     private int edge_3_0;
     private int edge_0_4;
     private int edge_3_4;
-    private EdgePropertyEncoder bikeEncoder = new BikeFlagEncoder();
-    private EdgePropertyEncoder carEncoder = new CarFlagEncoder();
-    private EdgePropertyEncoder footEncoder = new FootFlagEncoder();
+    private EncodingManager encodingManager = new EncodingManager("CAR,FOOT,BIKE");
 
     /*
      * 0---1
@@ -39,15 +37,15 @@ public class DefaultTurnCostsCalcTest {
      * 
      */
     GraphTurnCosts createTestGraph() {
-        GraphTurnCosts graph = new GraphBuilder().turnCostsGraphCreate();
+        GraphTurnCosts graph = new GraphBuilder(encodingManager).turnCostsGraphCreate();
         AbstractRoutingAlgorithmTester.initNodes(graph, 5);
 
-        edge_0_1 = graph.edge(0, 1, 1000, true).edge();
-        edge_1_2 = graph.edge(1, 2, 1000, true).edge();
-        edge_2_3 = graph.edge(2, 3, 1000, true).edge();
-        edge_3_0 = graph.edge(3, 0, 1000, true).edge();
-        edge_0_4 = graph.edge(0, 4, 1000, true).edge();
-        edge_3_4 = graph.edge(3, 4, 1000, true).edge();
+        edge_0_1 = graph.edge(0, 1, 1000, true).getEdge();
+        edge_1_2 = graph.edge(1, 2, 1000, true).getEdge();
+        edge_2_3 = graph.edge(2, 3, 1000, true).getEdge();
+        edge_3_0 = graph.edge(3, 0, 1000, true).getEdge();
+        edge_0_4 = graph.edge(0, 4, 1000, true).getEdge();
+        edge_3_4 = graph.edge(3, 4, 1000, true).getEdge();
 
         graph.turnCosts(1, edge_0_1, edge_1_2, TurnCostEncoder.costs(300, 0, TurnCostEncoder.RESTRICTION_CAR));
         graph.turnCosts(2, edge_1_2, edge_2_3, TurnCostEncoder.costs(0, 100, TurnCostEncoder.RESTRICTION_BIKE));
@@ -60,8 +58,8 @@ public class DefaultTurnCostsCalcTest {
 
     @Test
     public void turnCostCalc_fastestRoute_bikeEncoder() {
-        TurnCostCalculation calc = new DefaultTurnCostsCalc(bikeEncoder, new FastestCalc(bikeEncoder));
-        calc.graph(createTestGraph());
+        TurnCostCalculation calc = new DefaultTurnCostsCalc(encodingManager.getEncoder(EncodingManager.BIKE), new FastestCalc(encodingManager.getEncoder(EncodingManager.BIKE)));
+        calc.setGraph(createTestGraph());
 
         assertEquals(300, calc.getTurnCosts(1, edge_0_1, edge_1_2), 0);
         assertEquals(0, calc.getTurnCosts(1, edge_1_2, edge_0_1), 0);
@@ -89,8 +87,8 @@ public class DefaultTurnCostsCalcTest {
 
     @Test
     public void turnCostCalc_fastestRoute_carEncoder() {
-        TurnCostCalculation calc = new DefaultTurnCostsCalc(carEncoder, new FastestCalc(carEncoder));
-        calc.graph(createTestGraph());
+        TurnCostCalculation calc = new DefaultTurnCostsCalc(encodingManager.getEncoder(EncodingManager.CAR), new FastestCalc(encodingManager.getEncoder(EncodingManager.CAR)));
+        calc.setGraph(createTestGraph());
 
         assertEquals(Double.MAX_VALUE, calc.getTurnCosts(1, edge_0_1, edge_1_2), 0);
         assertEquals(0, calc.getTurnCosts(1, edge_1_2, edge_0_1), 0);
@@ -118,8 +116,8 @@ public class DefaultTurnCostsCalcTest {
 
     @Test
     public void turnCostCalc_fastestRoute_footEncoder() {
-        TurnCostCalculation calc = new DefaultTurnCostsCalc(footEncoder, new FastestCalc(footEncoder));
-        calc.graph(createTestGraph());
+        TurnCostCalculation calc = new DefaultTurnCostsCalc(encodingManager.getEncoder(EncodingManager.FOOT), new FastestCalc(encodingManager.getEncoder(EncodingManager.FOOT)));
+        calc.setGraph(createTestGraph());
 
         assertEquals(0, calc.getTurnCosts(1, edge_0_1, edge_1_2), 0);
         assertEquals(0, calc.getTurnCosts(1, edge_1_2, edge_0_1), 0);
@@ -147,8 +145,8 @@ public class DefaultTurnCostsCalcTest {
 
     @Test
     public void turnCostCalc_shortestRoute_carEncoder() {
-        TurnCostCalculation calc = new DefaultTurnCostsCalc(carEncoder, new ShortestCalc());
-        calc.graph(createTestGraph());
+        TurnCostCalculation calc = new DefaultTurnCostsCalc(encodingManager.getEncoder(EncodingManager.CAR), new ShortestCalc());
+        calc.setGraph(createTestGraph());
 
         assertEquals(Double.MAX_VALUE, calc.getTurnCosts(1, edge_0_1, edge_1_2), 0);
         assertEquals(0, calc.getTurnCosts(1, edge_1_2, edge_0_1), 0);
@@ -176,8 +174,8 @@ public class DefaultTurnCostsCalcTest {
 
     @Test
     public void turnCostCalc_shortestRoute_bikeEncoder() {
-        TurnCostCalculation calc = new DefaultTurnCostsCalc(bikeEncoder, new ShortestCalc());
-        calc.graph(createTestGraph());
+        TurnCostCalculation calc = new DefaultTurnCostsCalc(encodingManager.getEncoder(EncodingManager.BIKE), new ShortestCalc());
+        calc.setGraph(createTestGraph());
 
         assertEquals(0, calc.getTurnCosts(1, edge_0_1, edge_1_2), 0);
         assertEquals(0, calc.getTurnCosts(1, edge_1_2, edge_0_1), 0);
@@ -205,8 +203,8 @@ public class DefaultTurnCostsCalcTest {
 
     @Test
     public void turnCostCalc_shortestRoute_footEncoder() {
-        TurnCostCalculation calc = new DefaultTurnCostsCalc(footEncoder, new ShortestCalc());
-        calc.graph(createTestGraph());
+        TurnCostCalculation calc = new DefaultTurnCostsCalc(encodingManager.getEncoder(EncodingManager.FOOT), new ShortestCalc());
+        calc.setGraph(createTestGraph());
 
         assertEquals(0, calc.getTurnCosts(1, edge_0_1, edge_1_2), 0);
         assertEquals(0, calc.getTurnCosts(1, edge_1_2, edge_0_1), 0);

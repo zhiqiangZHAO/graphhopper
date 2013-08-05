@@ -1,9 +1,9 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor license
  *  agreements. See the NOTICE file distributed with this work for
  *  additional information regarding copyright ownership.
  *
- *  Peter Karich licenses this file to you under the Apache License,
+ *  GraphHopper licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the
  *  License at
@@ -22,17 +22,20 @@ import com.graphhopper.util.EdgeIterator;
 
 /**
  * Class used to traverse a graph.
- *
+ * <p/>
  * @author Peter Karich
  */
-public interface EdgeFilter {
-
+public interface EdgeFilter
+{
     /**
      * @return true if the current edge should be processed and false otherwise.
      */
-    boolean accept(EdgeIterator iter);
-    static final EdgeFilter ALL_EDGES = new EdgeFilter() {
-        @Override public boolean accept(EdgeIterator iter) {
+    boolean accept( EdgeIterator iter );
+    static final EdgeFilter ALL_EDGES = new EdgeFilter()
+    {
+        @Override
+        public boolean accept( EdgeIterator iter )
+        {
             return true;
         }
     };

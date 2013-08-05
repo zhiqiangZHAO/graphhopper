@@ -1,12 +1,11 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license 
- *  agreements. See the NOTICE file distributed with this work for 
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor
+ *  license agreements. See the NOTICE file distributed with this work for 
  *  additional information regarding copyright ownership.
  * 
- *  Peter Karich licenses this file to you under the Apache License, 
- *  Version 2.0 (the "License"); you may not use this file except 
- *  in compliance with the License. You may obtain a copy of the 
- *  License at
+ *  GraphHopper licenses this file to you under the Apache License, 
+ *  Version 2.0 (the "License"); you may not use this file except in 
+ *  compliance with the License. You may obtain a copy of the License at
  * 
  *       http://www.apache.org/licenses/LICENSE-2.0
  * 
@@ -18,48 +17,49 @@
  */
 package com.graphhopper.routing;
 
-import com.graphhopper.routing.util.EdgePropertyEncoder;
+import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.util.EdgeIterator;
 
 /**
  * This class creates a Path from a DijkstraOneToMany node
- *
+ * <p/>
  * @author Peter Karich
  */
-public class PathNative extends Path {
-
-    int endNode = -1;
+public class PathNative extends Path
+{    
     int[] parents;
     int[] pathEdgeIds;
 
-    public PathNative(Graph g, EdgePropertyEncoder encoder, int[] parents, int[] pathEdgeIds) {
+    public PathNative( Graph g, FlagEncoder encoder, int[] parents, int[] pathEdgeIds )
+    {
         super(g, encoder);
         this.parents = parents;
         this.pathEdgeIds = pathEdgeIds;
-    }
-
-    public PathNative found(int end) {
-        endNode = end;
-        return this;
     }
 
     /**
      * Extracts path from two shortest-path-tree
      */
     @Override
-    public Path extract() {
+    public Path extract()
+    {
         if (endNode < 0)
+        {
             return this;
+        }
 
-        while (true) {
+        while (true)
+        {
             int edgeId = pathEdgeIds[endNode];
             if (!EdgeIterator.Edge.isValid(edgeId))
+            {
                 break;
+            }
             processDistance(edgeId, endNode);
             endNode = parents[endNode];
         }
         reverseOrder();
-        return found(true);
+        return setFound(true);
     }
 }

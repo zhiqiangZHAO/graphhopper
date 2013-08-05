@@ -1,12 +1,11 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license 
- *  agreements. See the NOTICE file distributed with this work for 
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor
+ *  license agreements. See the NOTICE file distributed with this work for 
  *  additional information regarding copyright ownership.
  * 
- *  Peter Karich licenses this file to you under the Apache License, 
- *  Version 2.0 (the "License"); you may not use this file except 
- *  in compliance with the License. You may obtain a copy of the 
- *  License at
+ *  GraphHopper licenses this file to you under the Apache License, 
+ *  Version 2.0 (the "License"); you may not use this file except in 
+ *  compliance with the License. You may obtain a copy of the License at
  * 
  *       http://www.apache.org/licenses/LICENSE-2.0
  * 
@@ -21,6 +20,7 @@ package com.graphhopper.routing.util;
 import com.graphhopper.coll.GHBitSet;
 import com.graphhopper.coll.GHBitSetImpl;
 import com.graphhopper.storage.Graph;
+import com.graphhopper.util.EdgeIterator;
 import com.graphhopper.util.XFirstSearch;
 import java.util.*;
 import java.util.Map.Entry;
@@ -29,63 +29,84 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Removes nodes which are not part of the largest network. Ie. mostly nodes
- * with no edges at all but also small subnetworks which are nearly always bugs
- * in OSM data.
- *
+ * Removes nodes which are not part of the largest network. Ie. mostly nodes with no edges at all
+ * but also small subnetworks which are nearly always bugs in OSM data or indicate otherwise
+ * disconnected areas e.g. via barriers - see #86.
+ * <p/>
  * @author Peter Karich
  */
-public class PrepareRoutingSubnetworks {
-
+public class PrepareRoutingSubnetworks
+{
     private Logger logger = LoggerFactory.getLogger(getClass());
     private final Graph g;
-    private int minNetworkSize = 10000;
+    private final EdgeFilter edgeFilter;
+    private int minNetworkSize = 3000;
     private int subNetworks = -1;
 
-    public PrepareRoutingSubnetworks(Graph g) {
+    public PrepareRoutingSubnetworks( Graph g, EncodingManager em )
+    {
         this.g = g;
+        if (em.getVehicleCount() == 0)
+            throw new IllegalStateException("No vehicles found");
+        else if (em.getVehicleCount() > 1)
+            edgeFilter = EdgeFilter.ALL_EDGES;
+        else
+            edgeFilter = new DefaultEdgeFilter(em.getSingle());
     }
 
-    public PrepareRoutingSubnetworks minNetworkSize(int minNetworkSize) {
+    public PrepareRoutingSubnetworks setMinNetworkSize( int minNetworkSize )
+    {
         this.minNetworkSize = minNetworkSize;
         return this;
     }
 
-    public void doWork() {
+    public void doWork()
+    {
         int del = removeZeroDegreeNodes();
         Map<Integer, Integer> map = findSubnetworks();
-        keepLargeNetwork(map);
-        logger.info("optimize to remove subnetworks(" + map.size() + "), zero-degree-nodes(" + del + ")");
+        keepLargeNetworks(map);
+        logger.info("optimize to remove subnetworks (" + map.size() + "), zero-degree-nodes(" + del + ")");
         g.optimize();
         subNetworks = map.size();
     }
 
-    public int subNetworks() {
+    public int getSubNetworks()
+    {
         return subNetworks;
     }
 
-    public Map<Integer, Integer> findSubnetworks() {
-        Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+    public Map<Integer, Integer> findSubnetworks()
+    {
+        final Map<Integer, Integer> map = new HashMap<Integer, Integer>();
         final AtomicInteger integ = new AtomicInteger(0);
-        int locs = g.nodes();
+        int locs = g.getNodes();
         final GHBitSet bs = new GHBitSetImpl(locs);
-        for (int start = 0; start < locs; start++) {
+        for (int start = 0; start < locs; start++)
+        {
             if (g.isNodeRemoved(start) || bs.contains(start))
                 continue;
 
-            new XFirstSearch() {
-                @Override protected GHBitSet createBitSet(int size) {
+            new XFirstSearch()
+            {
+                @Override
+                protected GHBitSet createBitSet( int size )
+                {
                     return bs;
                 }
 
-                @Override protected boolean goFurther(int nodeId) {
-                    boolean ret = super.goFurther(nodeId);
-                    if (ret)
-                        integ.incrementAndGet();
-                    return ret;
+                @Override
+                protected boolean goFurther( int nodeId )
+                {
+                    integ.incrementAndGet();
+                    return true;
+                }
+
+                @Override
+                protected EdgeIterator getEdges( Graph g, int current )
+                {
+                    return g.getEdges(current, edgeFilter);
                 }
             }.start(g, start, false);
-            // System.out.println(start + " MAP "+map.size());
             map.put(start, integ.get());
             integ.set(0);
         }
@@ -95,62 +116,83 @@ public class PrepareRoutingSubnetworks {
     /**
      * Deletes all but the larges subnetworks.
      */
-    void keepLargeNetwork(Map<Integer, Integer> map) {
+    void keepLargeNetworks( Map<Integer, Integer> map )
+    {
         if (map.size() < 2)
             return;
 
         int biggestStart = -1;
         int maxCount = -1;
-        GHBitSetImpl bs = new GHBitSetImpl(g.nodes());
-        for (Entry<Integer, Integer> e : map.entrySet()) {
-            if (biggestStart < 0) {
+        GHBitSetImpl bs = new GHBitSetImpl(g.getNodes());
+        for (Entry<Integer, Integer> e : map.entrySet())
+        {
+            if (biggestStart < 0)
+            {
                 biggestStart = e.getKey();
                 maxCount = e.getValue();
                 continue;
             }
 
-            if (maxCount < e.getValue()) {
+            if (maxCount < e.getValue())
+            {
                 // new biggest area found. remove old
                 removeNetwork(biggestStart, maxCount, bs);
 
                 biggestStart = e.getKey();
                 maxCount = e.getValue();
             } else
+            {
                 removeNetwork(e.getKey(), e.getValue(), bs);
+            }
         }
     }
 
     /**
      * Deletes the complete subnetwork reachable through start
      */
-    void removeNetwork(int start, int entries, final GHBitSet bs) {
-        if (entries > minNetworkSize) {
+    void removeNetwork( int start, int entries, final GHBitSet bs )
+    {
+        if (entries >= minNetworkSize)
+        {
             logger.info("did not remove large network (" + entries + ")");
             return;
         }
-        new XFirstSearch() {
-            @Override protected GHBitSet createBitSet(int size) {
+        new XFirstSearch()
+        {
+            @Override
+            protected GHBitSet createBitSet( int size )
+            {
                 return bs;
             }
 
-            @Override protected boolean goFurther(int nodeId) {
+            @Override
+            protected boolean goFurther( int nodeId )
+            {
                 g.markNodeRemoved(nodeId);
                 return super.goFurther(nodeId);
+            }
+
+            @Override
+            protected EdgeIterator getEdges( Graph g, int current )
+            {
+                return g.getEdges(current, edgeFilter);
             }
         }.start(g, start, true);
     }
 
     /**
-     * To avoid large processing and a large HashMap remove nodes with no edges
-     * up front
-     *
+     * To avoid large processing and a large HashMap remove nodes with no edges up front
+     * <p/>
      * @return removed nodes
      */
-    int removeZeroDegreeNodes() {
+    int removeZeroDegreeNodes()
+    {
         int removed = 0;
-        int locs = g.nodes();
-        for (int start = 0; start < locs; start++) {
-            if (!g.getEdges(start).next()) {
+        int locs = g.getNodes();
+        for (int start = 0; start < locs; start++)
+        {
+            if (!g.getEdges(start).next())
+            {
                 removed++;
                 g.markNodeRemoved(start);
             }

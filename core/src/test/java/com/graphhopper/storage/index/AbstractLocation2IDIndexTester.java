@@ -1,9 +1,9 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor license
  *  agreements. See the NOTICE file distributed with this work for
  *  additional information regarding copyright ownership.
  *
- *  Peter Karich licenses this file to you under the Apache License,
+ *  GraphHopper licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the
  *  License at
@@ -20,6 +20,7 @@ package com.graphhopper.storage.index;
 
 import com.graphhopper.routing.util.CarFlagEncoder;
 import com.graphhopper.routing.util.DefaultEdgeFilter;
+import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.routing.util.FootFlagEncoder;
 import com.graphhopper.storage.Directory;
 import com.graphhopper.storage.Graph;
@@ -39,29 +40,33 @@ import org.junit.Test;
 /**
  * @author Peter Karich
  */
-public abstract class AbstractLocation2IDIndexTester {
-
+public abstract class AbstractLocation2IDIndexTester
+{
     String location = "./target/tmp/";
 
-    public abstract Location2IDIndex createIndex(Graph g, int resolution);
+    public abstract Location2IDIndex createIndex( Graph g, int resolution );
 
-    public boolean hasEdgeSupport() {
+    public boolean hasEdgeSupport()
+    {
         return false;
     }
 
     @Before
-    public void setUp() {
+    public void setUp()
+    {
         Helper.removeDir(new File(location));
     }
 
     @After
-    public void tearDown() {
+    public void tearDown()
+    {
         Helper.removeDir(new File(location));
     }
 
     @Test
-    public void testSimpleGraph() {
-        Graph g = createGraph();
+    public void testSimpleGraph()
+    {
+        Graph g = createGraph(new EncodingManager("CAR"));
         initSimpleGraph(g);
 
         Location2IDIndex idx = createIndex(g, 8);
@@ -70,13 +75,17 @@ public abstract class AbstractLocation2IDIndexTester {
         assertEquals(0, idx.findID(-1, -1));
 
         if (hasEdgeSupport())
-            // now get the edge 1-4 and not node 6
+        // now get the edge 1-4 and not node 6
+        {
             assertEquals(4, idx.findID(4, 0));
-        else
+        } else
+        {
             assertEquals(6, idx.findID(4, 0));
+        }
     }
 
-    public void initSimpleGraph(Graph g) {
+    public void initSimpleGraph( Graph g )
+    {
         //  6 |       4
         //  5 |           
         //    |     6
@@ -107,8 +116,9 @@ public abstract class AbstractLocation2IDIndexTester {
     }
 
     @Test
-    public void testSimpleGraph2() {
-        Graph g = createGraph();
+    public void testSimpleGraph2()
+    {
+        Graph g = createGraph(new EncodingManager("CAR"));
         initSimpleGraph(g);
 
         Location2IDIndex idx = createIndex(g, 28);
@@ -116,10 +126,12 @@ public abstract class AbstractLocation2IDIndexTester {
         assertEquals(3, idx.findID(1.5, 2));
         assertEquals(0, idx.findID(-1, -1));
         assertEquals(6, idx.findID(4.5, -0.5));
-        if (hasEdgeSupport()) {
+        if (hasEdgeSupport())
+        {
             assertEquals(4, idx.findID(4, 1));
             assertEquals(4, idx.findID(4, 0));
-        } else {
+        } else
+        {
             assertEquals(6, idx.findID(4, 1));
             assertEquals(6, idx.findID(4, 0));
         }
@@ -128,15 +140,17 @@ public abstract class AbstractLocation2IDIndexTester {
     }
 
     @Test
-    public void testGrid() {
-        Graph g = createSampleGraph();
-        int locs = g.nodes();
+    public void testGrid()
+    {
+        Graph g = createSampleGraph(new EncodingManager("CAR"));
+        int locs = g.getNodes();
 
         Location2IDIndex index = createIndex(g, 120);
         // if we would use less array entries then some points gets the same key so avoid that for this test
         // e.g. for 16 we get "expected 6 but was 9" i.e 6 was overwritten by node j9 which is a bit closer to the grid center        
         // go through every point of the graph if all points are reachable
-        for (int i = 0; i < locs; i++) {
+        for (int i = 0; i < locs; i++)
+        {
             double lat = g.getLatitude(i);
             double lon = g.getLongitude(i);
             assertEquals("nodeId:" + i + " " + (float) lat + "," + (float) lon,
@@ -147,12 +161,16 @@ public abstract class AbstractLocation2IDIndexTester {
         Random rand = new Random(12);
         Location2IDIndex fullIndex;
         if (hasEdgeSupport())
+        {
             fullIndex = new Location2IDFullWithEdgesIndex(g);
-        else
+        } else
+        {
             fullIndex = new Location2IDFullIndex(g);
+        }
 
         DistanceCalc dist = new DistanceCalc();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 100; i++)
+        {
             double lat = rand.nextDouble() * 5;
             double lon = rand.nextDouble() * 5;
             int fullId = fullIndex.findID(lat, lon);
@@ -165,7 +183,9 @@ public abstract class AbstractLocation2IDIndexTester {
             float newDist = (float) dist.calcDist(lat, lon, newLat, newLon);
 
             if (testGridIgnore(i))
+            {
                 continue;
+            }
 
             assertTrue(i + " orig:" + (float) lat + "," + (float) lon
                     + " full:" + fullLat + "," + fullLon + " fullDist:" + fullDist
@@ -175,13 +195,15 @@ public abstract class AbstractLocation2IDIndexTester {
     }
 
     // our simple index has only one node per tile => problems if multiple subnetworks
-    boolean testGridIgnore(int i) {
+    boolean testGridIgnore( int i )
+    {
         return false;
     }
 
     @Test
-    public void testSinglePoints120() {
-        Graph g = createSampleGraph();
+    public void testSinglePoints120()
+    {
+        Graph g = createSampleGraph(new EncodingManager("CAR"));
         Location2IDIndex idx = createIndex(g, 120);
 
         assertEquals(1, idx.findID(1.637, 2.23));
@@ -194,42 +216,52 @@ public abstract class AbstractLocation2IDIndexTester {
     }
 
     @Test
-    public void testSinglePoints32() {
-        Graph g = createSampleGraph();
+    public void testSinglePoints32()
+    {
+        Graph g = createSampleGraph(new EncodingManager("CAR"));
         Location2IDIndex idx = createIndex(g, 32);
 
         // 10 or 6
         assertEquals(10, idx.findID(3.649, 1.375));
         assertEquals(10, idx.findID(3.8465748, 0.021762699));
         if (hasEdgeSupport())
+        {
             assertEquals(4, idx.findID(2.485, 1.373));
-        else
+        } else
+        {
             assertEquals(6, idx.findID(2.485, 1.373));
+        }
         assertEquals(0, idx.findID(0.64628404, 0.53006625));
     }
 
     @Test
-    public void testNoErrorOnEdgeCase_lastIndex() {
+    public void testNoErrorOnEdgeCase_lastIndex()
+    {
+        final EncodingManager encodingManager = new EncodingManager("CAR");
         int locs = 10000;
-        Graph g = createGraph(new MMapDirectory(location));
+        Graph g = createGraph(new MMapDirectory(location), encodingManager);
         Random rand = new Random(12);
-        for (int i = 0; i < locs; i++) {
+        for (int i = 0; i < locs; i++)
+        {
             g.setNode(i, (float) rand.nextDouble() * 10 + 10, (float) rand.nextDouble() * 10 + 10);
         }
         createIndex(g, 200);
         Helper.removeDir(new File(location));
     }
 
-    Graph createGraph() {
-        return createGraph(new RAMDirectory());
+    Graph createGraph( EncodingManager encodingManager )
+    {
+        return createGraph(new RAMDirectory(), encodingManager);
     }
 
-    Graph createGraph(Directory dir) {
-        return new GraphStorage(dir).create(100);
+    Graph createGraph( Directory dir, EncodingManager encodingManager )
+    {
+        return new GraphStorage(dir, encodingManager).create(100);
     }
 
-    public Graph createSampleGraph() {
-        Graph graph = createGraph();
+    public Graph createSampleGraph( EncodingManager encodingManager )
+    {
+        Graph graph = createGraph(encodingManager);
         // length does not matter here but lat,lon and outgoing edges do!
 
 //        
@@ -308,21 +340,24 @@ public abstract class AbstractLocation2IDIndexTester {
     }
 
     @Test
-    public void testDifferentVehicles() {
-        Graph g = createGraph();
+    public void testDifferentVehicles()
+    {
+        final EncodingManager encodingManager = new EncodingManager("CAR,FOOT");
+        Graph g = createGraph(encodingManager);
         initSimpleGraph(g);
         Location2IDIndex idx = createIndex(g, 32);
         assertEquals(1, idx.findID(1, -1));
 
         // now make all edges from node 1 accessible for CAR only
         EdgeIterator iter = g.getEdges(1);
-        CarFlagEncoder carEncoder = new CarFlagEncoder();
-        while (iter.next()) {
-            iter.flags(carEncoder.flags(50, true));
+        CarFlagEncoder carEncoder = (CarFlagEncoder) encodingManager.getEncoder("CAR");
+        while (iter.next())
+        {
+            iter.setFlags(carEncoder.flags(50, true));
         }
 
         idx = createIndex(g, 32);
-        FootFlagEncoder footEncoder = new FootFlagEncoder();
-        assertEquals(2, idx.findClosest(1, -1, new DefaultEdgeFilter(footEncoder)).closestNode());
+        FootFlagEncoder footEncoder = (FootFlagEncoder) encodingManager.getEncoder("FOOT");
+        assertEquals(2, idx.findClosest(1, -1, new DefaultEdgeFilter(footEncoder)).getClosestNode());
     }
 }

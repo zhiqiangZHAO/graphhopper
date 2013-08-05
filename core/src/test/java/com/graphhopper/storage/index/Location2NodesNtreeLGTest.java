@@ -1,9 +1,9 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor license
  *  agreements. See the NOTICE file distributed with this work for
  *  additional information regarding copyright ownership.
  *
- *  Peter Karich licenses this file to you under the Apache License,
+ *  GraphHopper licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the
  *  License at
@@ -18,6 +18,7 @@
  */
 package com.graphhopper.storage.index;
 
+import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.storage.Directory;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.LevelGraph;
@@ -35,24 +36,29 @@ import static org.junit.Assert.*;
 /**
  * @author Peter Karich
  */
-public class Location2NodesNtreeLGTest extends Location2NodesNtreeTest {
+public class Location2NodesNtreeLGTest extends Location2NodesNtreeTest
+{
+    EncodingManager encodingManager = new EncodingManager("CAR");
 
     @Override
-    public Location2NodesNtreeLG createIndex(Graph g, int resolution) {
+    public Location2NodesNtreeLG createIndex( Graph g, int resolution )
+    {
         Directory dir = new RAMDirectory(location);
         Location2NodesNtreeLG idx = new Location2NodesNtreeLG((LevelGraph) g, dir);
-        idx.resolution(1000000).prepareIndex();
+        idx.setResolution(1000000).prepareIndex();
         return idx;
     }
 
     @Override
-    LevelGraph createGraph(Directory dir) {
-        return new LevelGraphStorage(dir).create(100);
+    LevelGraph createGraph( Directory dir, EncodingManager encodingManager )
+    {
+        return new LevelGraphStorage(dir, encodingManager).create(100);
     }
 
     @Test
-    public void testLevelGraph() {
-        LevelGraph g = createGraph(new RAMDirectory());
+    public void testLevelGraph()
+    {
+        LevelGraph g = createGraph(new RAMDirectory(), encodingManager);
         // 0
         // 1
         // 2
@@ -72,18 +78,19 @@ public class Location2NodesNtreeLGTest extends Location2NodesNtreeTest {
 
         // create shortcuts
         EdgeSkipIterator iter5 = g.edge(0, 2, 20, true);
-        iter5.skippedEdges(iter1.edge(), iter2.edge());
+        iter5.setSkippedEdges(iter1.getEdge(), iter2.getEdge());
         EdgeSkipIterator iter6 = g.edge(2, 4, 28, true);
-        iter6.skippedEdges(iter3.edge(), iter4.edge());
-        g.edge(0, 4, 40, true).skippedEdges(iter5.edge(), iter6.edge());
+        iter6.setSkippedEdges(iter3.getEdge(), iter4.getEdge());
+        g.edge(0, 4, 40, true).setSkippedEdges(iter5.getEdge(), iter6.getEdge());
 
         Location2IDIndex index = createIndex(g, -1);
         assertEquals(2, index.findID(0, 0.5));
     }
 
     @Test
-    public void testSortHighLevelFirst() {
-        LevelGraph lg = createGraph(new RAMDirectory());
+    public void testSortHighLevelFirst()
+    {
+        LevelGraph lg = createGraph(new RAMDirectory(), encodingManager);
         lg.setLevel(1, 10);
         lg.setLevel(2, 30);
         lg.setLevel(3, 20);
@@ -93,14 +100,15 @@ public class Location2NodesNtreeLGTest extends Location2NodesNtreeTest {
     }
 
     @Test
-    public void testLevelGraphBug() {
+    public void testLevelGraphBug()
+    {
         // 0
         // |
         // | X  2--3
         // |
         // 1
 
-        LevelGraphStorage lg = (LevelGraphStorage) createGraph(new RAMDirectory());
+        LevelGraphStorage lg = (LevelGraphStorage) createGraph(new RAMDirectory(), encodingManager);
         lg.setNode(0, 1, 0);
         lg.setNode(1, 0, 0);
         lg.setNode(2, 0.5, 0.5);
@@ -119,7 +127,7 @@ public class Location2NodesNtreeLGTest extends Location2NodesNtreeTest {
         lg.disconnect(iter1, EdgeIterator.NO_EDGE, false);
 
         Location2NodesNtreeLG index = new Location2NodesNtreeLG(lg, new RAMDirectory());
-        index.resolution(100000);
+        index.setResolution(100000);
         index.prepareIndex();
         // very close to 2, but should match the edge 0--1
         TIntHashSet set = index.findNetworkEntries(0.51, 0.2);

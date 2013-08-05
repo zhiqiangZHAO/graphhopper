@@ -4,47 +4,137 @@ GHRequest = function(host) {
     this.from = new GHInput("");
     this.to = new GHInput("");    
     this.vehicle = "car";
+    this.encodedPolyline = true;
+    this.instructions = true;
+    this.debug = false;
+    this.locale = "en";
+    this.doZoom = true;
+    // if your server allows CORS you can use json here
+    this.dataType = "jsonp";
 };
 
-GHRequest.prototype.init = function(params) {    
+GHRequest.prototype.init = function(params) {
+    //    for(var key in params) {
+    //        var val = params[key];
+    //        if(val === "false")
+    //            val = false;
+    //        else if(val === "true")
+    //            val = true;
+    //        else {            
+    //            if(parseFloat(val) != NaN)
+    //                val = parseFloat(val)
+    //        }
+    //        this[key] = val;
+    //    } 
     if(params.minPathPrecision)
-        this.minPathPrecision = params.minPathPrecision;    
-    
+        this.minPathPrecision = params.minPathPrecision;
     if(params.vehicle)
         this.vehicle = params.vehicle;
     if(params.algoType)
-        this.algoType = params.algoType;    
+        this.algoType = params.algoType;
     if(params.algorithm)
         this.algorithm = params.algorithm;
+    if(params.locale)
+        this.locale = params.locale;
+    
+    this.handleBoolean("doZoom", params);
+    this.handleBoolean("instructions", params);
+    this.handleBoolean("encodedPolyline", params);
 }
 
-GHRequest.prototype.doRequest = function(demoUrl, callback) {
-    var encodedPolyline = true;
-    var debug = false;
-    var url = this.host + "/api/route?" + demoUrl + "&type=jsonp";
-    // car
-    url += "&vehicle=" + this.vehicle;
+GHRequest.prototype.handleBoolean = function(key, params) {
+    if(key in params)
+        this.doZoom = params[key] == "true" || params[key] == true;
+}
+
+GHRequest.prototype.createURL = function(demoUrl) {    
+    return this.createPath(this.host + "/api/route?" + demoUrl + "&type=" + this.dataType);
+}
+
+GHRequest.prototype.createFullURL = function() {
+    var str = "?point=" + encodeURIComponent(this.from.input) + "&point=" + encodeURIComponent(this.to.input);    
+    return this.createPath(str);
+}
+
+GHRequest.prototype.createPath = function(url) {    
+    if(this.vehicle && this.vehicle != "car")
+        url += "&vehicle=" + this.vehicle;    
     // fastest or shortest
-    if(this.algoType)
+    if(this.algoType && this.algoType != "fastest")
         url += "&algoType=" + this.algoType;
+    if(this.locale && this.locale != "en")
+        url += "&locale=" + this.locale;
     // dijkstra, dijkstrabi, astar, astarbi
-    if(this.algorithm)
+    if(this.algorithm && this.algorithm != "dijkstrabi")
         url += "&algorithm=" + this.algorithm;
-    if (encodedPolyline)
-        url += "&encodedPolyline=true";
-    if (debug)
+    if (!this.instructions)
+        url += "&instructions=false";
+    if (!this.encodedPolyline)
+        url += "&encodedPolyline=false";
+    if(this.minPathPrecision != 1)
+        url += "&minPathPrecision=" + this.minPathPrecision;
+    if (this.debug)
         url += "&debug=true";
+    return url;
+}
+
+function decodePath(encoded, geoJson) {
+    var start = new Date().getTime();
+    var len = encoded.length;        
+    var index = 0;
+    var array = [];
+    var lat = 0;
+    var lng = 0;
+
+    while (index < len) {
+        var b;
+        var shift = 0;
+        var result = 0;
+        do {
+            b = encoded.charCodeAt(index++) - 63;
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+        } while (b >= 0x20);
+        var deltaLat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+        lat += deltaLat;
+
+        shift = 0;
+        result = 0;
+        do {
+            b = encoded.charCodeAt(index++) - 63;
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+        } while (b >= 0x20);
+        var deltaLon = ((result & 1) ? ~(result >> 1) : (result >> 1));
+        lng += deltaLon;
+
+        if(geoJson)
+            array.push([lng * 1e-5, lat * 1e-5]);
+        else
+            array.push([lat * 1e-5, lng * 1e-5]);
+    }
+    var end = new Date().getTime();    
+    console.log("decoded " + len + " coordinates in " + ((end - start)/1000)+ "s");
+    return array;
+}
+
+GHRequest.prototype.doRequest = function(url, callback) {
+    var tmpEncodedPolyline = this.encodedPolyline;
     $.ajax({
+        "timeout" : 30000,
         "url": url,
         "success": function(json) {
-            // convert encoded polyline stuff to normal json
-            if (encodedPolyline && json.route) {
-                var tmpArray = decodePath(json.route.coordinates, true);
-                json.route.coordinates = null;
-                json.route.data = {
-                    "type": "LineString",
-                    "coordinates": tmpArray
-                };
+            if(tmpEncodedPolyline && json.route) {                
+                // convert encoded polyline stuff to normal json
+                if (json.route.coordinates) {
+                    var tmpArray = decodePath(json.route.coordinates, true);
+                    json.route.coordinates = null;
+                    json.route.data = {
+                        "type": "LineString",
+                        "coordinates": tmpArray
+                    };
+                } else 
+                    console.log("something wrong on server? wrong server version? as we have encodedPolyline=" + tmpEncodedPolyline + " but no encoded data was return?");
             }
             callback(json);
         },
@@ -57,29 +147,27 @@ GHRequest.prototype.doRequest = function(demoUrl, callback) {
             var details = "Error for " + url;
             var json = {
                 "info" : {
-                    "errors" : {
+                    "errors" : [{
                         "message" : msg, 
                         "details" : details
-                    }
+                    }]
                 }
             };
             callback(json);
         },
         "type": "GET",
-        "dataType": "jsonp"
+        "dataType": this.dataType
     });
 };
 
-GHRequest.prototype.getInfo = function(success, error) {
-    var url = this.host + "/api/info?type=jsonp";
+GHRequest.prototype.getInfo = function() {
+    var url = this.host + "/api/info?type=" + this.dataType;
     console.log(url);    
     return $.ajax({
         "url": url,
-        "success": success,
-        "error" : error,
         "timeout" : 3000,
         "type" : "GET",
-        "dataType": 'jsonp'
+        "dataType": this.dataType
     });
 }
 
@@ -103,6 +191,10 @@ GHInput = function(str) {
     }
 };
 
+GHInput.prototype.isResolved = function() {
+    return this.lat && this.lng;
+}
+
 GHInput.prototype.setCoord = function(lat, lng) {
     this.resolvedText = "";
     this.lat = round(lat);
@@ -113,5 +205,24 @@ GHInput.prototype.setCoord = function(lat, lng) {
 GHInput.prototype.toString = function() {
     if (this.lat && this.lng)
         return this.lat + "," + this.lng;
-    return null;
+    return undefined;
 };
+
+GHRequest.prototype.setLocale = function(locale) {
+    if(locale)
+        this.locale = locale;
+}
+
+GHRequest.prototype.fetchTranslationMap = function(urlLocaleParam) {
+    if(!urlLocaleParam)
+        // let servlet figure out the locale from the Accept-Language header
+        urlLocaleParam = "";
+    var url = this.host + "/api/i18n/"+urlLocaleParam+"?type=" + this.dataType;
+    console.log(url);    
+    return $.ajax({
+        "url": url,       
+        "timeout" : 3000,
+        "type" : "GET",
+        "dataType": this.dataType
+    });
+}

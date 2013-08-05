@@ -5,7 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import com.graphhopper.GraphHopper;
-import com.graphhopper.routing.util.AcceptWay;
+import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.routing.util.TurnCostEncoder;
 import com.graphhopper.storage.AbstractGraphTester;
 import com.graphhopper.storage.GraphStorage;
@@ -15,28 +15,33 @@ import com.graphhopper.storage.RAMDirectory;
 import com.graphhopper.util.EdgeIterator;
 
 /**
- * tests, if with {@link GraphStorageTurnCosts} everything stays the same,
- * except that turn relations will be imported
- *
+ * tests, if with {@link GraphStorageTurnCosts} everything stays the same, except that turn
+ * relations will be imported
+ * 
  * @author Karl Hübner
- *
+ * 
  */
-public class OSMReaderTurnCostsTest extends OSMReaderTest {
+public class OSMReaderTurnCostsTest extends OSMReaderTest
+{
 
     private String file6 = "test-osm5.xml";
+    private EncodingManager encodingManager = new EncodingManager("CAR,FOOT");;
 
     @Override
-    GraphStorage buildGraph(String directory) {
-        return new GraphStorageTurnCosts(new RAMDirectory(directory, false));
+    GraphStorage buildGraph( String directory, EncodingManager encodingManager )
+    {
+        return new GraphStorageTurnCosts(new RAMDirectory(directory, false), encodingManager);
     }
 
-    @Test public void testImportTurnRestrictions() {
-        GraphHopper hopper = new GraphHopperTest(file6).enableTurnRestrictions().
-                acceptWay(new AcceptWay("CAR,FOOT")).
+    @Test
+    public void testImportTurnRestrictions()
+    {
+        GraphHopper hopper = new GraphHopperTest(file6).setEncodingManager(encodingManager)
+                .enableTurnRestrictions().
                 importOrLoad();
-        GraphTurnCosts g = (GraphTurnCosts) hopper.graph();
+        GraphTurnCosts g = (GraphTurnCosts) hopper.getGraph();
 
-        assertEquals(9, g.nodes());
+        assertEquals(9, g.getNodes());
 
         int n1 = AbstractGraphTester.getIdOf(g, 51.0, 9.0);
         int n2 = AbstractGraphTester.getIdOf(g, 51.2, 9.0);
@@ -77,11 +82,14 @@ public class OSMReaderTurnCostsTest extends OSMReaderTest {
         assertEquals(TurnCostEncoder.noCosts(), g.turnCosts(n1, e(g, n2, n1), e(g, n1, n6)), 0);
     }
 
-    private int e(GraphTurnCosts graph, int nodeStart, int nodeEnd) {
+    private int e( GraphTurnCosts graph, int nodeStart, int nodeEnd )
+    {
         EdgeIterator edges = graph.getEdges(nodeStart);
-        while (edges.next()) {
-            if (edges.adjNode() == nodeEnd) {
-                return edges.edge();
+        while ( edges.next() )
+        {
+            if ( edges.getAdjNode() == nodeEnd )
+            {
+                return edges.getEdge();
             }
         }
         return EdgeIterator.NO_EDGE;

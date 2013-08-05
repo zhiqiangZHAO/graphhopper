@@ -1,9 +1,9 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor license
  *  agreements. See the NOTICE file distributed with this work for
  *  additional information regarding copyright ownership.
  *
- *  Peter Karich licenses this file to you under the Apache License,
+ *  GraphHopper licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the
  *  License at
@@ -18,29 +18,35 @@
  */
 package com.graphhopper.storage;
 
+import com.graphhopper.routing.util.EncodingManager;
+
 /**
  * For now this is just a helper class to quickly create a GraphStorage.
- *
+ * <p/>
  * @author Peter Karich
  */
-public class GraphBuilder {
-
+public class GraphBuilder
+{
+    private EncodingManager encodingManager;
     private String location;
     private boolean mmap;
     private boolean store;
     private boolean level;
     private boolean turnCosts;
-    private int size = 100;
+    private long byteCapacity = 100;
 
-    public GraphBuilder() {
+    public GraphBuilder( EncodingManager encodingManager )
+    {
+        this.encodingManager = encodingManager;
     }
 
     /**
      * If true builder will create a LevelGraph
-     *
+     * <p/>
      * @see LevelGraph
      */
-    GraphBuilder levelGraph(boolean level) {
+    GraphBuilder setLevelGraph( boolean level )
+    {
         this.level = level;
         return this;
     }
@@ -55,28 +61,33 @@ public class GraphBuilder {
         return this;
     }
 
-    public GraphBuilder location(String location) {
+    public GraphBuilder setLocation( String location )
+    {
         this.location = location;
         return this;
     }
 
-    public GraphBuilder store(boolean store) {
+    public GraphBuilder setStore( boolean store )
+    {
         this.store = store;
         return this;
     }
 
-    public GraphBuilder mmap(boolean mmap) {
+    public GraphBuilder setMmap( boolean mmap )
+    {
         this.mmap = mmap;
         return this;
     }
 
-    public GraphBuilder size(int size) {
-        this.size = size;
+    public GraphBuilder setExpectedSize( byte cap )
+    {
+        this.byteCapacity = cap;
         return this;
     }
 
-    public LevelGraphStorage levelGraphBuild() {
-        return (LevelGraphStorage) levelGraph(true).build();
+    public LevelGraphStorage levelGraphBuild()
+    {
+        return (LevelGraphStorage) setLevelGraph(true).build();
     }
 
     public GraphStorageTurnCosts turnCostsGraphBuild() {
@@ -84,14 +95,15 @@ public class GraphBuilder {
     }
 
     public LevelGraphStorage levelTurnCostGraphBuild() {
-        return (LevelGraphStorage) levelGraph(true).turnCosts(true).build();
+        return (LevelGraphStorage) setLevelGraph(true).turnCosts(true).build();
     }
 
     /**
      * Creates a LevelGraphStorage
      */
-    public LevelGraphStorage levelGraphCreate() {
-        return (LevelGraphStorage) levelGraph(true).create();
+    public LevelGraphStorage levelGraphCreate()
+    {
+        return (LevelGraphStorage) setLevelGraph(true).create();
     }
 
     /**
@@ -105,46 +117,52 @@ public class GraphBuilder {
      * Creates a GraphStorage with turn costs tables
      */
     public LevelGraphStorage levelTurnCostsGraphCreate() {
-        return (LevelGraphStorage) levelGraph(true).turnCosts(true).create();
+        return (LevelGraphStorage) setLevelGraph(true).turnCosts(true).create();
     }
 
     /**
-     * Default graph is a GraphStorage with an in memory directory and disabled
-     * storing on flush. Afterwards you'll need to call GraphStorage.create to
-     * have a useable object. Better use create.
+     * Default graph is a GraphStorage with an in memory directory and disabled storing on flush.
+     * Afterwards you'll need to call GraphStorage.create to have a useable object. Better use
+     * create.
      */
-    GraphStorage build() {
+    GraphStorage build()
+    {
         Directory dir;
-        if (mmap) {
+        if (mmap)
+        {
             dir = new MMapDirectory(location);
-        } else {
+        } else
+        {
             dir = new RAMDirectory(location, store);
         }
         GraphStorage graph;
         if (level)
-            graph = new LevelGraphStorage(dir, turnCosts);
+            graph = new LevelGraphStorage(dir, encodingManager , turnCosts);
         else if (turnCosts)
-            graph = new GraphStorageTurnCosts(dir);
+            graph = new GraphStorageTurnCosts(dir, encodingManager);
         else
-            graph = new GraphStorage(dir);
+            graph = new GraphStorage(dir, encodingManager);
         return graph;
     }
 
     /**
-     * Default graph is a GraphStorage with an in memory directory and disabled
-     * storing on flush.
+     * Default graph is a GraphStorage with an in memory directory and disabled storing on flush.
      */
-    public GraphStorage create() {
-        return build().create(size);
+    public GraphStorage create()
+    {
+        return build().create(byteCapacity);
     }
 
     /**
      * @throws IllegalStateException if not loadable.
      */
-    public GraphStorage load() {
+    public GraphStorage load()
+    {
         GraphStorage gs = build();
         if (!gs.loadExisting())
+        {
             throw new IllegalStateException("Cannot load graph " + location);
+        }
         return gs;
     }
 }

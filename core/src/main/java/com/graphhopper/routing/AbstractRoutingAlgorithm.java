@@ -1,12 +1,11 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license 
- *  agreements. See the NOTICE file distributed with this work for 
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor
+ *  license agreements. See the NOTICE file distributed with this work for 
  *  additional information regarding copyright ownership.
  * 
- *  Peter Karich licenses this file to you under the Apache License, 
- *  Version 2.0 (the "License"); you may not use this file except 
- *  in compliance with the License. You may obtain a copy of the 
- *  License at
+ *  GraphHopper licenses this file to you under the Apache License, 
+ *  Version 2.0 (the "License"); you may not use this file except in 
+ *  compliance with the License. You may obtain a copy of the License at
  * 
  *       http://www.apache.org/licenses/LICENSE-2.0
  * 
@@ -21,7 +20,7 @@ package com.graphhopper.routing;
 import com.graphhopper.routing.util.DefaultEdgeFilter;
 import com.graphhopper.routing.util.DefaultTurnCostsCalc;
 import com.graphhopper.routing.util.EdgeFilter;
-import com.graphhopper.routing.util.EdgePropertyEncoder;
+import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.routing.util.ShortestCalc;
 import com.graphhopper.routing.util.TurnCostCalculation;
 import com.graphhopper.routing.util.WeightCalculation;
@@ -32,41 +31,46 @@ import com.graphhopper.util.EdgeIterator;
 /**
  * @author Peter Karich
  */
-public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
-
+public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm
+{
     protected Graph graph;
     private EdgeFilter additionalEdgeFilter;
     protected WeightCalculation weightCalc;
     protected TurnCostCalculation turnCostCalc;
     protected final EdgeFilter outEdgeFilter;
     protected final EdgeFilter inEdgeFilter;
-    protected final EdgePropertyEncoder flagEncoder;
+    protected final FlagEncoder flagEncoder;
 
-    public AbstractRoutingAlgorithm(Graph graph, EdgePropertyEncoder encoder) {
+    public AbstractRoutingAlgorithm( Graph graph, FlagEncoder encoder )
+    {
         this.graph = graph;
         this.additionalEdgeFilter = EdgeFilter.ALL_EDGES;
         this.flagEncoder = encoder;
-        type(new ShortestCalc());
+        setType(new ShortestCalc());
         turnCosts(new DefaultTurnCostsCalc(flagEncoder, weightCalc));
         outEdgeFilter = new DefaultEdgeFilter(encoder, false, true);
         inEdgeFilter = new DefaultEdgeFilter(encoder, true, false);
     }
 
-    public RoutingAlgorithm edgeFilter(EdgeFilter additionalEdgeFilter) {
+    public RoutingAlgorithm setEdgeFilter( EdgeFilter additionalEdgeFilter )
+    {
         this.additionalEdgeFilter = additionalEdgeFilter;
         return this;
     }
 
-    protected boolean accept(EdgeIterator iter) {
+    protected boolean accept( EdgeIterator iter )
+    {
         return additionalEdgeFilter.accept(iter);
     }
 
-    protected EdgeIterator neighbors(int neighborNode) {
+    protected EdgeIterator getNeighbors( int neighborNode )
+    {
         return graph.getEdges(neighborNode, outEdgeFilter);
     }
 
     @Override
-    public RoutingAlgorithm type(WeightCalculation wc) {
+    public RoutingAlgorithm setType( WeightCalculation wc )
+    {
         this.weightCalc = wc;
         turnCosts(new DefaultTurnCostsCalc(flagEncoder, weightCalc));
         return this;
@@ -75,20 +79,23 @@ public abstract class AbstractRoutingAlgorithm implements RoutingAlgorithm {
     @Override
     public RoutingAlgorithm turnCosts(TurnCostCalculation calc) {
         this.turnCostCalc = calc;
-    	this.turnCostCalc.graph(graph);
+    	this.turnCostCalc.setGraph(graph);
         return this;
     }
 
-    protected void updateShortest(EdgeEntry shortestDE, int currLoc) {
+    protected void updateShortest( EdgeEntry shortestDE, int currLoc )
+    {
     }
 
     @Override
-    public String toString() {
-        return name() + "|" + weightCalc + "|" + turnCostCalc;
+    public String toString()
+    {
+        return getName() + "|" + weightCalc;
     }
 
     @Override
-    public String name() {
-        return getClass().getSimpleName();
+    public String getName()
+    {
+        return getClass().getSimpleName();    
     }
 }

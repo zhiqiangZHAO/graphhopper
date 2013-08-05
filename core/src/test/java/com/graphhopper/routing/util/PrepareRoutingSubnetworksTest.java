@@ -1,12 +1,11 @@
 /*
- *  Licensed to Peter Karich under one or more contributor license 
- *  agreements. See the NOTICE file distributed with this work for 
+ *  Licensed to GraphHopper and Peter Karich under one or more contributor
+ *  license agreements. See the NOTICE file distributed with this work for 
  *  additional information regarding copyright ownership.
  * 
- *  Peter Karich licenses this file to you under the Apache License, 
- *  Version 2.0 (the "License"); you may not use this file except 
- *  in compliance with the License. You may obtain a copy of the 
- *  License at
+ *  GraphHopper licenses this file to you under the Apache License, 
+ *  Version 2.0 (the "License"); you may not use this file except in 
+ *  compliance with the License. You may obtain a copy of the License at
  * 
  *       http://www.apache.org/licenses/LICENSE-2.0
  * 
@@ -18,8 +17,10 @@
  */
 package com.graphhopper.routing.util;
 
+import com.graphhopper.reader.OSMWay;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.GraphBuilder;
+import com.graphhopper.storage.GraphStorage;
 import com.graphhopper.util.GHUtility;
 import java.util.Arrays;
 import java.util.Map;
@@ -30,14 +31,18 @@ import static org.junit.Assert.*;
  *
  * @author Peter Karich
  */
-public class PrepareRoutingSubnetworksTest {
+public class PrepareRoutingSubnetworksTest
+{
+    private EncodingManager em = new EncodingManager("CAR");
 
-    Graph createGraph() {
-        return new GraphBuilder().create();
+    Graph createGraph( EncodingManager eman )
+    {
+        return new GraphBuilder(eman).create();
     }
 
-    Graph createSubnetworkTestGraph() {
-        Graph g = createGraph();
+    Graph createSubnetworkTestGraph()
+    {
+        Graph g = createGraph(em);
         // big network
         g.edge(1, 2, 1, true);
         g.edge(1, 4, 1, false);
@@ -63,9 +68,10 @@ public class PrepareRoutingSubnetworksTest {
     }
 
     @Test
-    public void testFindSubnetworks() {
+    public void testFindSubnetworks()
+    {
         Graph g = createSubnetworkTestGraph();
-        PrepareRoutingSubnetworks instance = new PrepareRoutingSubnetworks(g);
+        PrepareRoutingSubnetworks instance = new PrepareRoutingSubnetworks(g, em);
         Map<Integer, Integer> map = instance.findSubnetworks();
 
         assertEquals(3, map.size());
@@ -77,17 +83,67 @@ public class PrepareRoutingSubnetworksTest {
     }
 
     @Test
-    public void testKeepLargestNetworks() {
+    public void testKeepLargestNetworks()
+    {
         Graph g = createSubnetworkTestGraph();
-        PrepareRoutingSubnetworks instance = new PrepareRoutingSubnetworks(g);
+        PrepareRoutingSubnetworks instance = new PrepareRoutingSubnetworks(g, em);
         Map<Integer, Integer> map = instance.findSubnetworks();
-        instance.keepLargeNetwork(map);
+        instance.keepLargeNetworks(map);
         g.optimize();
 
-        assertEquals(7, g.nodes());
+        assertEquals(7, g.getNodes());
         assertEquals(Arrays.<String>asList(), GHUtility.getProblems(g));
         map = instance.findSubnetworks();
         assertEquals(1, map.size());
         assertEquals(7, (int) map.get(0));
+    }
+
+    Graph createSubnetworkTestGraph2( EncodingManager em )
+    {
+        Graph g = createGraph(em);
+        // large network
+        g.edge(0, 1, 1, true);
+        g.edge(1, 3, 1, true);
+        g.edge(0, 2, 1, true);
+        g.edge(2, 3, 1, true);
+
+        // connecting both but do not allow CAR!
+        g.edge(3, 4, 1, 0);
+
+        // small network
+        g.edge(4, 5, 1, true);
+        g.edge(5, 6, 1, true);
+        g.edge(4, 6, 1, true);
+        return g;
+    }
+
+    @Test
+    public void testRemoveSubnetworkIfOnlyOneVehicle()
+    {
+        Graph g = createSubnetworkTestGraph2(em);
+        PrepareRoutingSubnetworks instance = new PrepareRoutingSubnetworks(g, em);
+        instance.setMinNetworkSize(4);
+        instance.doWork();
+        g.optimize();
+        assertEquals(4, g.getNodes());
+        assertEquals(Arrays.<String>asList(), GHUtility.getProblems(g));
+        assertEquals(Arrays.asList(1, 2), GHUtility.getNeighbors(g.getEdges(3)));
+
+        // do not remove because small network is big enough
+        g = createSubnetworkTestGraph2(em);
+        instance = new PrepareRoutingSubnetworks(g, em);
+        instance.setMinNetworkSize(3);
+        instance.doWork();
+        g.optimize();
+        assertEquals(7, g.getNodes());
+
+        // do not remove because two two vehicles
+        EncodingManager em2 = new EncodingManager("CAR,BIKE");
+        g = createSubnetworkTestGraph2(em2);
+        instance = new PrepareRoutingSubnetworks(g, em2);
+        instance.setMinNetworkSize(3);
+        instance.doWork();
+        g.optimize();
+        assertEquals(7, g.getNodes());
     }
 }
