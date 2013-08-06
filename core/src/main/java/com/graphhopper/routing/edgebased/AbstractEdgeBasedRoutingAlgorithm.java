@@ -38,22 +38,25 @@ public abstract class AbstractEdgeBasedRoutingAlgorithm extends AbstractRoutingA
 
     public static int HIGHEST_BIT_MASK = 0x7FFFFFFF;
     public static int HIGHEST_BIT_ONE = 0x80000000;
+    
+    protected boolean directed = true;
 
     public AbstractEdgeBasedRoutingAlgorithm( Graph graph, FlagEncoder encoder )
     {
         super(graph, encoder);
     }
 
-    protected int createIterKey( EdgeIterator iter, boolean backwards )
-    {
-        return iter.getEdge() | directionFlag(iter, backwards);
+    protected int createIterKey(EdgeIterator iter, boolean backwards) {
+        return createIterKey(iter.getEdge(), iter.getBaseNode(), iter.getAdjNode(), backwards);
+    }
+    
+    protected int createIterKey(int edgeId, int startNode, int endNode, boolean backwards) {
+        return edgeId | directionFlag(startNode, endNode, backwards);
     }
 
-    private int directionFlag( EdgeIterator iter, boolean backwards )
-    {
-        if ( !backwards && iter.getBaseNode() > iter.getAdjNode() || backwards
-                && iter.getBaseNode() < iter.getAdjNode() )
-        {
+    private int directionFlag(int startNode, int endNode, boolean backwards) {
+        if (directed && (!backwards && startNode > endNode || backwards
+                && startNode < endNode)) {
             return HIGHEST_BIT_ONE;
         }
         return 0;
