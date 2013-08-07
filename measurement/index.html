@@ -14,16 +14,13 @@
                 background-color: #EEEEEE;
                 margin: 0;
             }
-            #main {
-
-            }
             #tabs {                
                 width: 500px;
                 margin: 0 auto;
             }
         </style>
 
-        <script type="text/javascript" src="../js/jquery-1.7.2.min.js"></script>
+        <script type="text/javascript" src="../js/jquery-1.10.2.min.js"></script>
         <script type="text/javascript" src="../js/dygraph-combined.js"></script>
         <script type="text/javascript">
             var graphData = [];
@@ -102,8 +99,7 @@
                         if(!values[entry])
                             values[entry] = [];
                         values[entry].push([dates[resIndex], val]);
-                    }
-                    
+                    }                    
                 }                
                 
                 for(var val in values) {
@@ -132,20 +128,32 @@
                     },
                     labelsSeparateLines: true,
                     labels: labels,
-                    //                    xlabel: xLabels,
                     colors:['#2da8b0']
                 };
 
-                new Dygraph(document.getElementById(chartDivId), values, options);
+                var graph = new Dygraph(document.getElementById(chartDivId), values, options);
+                
+                // TODO show gitinfo via graphData[index]["gitinfo"]
+//                graph.setAnnotations([ {
+//                        series: "Reopen Time (msec)",
+//                        x: "2011-04-25 23:00:01",
+//                        shortText: "A",
+//                        width: 20,
+//                        text: "Switched to 240 GB OCZ Vertex III"
+//                    },{ ... }]);
             }
             
             function processProperties(allText) {
                 var allTextLines = allText.split(/\r\n|\n/);
                 var result = {};
-                for (var j=0; j<allTextLines.length; j++) {
+                for (var j = 0; j < allTextLines.length; j++) {
                     var line = allTextLines[j];                    
                     var index = line.indexOf('=');
                     if(index > 0) {
+                        if(line.indexOf("gitinfo") > 0) {
+                            result["gitinfo"] = line.substr(index + 1);
+                            continue;
+                        }
                         var key = line.substr(0, index);
                         var value = parseFloat(line.substr(index + 1));
                         index = key.indexOf(".");
@@ -171,6 +179,7 @@
                 <a href="#graph">graph</a>
                 <a href="#location2id">location2id</a>
                 <a href="#routing">routing</a>
+                <a href="#routingCH">routingCH</a>
                 <a href="#prepare">prepare</a>
                 <a href="#measurement">measurement</a>
             </div>
