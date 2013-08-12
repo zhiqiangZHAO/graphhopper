@@ -480,7 +480,9 @@ public class GraphHopper implements GraphHopperAPI
 
         GHDirectory dir = new GHDirectory(ghLocation, dataAccessType);
         if (chUsage)
-            graph = new LevelGraphStorage(dir, encodingManager);
+            graph = new LevelGraphStorage(dir, encodingManager, turnRestrictions);
+        else if(turnRestrictions)
+            graph = new GraphStorageTurnCosts(dir, encodingManager);
         else
             graph = new GraphStorage(dir, encodingManager);
 
