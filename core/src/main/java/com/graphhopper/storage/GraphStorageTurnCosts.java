@@ -28,7 +28,7 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
      */
     protected final int TC_FROM, TC_TO, TC_COSTS, TC_NEXT;
     protected DataAccess turnCosts;
-    protected int turnCostsEntryIndex = -1;
+    protected int turnCostsEntryIndex = -4;
     protected int turnCostsEntryBytes;
     protected int turnCostsCount;
     protected boolean supportTurnCosts;
