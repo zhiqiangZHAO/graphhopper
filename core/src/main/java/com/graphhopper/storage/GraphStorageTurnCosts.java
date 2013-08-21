@@ -222,7 +222,7 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
         if (supportTurnCosts)
         {
             turnCosts.setHeader(0, turnCostsEntryBytes);
-            turnCosts.setHeader(1, turnCostsCount);
+            turnCosts.setHeader(1 * 4, turnCostsCount);
             turnCosts.flush();
         }
     }
