@@ -20,8 +20,10 @@ package com.graphhopper.routing.edgebased;
 
 import com.graphhopper.routing.AbstractRoutingAlgorithm;
 import com.graphhopper.routing.util.FlagEncoder;
+import com.graphhopper.routing.util.WeightCalculation;
 import com.graphhopper.storage.EdgeEntry;
 import com.graphhopper.storage.Graph;
+import com.graphhopper.util.EdgeBase;
 import com.graphhopper.util.EdgeIterator;
 
 /**
@@ -41,12 +43,12 @@ public abstract class AbstractEdgeBasedRoutingAlgorithm extends AbstractRoutingA
     
     protected boolean directed = true;
 
-    public AbstractEdgeBasedRoutingAlgorithm( Graph graph, FlagEncoder encoder )
+    public AbstractEdgeBasedRoutingAlgorithm( Graph g, FlagEncoder encoder, WeightCalculation type )
     {
-        super(graph, encoder);
+        super(g, encoder, type);
     }
 
-    protected int createIterKey(EdgeIterator iter, boolean backwards) {
+    protected int createIterKey(EdgeBase iter, boolean backwards) {
         return createIterKey(iter.getEdge(), iter.getBaseNode(), iter.getAdjNode(), backwards);
     }
     

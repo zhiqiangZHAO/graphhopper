@@ -12,6 +12,7 @@ import com.graphhopper.storage.GraphStorage;
 import com.graphhopper.storage.GraphStorageTurnCosts;
 import com.graphhopper.storage.GraphTurnCosts;
 import com.graphhopper.storage.RAMDirectory;
+import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.EdgeIterator;
 
 /**
@@ -84,12 +85,13 @@ public class OSMReaderTurnCostsTest extends OSMReaderTest
 
     private int e( GraphTurnCosts graph, int nodeStart, int nodeEnd )
     {
-        EdgeIterator edges = graph.getEdges(nodeStart);
-        while ( edges.next() )
+        EdgeExplorer expl = graph.createEdgeExplorer();
+        expl.setBaseNode(nodeStart);
+        while ( expl.next() )
         {
-            if ( edges.getAdjNode() == nodeEnd )
+            if ( expl.getAdjNode() == nodeEnd )
             {
-                return edges.getEdge();
+                return expl.getEdge();
             }
         }
         return EdgeIterator.NO_EDGE;

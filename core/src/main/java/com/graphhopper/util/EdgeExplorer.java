@@ -17,30 +17,15 @@
  */
 package com.graphhopper.util;
 
-import com.graphhopper.util.TranslationMap.Translation;
-import java.util.Locale;
-import org.junit.Test;
-import static org.junit.Assert.*;
-
 /**
- *
+ * Class to reuse an EdgeIterator. Use one instance per thread.
+ * <p/>
  * @author Peter Karich
  */
-public class TranslationMapTest
+public interface EdgeExplorer extends EdgeIterator
 {
-    // use a static singleton to parse the I18N files only once per test execution
-    public final static TranslationMap SINGLETON = new TranslationMap().doImport();
-
-    @Test
-    public void testToString()
-    {
-        Translation enMap = SINGLETON.getWithFallBack(Locale.UK);
-        assertEquals("continue onto blp street", enMap.tr("continue_onto", "blp street"));
-                
-        Translation deMap = SINGLETON.getWithFallBack(Locale.GERMANY);
-        assertEquals("Zu Fuß", deMap.tr("web.FOOT"));
-        
-        Translation ruMap = SINGLETON.getWithFallBack(new Locale("ru"));
-        assertEquals("Пешком", ruMap.tr("web.FOOT"));
-    }
+    /**
+     * This method sets the base node for iteration through neighboring edges.
+     */
+    EdgeExplorer setBaseNode( int baseNode );
 }

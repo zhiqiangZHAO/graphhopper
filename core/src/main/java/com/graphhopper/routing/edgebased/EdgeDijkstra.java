@@ -25,8 +25,10 @@ import java.util.PriorityQueue;
 
 import com.graphhopper.routing.Path;
 import com.graphhopper.routing.util.FlagEncoder;
+import com.graphhopper.routing.util.WeightCalculation;
 import com.graphhopper.storage.EdgeEntry;
 import com.graphhopper.storage.Graph;
+import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.EdgeIterator;
 
 /**
@@ -49,11 +51,11 @@ public class EdgeDijkstra extends AbstractEdgeBasedRoutingAlgorithm
     protected boolean alreadyRun;
     protected int visitedNodes;
 
-    public EdgeDijkstra( Graph graph, FlagEncoder encoder )
+    public EdgeDijkstra( Graph g, FlagEncoder encoder, WeightCalculation type )
     {
-        super(graph, encoder);
+        super(g, encoder, type);
     }
-
+    
     @Override
     public Path calcPath( int from, int to )
     {
@@ -70,6 +72,7 @@ public class EdgeDijkstra extends AbstractEdgeBasedRoutingAlgorithm
 
     public EdgeEntry calcEdgeEntry( EdgeEntry currEdge, int to )
     {
+        EdgeExplorer explorer = outEdgeExplorer;
         while ( true )
         {
             visitedNodes++;
@@ -77,30 +80,30 @@ public class EdgeDijkstra extends AbstractEdgeBasedRoutingAlgorithm
                 break;
 
             int neighborNode = currEdge.endNode;
-            EdgeIterator iter = getNeighbors(neighborNode);
-            while ( iter.next() )
+            explorer.setBaseNode(neighborNode);
+            while ( explorer.next() )
             {
-                if ( !accept(iter, currEdge) )
+                if ( !accept(explorer, currEdge) )
                     continue;
 
                 //we need to distinguish between backward and forward direction when storing end weights
-                int key = createIterKey(iter, false);
+                int key = createIterKey(explorer, false);
 
-                int tmpNode = iter.getAdjNode();
-                double tmpWeight = weightCalc.getWeight(iter.getDistance(), iter.getFlags())
+                int tmpNode = explorer.getAdjNode();
+                double tmpWeight = weightCalc.getWeight(explorer.getDistance(), explorer.getFlags())
                         + currEdge.weight
-                        + turnCostCalc.getTurnCosts(neighborNode, currEdge.edge, iter.getEdge());
+                        + turnCostCalc.getTurnCosts(neighborNode, currEdge.edge, explorer.getEdge());
                 EdgeEntry nEdge = map.get(key);
                 if ( nEdge == null )
                 {
-                    nEdge = new EdgeEntry(iter.getEdge(), tmpNode, tmpWeight);
+                    nEdge = new EdgeEntry(explorer.getEdge(), tmpNode, tmpWeight);
                     nEdge.parent = currEdge;
                     map.put(key, nEdge);
                     heap.add(nEdge);
                 } else if ( nEdge.weight > tmpWeight )
                 {
                     heap.remove(nEdge);
-                    nEdge.edge = iter.getEdge();
+                    nEdge.edge = explorer.getEdge();
                     nEdge.weight = tmpWeight;
                     nEdge.parent = currEdge;
                     heap.add(nEdge);

@@ -39,7 +39,7 @@ public interface RoutingAlgorithm
     /**
      * Changes the used weight calculation (e.g. fastest, shortest). Default is shortest.
      */
-    RoutingAlgorithm setType( WeightCalculation calc );
+//    RoutingAlgorithm setType( WeightCalculation calc );
 
     /**
      * Changes the used turn costs calculation (e.g. turn restriction). Default

@@ -27,8 +27,10 @@ import com.graphhopper.routing.Path;
 import com.graphhopper.routing.PathBidirRef;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.FlagEncoder;
+import com.graphhopper.routing.util.WeightCalculation;
 import com.graphhopper.storage.EdgeEntry;
 import com.graphhopper.storage.Graph;
+import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.EdgeIterator;
 
 /**
@@ -59,9 +61,9 @@ public class EdgeDijkstraBidirectionRef extends AbstractEdgeBasedRoutingAlgorith
     protected TIntObjectMap<EdgeEntry> shortestWeightMapOther;
     public PathBidirRef shortest;
 
-    public EdgeDijkstraBidirectionRef( Graph graph, FlagEncoder encoder )
+    public EdgeDijkstraBidirectionRef( Graph g, FlagEncoder encoder, WeightCalculation type )
     {
-        super(graph, encoder);
+        super(g, encoder, type);
         initCollections(Math.max(20, graph.getNodes()));
     }
 
@@ -137,42 +139,42 @@ public class EdgeDijkstraBidirectionRef extends AbstractEdgeBasedRoutingAlgorith
     }
 
     void fillEdges( EdgeEntry curr, PriorityQueue<EdgeEntry> prioQueue,
-            TIntObjectMap<EdgeEntry> shortestWeightMap, EdgeFilter filter )
+            TIntObjectMap<EdgeEntry> shortestWeightMap, EdgeExplorer explorer )
     {
 
         boolean backwards = shortestWeightMapFrom == shortestWeightMapOther;
 
         int currNode = curr.endNode;
-        EdgeIterator iter = graph.getEdges(currNode, filter);
-        while ( iter.next() )
+        explorer.setBaseNode(currNode);
+        while ( explorer.next() )
         {
-            if ( !accept(iter, curr) )
+            if ( !accept(explorer, curr) )
                 continue;
 
             //we need to distinguish between backward and forward direction when storing end weights
-            int key = createIterKey(iter, backwards);
+            int key = createIterKey(explorer, backwards);
 
-            int neighborNode = iter.getAdjNode();
-            double tmpWeight = weightCalc.getWeight(iter.getDistance(), iter.getFlags())
+            int neighborNode = explorer.getAdjNode();
+            double tmpWeight = weightCalc.getWeight(explorer.getDistance(), explorer.getFlags())
                     + curr.weight;
             if ( !backwards )
             {
-                tmpWeight += turnCostCalc.getTurnCosts(currNode, curr.edge, iter.getEdge());
+                tmpWeight += turnCostCalc.getTurnCosts(currNode, curr.edge, explorer.getEdge());
             } else
             {
-                tmpWeight += turnCostCalc.getTurnCosts(currNode, iter.getEdge(), curr.edge);
+                tmpWeight += turnCostCalc.getTurnCosts(currNode, explorer.getEdge(), curr.edge);
             }
             EdgeEntry de = shortestWeightMap.get(key);
             if ( de == null )
             {
-                de = new EdgeEntry(iter.getEdge(), neighborNode, tmpWeight);
+                de = new EdgeEntry(explorer.getEdge(), neighborNode, tmpWeight);
                 de.parent = curr;
                 shortestWeightMap.put(key, de);
                 prioQueue.add(de);
             } else if ( de.weight > tmpWeight )
             {
                 prioQueue.remove(de);
-                de.edge = iter.getEdge();
+                de.edge = explorer.getEdge();
                 de.weight = tmpWeight;
                 de.parent = curr;
                 prioQueue.add(de);
@@ -231,7 +233,7 @@ public class EdgeDijkstraBidirectionRef extends AbstractEdgeBasedRoutingAlgorith
         if ( currFrom != null )
         {
             shortestWeightMapOther = shortestWeightMapTo;
-            fillEdges(currFrom, openSetFrom, shortestWeightMapFrom, outEdgeFilter);
+            fillEdges(currFrom, openSetFrom, shortestWeightMapFrom, outEdgeExplorer);
             visitedFromCount++;
             if ( openSetFrom.isEmpty() )
             {
@@ -252,7 +254,7 @@ public class EdgeDijkstraBidirectionRef extends AbstractEdgeBasedRoutingAlgorith
         if ( currTo != null )
         {
             shortestWeightMapOther = shortestWeightMapFrom;
-            fillEdges(currTo, openSetTo, shortestWeightMapTo, inEdgeFilter);
+            fillEdges(currTo, openSetTo, shortestWeightMapTo, inEdgeExplorer);
             visitedToCount++;
             if ( openSetTo.isEmpty() )
             {

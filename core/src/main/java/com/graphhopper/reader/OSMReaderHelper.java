@@ -40,7 +40,7 @@ import com.graphhopper.storage.GraphStorageTurnCosts;
 import com.graphhopper.storage.GraphTurnCosts;
 import com.graphhopper.util.DistanceCalc;
 import com.graphhopper.util.DouglasPeucker;
-import com.graphhopper.util.EdgeIterator;
+import com.graphhopper.util.EdgeBase;
 import com.graphhopper.util.Helper;
 import com.graphhopper.util.PointList;
 
@@ -174,10 +174,10 @@ public class OSMReaderHelper
     /**
      * This method creates from an OSM way (via the osm ids) one or more edges in the graph.
      */
-    public Collection<EdgeIterator> addOSMWay( TLongList osmNodeIds, int flags, long osmWayID )
+    public Collection<EdgeBase> addOSMWay( TLongList osmNodeIds, int flags, long osmWayID )
     {
         PointList pointList = new PointList(osmNodeIds.size());
-        List<EdgeIterator> newEdges = new ArrayList<EdgeIterator>(5);
+        List<EdgeBase> newEdges = new ArrayList<EdgeBase>(5);
         int firstNode = -1;
         int lastIndex = osmNodeIds.size() - 1;
         int lastInBoundsPillarNode = -1;
@@ -261,7 +261,7 @@ public class OSMReaderHelper
         return newEdges;
     }
 
-    EdgeIterator addEdge( int fromIndex, int toIndex, PointList pointList, int flags, long osmWayID )
+    EdgeBase addEdge( int fromIndex, int toIndex, PointList pointList, int flags, long osmWayID )
     {
         if ( fromIndex < 0 || toIndex < 0 )
         {
@@ -296,7 +296,7 @@ public class OSMReaderHelper
             towerNodeDistance = 0.0001;
         }
 
-        final EdgeIterator iter = g.edge(fromIndex, toIndex, towerNodeDistance, flags);
+        final EdgeBase iter = g.edge(fromIndex, toIndex, towerNodeDistance, flags);
         if ( g instanceof GraphStorageTurnCosts )
         {
             storeOSMWayID(iter.getEdge(), osmWayID);
@@ -444,7 +444,7 @@ public class OSMReaderHelper
     /**
      * Add a zero length edge with reduced routing options to the graph.
      */
-    public Collection<EdgeIterator> addBarrierEdge( long fromId, long toId, int flags,
+    public Collection<EdgeBase> addBarrierEdge( long fromId, long toId, int flags,
             int barrierFlags, long osmWayID )
     {
         // clear barred directions from routing flags

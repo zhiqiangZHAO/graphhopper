@@ -20,9 +20,11 @@ package com.graphhopper.routing;
 import com.graphhopper.routing.AStar.AStarEdge;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.FlagEncoder;
+import com.graphhopper.routing.util.WeightCalculation;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.util.DistanceCalc;
 import com.graphhopper.util.DistancePlaneProjection;
+import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.EdgeIterator;
 import com.graphhopper.util.shapes.CoordTrig;
 import gnu.trove.map.TIntObjectMap;
@@ -77,9 +79,9 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
     private CoordTrig toCoord;
     protected double approximationFactor;
 
-    public AStarBidirection( Graph graph, FlagEncoder encoder )
+    public AStarBidirection( Graph graph, FlagEncoder encoder, WeightCalculation type )
     {
-        super(graph, encoder);
+        super(graph, encoder, type);
         int nodes = Math.max(20, graph.getNodes());
         initCollections(nodes);
         setApproximation(false);
@@ -99,7 +101,7 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
      */
     public AStarBidirection setApproximation( boolean approx )
     {
-        if ( approx )
+        if (approx)
         {
             dist = new DistancePlaneProjection();
             approximationFactor = 0.5;
@@ -138,7 +140,7 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
 
     private Path checkIndenticalFromAndTo()
     {
-        if ( from == to )
+        if (from == to)
         {
             return new Path(graph, flagEncoder);
         }
@@ -159,7 +161,7 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
     @Override
     public Path calcPath( int from, int to )
     {
-        if ( alreadyRun )
+        if (alreadyRun)
         {
             throw new IllegalStateException("Create a new instance per call");
         }
@@ -169,7 +171,7 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
         initPath();
 
         Path p = checkIndenticalFromAndTo();
-        if ( p != null )
+        if (p != null)
         {
             return p;
         }
@@ -178,12 +180,12 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
         while ( finish < 2 )
         {
             finish = 0;
-            if ( !fillEdgesFrom() )
+            if (!fillEdgesFrom())
             {
                 finish++;
             }
 
-            if ( !fillEdgesTo() )
+            if (!fillEdgesTo())
             {
                 finish++;
             }
@@ -198,10 +200,10 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
     public boolean checkFinishCondition()
     {
         double tmp = shortest.getWeight() * approximationFactor;
-        if ( currFrom == null )
+        if (currFrom == null)
         {
             return currTo.weightToCompare >= tmp;
-        } else if ( currTo == null )
+        } else if (currTo == null)
         {
             return currFrom.weightToCompare >= tmp;
         }
@@ -210,23 +212,23 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
 
     public boolean fillEdgesFrom()
     {
-        if ( currFrom != null )
+        if (currFrom != null)
         {
             shortestWeightMapOther = shortestWeightMapTo;
-            fillEdges(currFrom, toCoord, prioQueueOpenSetFrom, shortestWeightMapFrom, outEdgeFilter);
+            fillEdges(currFrom, toCoord, prioQueueOpenSetFrom, shortestWeightMapFrom, outEdgeExplorer);
             visitedFromCount++;
-            if ( prioQueueOpenSetFrom.isEmpty() )
+            if (prioQueueOpenSetFrom.isEmpty())
             {
                 currFrom = null;
                 return false;
             }
 
             currFrom = prioQueueOpenSetFrom.poll();
-            if ( checkFinishCondition() )
+            if (checkFinishCondition())
             {
                 return false;
             }
-        } else if ( currTo == null )
+        } else if (currTo == null)
         {
             return false;
         }
@@ -236,23 +238,23 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
 
     public boolean fillEdgesTo()
     {
-        if ( currTo != null )
+        if (currTo != null)
         {
             shortestWeightMapOther = shortestWeightMapFrom;
-            fillEdges(currTo, fromCoord, prioQueueOpenSetTo, shortestWeightMapTo, inEdgeFilter);
+            fillEdges(currTo, fromCoord, prioQueueOpenSetTo, shortestWeightMapTo, inEdgeExplorer);
             visitedToCount++;
-            if ( prioQueueOpenSetTo.isEmpty() )
+            if (prioQueueOpenSetTo.isEmpty())
             {
                 currTo = null;
                 return false;
             }
 
             currTo = prioQueueOpenSetTo.poll();
-            if ( checkFinishCondition() )
+            if (checkFinishCondition())
             {
                 return false;
             }
-        } else if ( currFrom == null )
+        } else if (currFrom == null)
         {
             return false;
         }
@@ -262,25 +264,24 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
 
     private void fillEdges( AStarEdge curr, CoordTrig goal,
             PriorityQueue<AStarEdge> prioQueueOpenSet,
-            TIntObjectMap<AStarEdge> shortestWeightMap, EdgeFilter filter )
+            TIntObjectMap<AStarEdge> shortestWeightMap, EdgeExplorer iter )
     {
 
         boolean backwards = shortestWeightMapFrom == shortestWeightMapOther;
 
         int currNode = curr.endNode;
-        EdgeIterator iter = graph.getEdges(currNode, filter);
+        iter.setBaseNode(currNode);
         while ( iter.next() )
         {
-            if ( !accept(iter) )
-            {
+            if (!accept(iter))
                 continue;
-            }
+
             int neighborNode = iter.getAdjNode();
             // TODO performance: check if the node is already existent in the opposite direction
             // then we could avoid the approximation as we already know the exact complete path!
             double alreadyVisitedWeight = weightCalc.getWeight(iter.getDistance(), iter.getFlags())
                     + curr.weightToCompare;
-            if ( !backwards )
+            if (!backwards)
             {
                 alreadyVisitedWeight += turnCostCalc.getTurnCosts(currNode, curr.edge,
                         iter.getEdge());
@@ -290,14 +291,14 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
                         curr.edge);
             }
             AStarEdge de = shortestWeightMap.get(neighborNode);
-            if ( de == null || de.weightToCompare > alreadyVisitedWeight )
+            if (de == null || de.weightToCompare > alreadyVisitedWeight)
             {
                 double tmpLat = graph.getLatitude(neighborNode);
                 double tmpLon = graph.getLongitude(neighborNode);
                 double currWeightToGoal = dist.calcDist(goal.lat, goal.lon, tmpLat, tmpLon);
                 currWeightToGoal = weightCalc.getMinWeight(currWeightToGoal);
                 double estimationFullDist = alreadyVisitedWeight + currWeightToGoal;
-                if ( de == null )
+                if (de == null)
                 {
                     de = new AStarEdge(iter.getEdge(), neighborNode, estimationFullDist,
                             alreadyVisitedWeight);
@@ -314,6 +315,7 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
                 prioQueueOpenSet.add(de);
                 updateShortest(de, neighborNode);
             }
+
         }
     }
 
@@ -321,13 +323,13 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
     public void updateShortest( AStarEdge shortestDE, int currLoc )
     {
         AStarEdge entryOther = shortestWeightMapOther.get(currLoc);
-        if ( entryOther == null )
+        if (entryOther == null)
         {
             return;
         }
 
         //prevents the shortest path to contain the same edge twice, when turn restriction is around the meeting point
-        if ( shortestDE.edge == entryOther.edge )
+        if (shortestDE.edge == entryOther.edge)
         {
             return;
         }
@@ -338,7 +340,7 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
         double newShortest = shortestDE.weightToCompare + entryOther.weightToCompare;
 
         //costs for the turn where forward and backward routing meet each other
-        if ( !backwards )
+        if (!backwards)
         {
             newShortest += turnCostCalc.getTurnCosts(currLoc, shortestDE.edge, entryOther.edge);
         } else
@@ -346,7 +348,7 @@ public class AStarBidirection extends AbstractRoutingAlgorithm
             newShortest += turnCostCalc.getTurnCosts(currLoc, entryOther.edge, shortestDE.edge);
         }
 
-        if ( newShortest < shortest.getWeight() )
+        if (newShortest < shortest.getWeight())
         {
             shortest.setSwitchToFrom(backwards);
             shortest.edgeEntry = shortestDE;

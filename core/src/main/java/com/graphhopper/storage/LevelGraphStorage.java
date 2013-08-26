@@ -20,8 +20,9 @@ package com.graphhopper.storage;
 import com.graphhopper.routing.util.AllEdgesSkipIterator;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.EncodingManager;
+import com.graphhopper.util.EdgeBase;
 import com.graphhopper.util.EdgeIterator;
-import com.graphhopper.util.EdgeSkipIterator;
+import com.graphhopper.util.EdgeSkipExplorer;
 
 /**
  * A Graph necessary for shortcut algorithms like Contraction Hierarchies. This class enables the
@@ -63,32 +64,34 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
     }
 
     @Override
-    public EdgeSkipIterator edge( int a, int b, double distance, boolean bothDir )
+    public EdgeSkipExplorer edge( int a, int b, double distance, boolean bothDir )
     {
-        return (EdgeSkipIterator) super.edge(a, b, distance, bothDir);
+        return (EdgeSkipExplorer) super.edge(a, b, distance, bothDir);
     }
 
     @Override
-    public EdgeSkipIterator edge( int a, int b, double distance, int flags )
+    public EdgeSkipExplorer edge( int a, int b, double distance, int flags )
     {
         ensureNodeIndex(Math.max(a, b));
         int edgeId = internalEdgeAdd(a, b, distance, flags);
-        EdgeSkipIterator iter = new EdgeSkipIteratorImpl(edgeId, a, null);
+        EdgeSkipIteratorImpl iter = new EdgeSkipIteratorImpl(null);
+        iter.setBaseNode(a);
+        iter.setEdgeId(edgeId);
         iter.next();
         iter.setSkippedEdges(EdgeIterator.NO_EDGE, EdgeIterator.NO_EDGE);
         return iter;
     }
 
     @Override
-    public EdgeSkipIterator getEdges( int node )
+    public EdgeSkipExplorer createEdgeExplorer()
     {
-        return createEdgeIterable(node, allEdgesFilter);
+        return createEdgeExplorer(allEdgesFilter);
     }
 
     @Override
-    public EdgeSkipIterator getEdges( int node, EdgeFilter filter )
+    public EdgeSkipExplorer createEdgeExplorer( EdgeFilter filter )
     {
-        return createEdgeIterable(node, filter);
+        return new EdgeSkipIteratorImpl(filter);
     }
 
     @Override
@@ -98,18 +101,11 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
         return this;
     }
 
-    @Override
-    protected EdgeSkipIterator createEdgeIterable( int baseNode, EdgeFilter filter )
+    class EdgeSkipIteratorImpl extends EdgeIterable implements EdgeSkipExplorer
     {
-        int edge = nodes.getInt((long) baseNode * nodeEntryBytes + N_EDGE_REF);
-        return new EdgeSkipIteratorImpl(edge, baseNode, filter);
-    }
-
-    class EdgeSkipIteratorImpl extends EdgeIterable implements EdgeSkipIterator
-    {
-        public EdgeSkipIteratorImpl( int edge, int node, EdgeFilter filter )
+        public EdgeSkipIteratorImpl( EdgeFilter filter )
         {
-            super(edge, node, filter);
+            super(filter);
         }
 
         @Override
@@ -144,9 +140,9 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
     }
 
     /**
-     * TODO hide this lower level API somehow. Removes the edge in one direction.
+     * Removes the edge in one direction. TODO hide this lower level API somehow.
      */
-    public int disconnect( EdgeIterator iter, long prevEdgePointer, boolean sameDirection )
+    public int disconnect( EdgeBase iter, long prevEdgePointer, boolean sameDirection )
     {
         // open up package protected API for now ...
         if (sameDirection)
@@ -154,8 +150,9 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
             internalEdgeDisconnect(iter.getEdge(), prevEdgePointer, iter.getBaseNode(), iter.getAdjNode());
         } else
         {
-            // prevEdgePointer belongs to baseNode ... but now we need it for adjNode()!
-            EdgeSkipIterator tmpIter = getEdges(iter.getAdjNode());
+            // prevEdgePointer belongs to baseNode ... but now we need it for adjNode()!           
+            EdgeSkipExplorer tmpIter = createEdgeExplorer();
+            tmpIter.setBaseNode(iter.getAdjNode());
             int tmpPrevEdge = EdgeIterator.NO_EDGE;
             boolean found = false;
             while (tmpIter.next())
@@ -211,9 +208,9 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
     }
 
     @Override
-    public EdgeSkipIterator getEdgeProps( int edgeId, int endNode )
+    public EdgeSkipExplorer getEdgeProps( int edgeId, int endNode )
     {
-        return (EdgeSkipIterator) super.getEdgeProps(edgeId, endNode);
+        return (EdgeSkipExplorer) super.getEdgeProps(edgeId, endNode);
     }
 
     @Override
@@ -222,7 +219,7 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
         return new SingleLevelEdge(edge, nodeId);
     }
 
-    class SingleLevelEdge extends SingleEdge implements EdgeSkipIterator
+    class SingleLevelEdge extends SingleEdge implements EdgeSkipExplorer
     {
         public SingleLevelEdge( int edge, int nodeId )
         {

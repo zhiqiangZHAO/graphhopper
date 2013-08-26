@@ -383,7 +383,7 @@ public class OSMReader
                 }
             }
 
-            for ( EdgeIterator iter : createdEdges )
+            for (EdgeBase iter : createdEdges)
             {
                 iter.setName(name);
             }

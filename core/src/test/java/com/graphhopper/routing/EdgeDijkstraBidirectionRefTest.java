@@ -41,15 +41,15 @@ public class EdgeDijkstraBidirectionRefTest extends AbstractRoutingAlgorithmTest
 {
 
     @Override
-    public AlgorithmPreparation prepareGraph( Graph g, final WeightCalculation calc,
-            final FlagEncoder encoder )
+    public AlgorithmPreparation prepareGraph( Graph g,
+            final FlagEncoder encoder, final WeightCalculation calc )
     {
         return new NoOpAlgorithmPreparation()
         {
             @Override
             public RoutingAlgorithm createAlgo()
             {
-                return new EdgeDijkstraBidirectionRef(_graph, encoder).setType(calc);
+                return new EdgeDijkstraBidirectionRef(_graph, encoder, calc);
             }
         }.setGraph(g);
     }
@@ -66,7 +66,7 @@ public class EdgeDijkstraBidirectionRefTest extends AbstractRoutingAlgorithmTest
     public void testCalcWithTurnRestrictions_PTurnInShortestPath()
     {
         Graph graph = createTestGraphPTurn(createTurnCostsGraph());
-        Path p1 = prepareGraph(graph, new FastestCalc(carEncoder), carEncoder).createAlgo()
+        Path p1 = prepareGraph(graph, carEncoder, new FastestCalc(carEncoder)).createAlgo()
                 .calcPath(3, 0);
         assertEquals(Helper.createTList(3, 5, 8, 9, 10, 5, 6, 7, 0), p1.calcNodes());
         assertEquals(p1.toString(), 26, p1.getDistance(), 1e-6);
