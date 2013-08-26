@@ -39,7 +39,8 @@ import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.routing.util.TurnCostsEntry;
 import com.graphhopper.storage.GraphStorage;
 import com.graphhopper.storage.GraphTurnCosts;
-import com.graphhopper.util.EdgeIterator;
+import com.graphhopper.util.EdgeBase;
+import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.Helper;
 import com.graphhopper.util.StopWatch;
 
@@ -61,8 +62,8 @@ public class OSMReader
     private int workerThreads = -1;
     private LongIntMap osmNodeIdToBarrierMap;
     private boolean enableInstructions = true;
-    private DefaultEdgeFilter edgeInFilter;
-    private DefaultEdgeFilter edgeOutFilter;
+    private EdgeExplorer inEdgeExplorer;
+    private EdgeExplorer outEdgeExplorer;
 
     public OSMReader( GraphStorage storage, long expectedCap )
     {
@@ -83,7 +84,7 @@ public class OSMReader
 
     public void doOSM2Graph( File osmFile ) throws IOException
     {
-        if ( encodingManager == null )
+        if (encodingManager == null)
         {
             throw new IllegalStateException("Encoding manager not set.");
         }
@@ -116,11 +117,11 @@ public class OSMReader
             OSMElement item;
             while ( (item = in.getNext()) != null )
             {
-                if ( item.isType(OSMElement.WAY) )
+                if (item.isType(OSMElement.WAY))
                 {
                     final OSMWay way = (OSMWay) item;
                     boolean valid = filterWay(way);
-                    if ( valid )
+                    if (valid)
                     {
                         TLongList wayNodes = way.getNodes();
                         int s = wayNodes.size();
@@ -129,7 +130,7 @@ public class OSMReader
                             helper.prepareHighwayNode(wayNodes.get(index));
                         }
 
-                        if ( ++tmpCounter % 500000 == 0 )
+                        if (++tmpCounter % 500000 == 0)
                         {
                             logger.info(nf(tmpCounter) + " (preprocess), osmIdMap:"
                                     + nf(helper.getNodeMap().getSize()) + " ("
@@ -139,7 +140,7 @@ public class OSMReader
                     }
                 }
             }
-        } catch ( Exception ex )
+        } catch (Exception ex)
         {
             throw new RuntimeException("Problem while parsing file", ex);
         } finally
@@ -159,12 +160,12 @@ public class OSMReader
     {
 
         // ignore broken geometry
-        if ( item.getNodes().size() < 2 )
+        if (item.getNodes().size() < 2)
         {
             return false;
         }
         // ignore multipolygon geometry
-        if ( !item.hasTags() )
+        if (!item.hasTags())
         {
             return false;
         }
@@ -194,17 +195,17 @@ public class OSMReader
             OSMElement item;
             while ( (item = in.getNext()) != null )
             {
-                switch ( item.getType() )
+                switch (item.getType())
                 {
                 case OSMElement.NODE:
-                    if ( nodeFilter.get(item.getId()) != -1 )
+                    if (nodeFilter.get(item.getId()) != -1)
                     {
                         processNode((OSMNode) item);
                     }
                     break;
 
                 case OSMElement.WAY:
-                    if ( wayStart < 0 )
+                    if (wayStart < 0)
                     {
                         logger.info(nf(counter) + ", now parsing ways");
                         wayStart = counter;
@@ -213,9 +214,9 @@ public class OSMReader
                     break;
 
                 case OSMElement.RELATION:
-                    if ( helper.isTurnCostSupport(graphStorage) )
+                    if (helper.isTurnCostSupport(graphStorage))
                     {
-                        if ( relStart < 0 )
+                        if (relStart < 0)
                         {
                             logger.info(nf(counter) + ", now parsing relations");
                             relStart = counter;
@@ -228,7 +229,7 @@ public class OSMReader
             }
 
             // logger.info("storage nodes:" + storage.nodes() + " vs. graph nodes:" + storage.getGraph().nodes());
-        } catch ( Exception ex )
+        } catch (Exception ex)
         {
             throw new RuntimeException("Couldn't process file " + osmFile, ex);
         } finally
@@ -236,7 +237,7 @@ public class OSMReader
             Helper.close(in);
         }
         helper.finishedReading();
-        if ( graphStorage.getNodes() == 0 )
+        if (graphStorage.getNodes() == 0)
         {
             throw new IllegalStateException("osm must not be empty. read " + counter
                     + " lines and " + locations + " locations");
@@ -283,28 +284,28 @@ public class OSMReader
      */
     public void processWay( OSMWay way ) throws XMLStreamException
     {
-        if ( way.getNodes().size() < 2 )
+        if (way.getNodes().size() < 2)
             return;
 
         // ignore multipolygon geometry
-        if ( !way.hasTags() )
+        if (!way.hasTags())
             return;
 
         int includeWay = encodingManager.accept(way);
-        if ( includeWay == 0 )
+        if (includeWay == 0)
         {
             return;
         }
 
         int flags = encodingManager.encodeTags(includeWay, way);
-        if ( flags == 0 )
+        if (flags == 0)
         {
             return;
         }
 
         TLongList osmNodeIds = way.getNodes();
         long osmWayID = way.getId();
-        List<EdgeIterator> createdEdges = new ArrayList<EdgeIterator>();
+        List<EdgeBase> createdEdges = new ArrayList<EdgeBase>();
         // look for barriers along the way
         final int size = osmNodeIds.size();
         int lastBarrier = -1;
@@ -313,7 +314,7 @@ public class OSMReader
             final long nodeId = osmNodeIds.get(i);
             int barrierFlags = osmNodeIdToBarrierMap.get(nodeId);
             // barrier was spotted and way is otherwise passable for that mode of travel
-            if ( barrierFlags > 0 && (barrierFlags & flags) > 0 )
+            if (barrierFlags > 0 && (barrierFlags & flags) > 0)
             {
                 // remove barrier to avoid duplicates
                 osmNodeIdToBarrierMap.put(nodeId, 0);
@@ -321,10 +322,10 @@ public class OSMReader
                 // create shadow node copy for zero length edge
                 long newNodeId = helper.addBarrierNode(nodeId);
 
-                if ( i > 0 )
+                if (i > 0)
                 {
                     // start at beginning of array if there was no previous barrier
-                    if ( lastBarrier < 0 )
+                    if (lastBarrier < 0)
                     {
                         lastBarrier = 0;
                     }
@@ -352,9 +353,9 @@ public class OSMReader
         }
 
         // just add remainder of way to graph if barrier was not the last node
-        if ( lastBarrier >= 0 )
+        if (lastBarrier >= 0)
         {
-            if ( lastBarrier < size - 1 )
+            if (lastBarrier < size - 1)
             {
                 long transfer[] = osmNodeIds.toArray(lastBarrier, size - lastBarrier);
                 TLongList partNodeIds = new TLongArrayList(transfer);
@@ -365,16 +366,16 @@ public class OSMReader
             // no barriers - simply add the whole way
             createdEdges.addAll(helper.addOSMWay(way.getNodes(), flags, osmWayID));
         }
-        if ( enableInstructions )
+        if (enableInstructions)
         {
             // String wayInfo = encodingManager.getWayInfo(way);
             // http://wiki.openstreetmap.org/wiki/Key:name
             String name = fixWayName(way.getTag("name"));
             // http://wiki.openstreetmap.org/wiki/Key:ref
             String refName = fixWayName(way.getTag("ref"));
-            if ( !Helper.isEmpty(refName) )
+            if (!Helper.isEmpty(refName))
             {
-                if ( Helper.isEmpty(name) )
+                if (Helper.isEmpty(name))
                 {
                     name = refName;
                 } else
@@ -383,7 +384,7 @@ public class OSMReader
                 }
             }
 
-            for (EdgeBase iter : createdEdges)
+            for ( EdgeBase iter : createdEdges )
             {
                 iter.setName(name);
             }
@@ -392,7 +393,7 @@ public class OSMReader
 
     static String fixWayName( String str )
     {
-        if ( str == null )
+        if (str == null)
         {
             return "";
         }
@@ -402,15 +403,15 @@ public class OSMReader
     private void processNode( OSMNode node ) throws XMLStreamException
     {
 
-        if ( isInBounds(node) )
+        if (isInBounds(node))
         {
             helper.addNode(node);
 
             // analyze node tags for barriers
-            if ( node.hasTags() )
+            if (node.hasTags())
             {
                 final int barrierFlags = encodingManager.analyzeNode(node);
-                if ( barrierFlags != 0 )
+                if (barrierFlags != 0)
                 {
                     osmNodeIdToBarrierMap.put(node.getId(), barrierFlags);
                 }
@@ -433,16 +434,16 @@ public class OSMReader
 
     public void processRelations( OSMRelation relation ) throws XMLStreamException
     {
-        if ( graphStorage instanceof GraphTurnCosts && edgeInFilter != null
-                && edgeOutFilter != null )
+        if (graphStorage instanceof GraphTurnCosts && outEdgeExplorer != null
+                && inEdgeExplorer != null)
         {
             OSMRestrictionRelation restriction = OSMRestrictionRelation.createRestriction(relation,
                     helper.getNodeMap());
-            if ( restriction != null && restriction.isValid() )
+            if (restriction != null && restriction.isValid())
             {
                 for ( TurnCostsEntry entry : restriction.getAsEntries(
                         (GraphTurnCosts) graphStorage,
-                        edgeOutFilter, edgeInFilter, helper.getWayMap()) )
+                        outEdgeExplorer, inEdgeExplorer, helper.getWayMap()) )
                 {
                     ((GraphTurnCosts) graphStorage).turnCosts(entry.node(), entry.edgeFrom(),
                             entry.edgeTo(), entry.flags());
@@ -467,9 +468,9 @@ public class OSMReader
         try
         {
             FlagEncoder carEncoder = encodingManager.getEncoder(EncodingManager.CAR);
-            edgeOutFilter = new DefaultEdgeFilter(carEncoder, false, true);
-            edgeInFilter = new DefaultEdgeFilter(carEncoder, true, false);
-        } catch ( IllegalArgumentException e )
+            outEdgeExplorer = graphStorage.createEdgeExplorer(new DefaultEdgeFilter(carEncoder, false, true));
+            inEdgeExplorer = graphStorage.createEdgeExplorer(new DefaultEdgeFilter(carEncoder, true, false));
+        } catch (IllegalArgumentException e)
         {
             //
         }
