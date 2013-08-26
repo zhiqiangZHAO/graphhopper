@@ -4,6 +4,5 @@
    <Description>GraphHopper Maps gives you the best route for car, bike or by foot.</Description>
    <Tags>route map openstreetmap</Tags>
    <Contact>info@graphhopper.com</Contact>
-   <Url type="application/rss+xml" 
-        template="http://graphhopper.com/maps?q={searchTerms}"/>
+   <Url type="application/xml" template="http://graphhopper.com/maps?q={searchTerms}"/>
  </OpenSearchDescription>
