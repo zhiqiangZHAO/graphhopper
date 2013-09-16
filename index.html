@@ -24,8 +24,9 @@
                     hash = "#home";
                 $("#mytabs li > a[href='" + hash + "']").click();
             }            
-            function openEmail(email) {
-                window.location = "mailto:" + email.replace(/dotty/g, ".").replace(/atty/g, "@").replace(/ /g, "");
+            function openEmail(email, subject) {
+                window.location = "mailto:" + email.replace(/dotty/g, ".").replace(/atty/g, "@").replace(/ /g, "")
+                    + "?Subject="+subject.replace(/ /g, "%20");
                 return false;
             }
             
@@ -280,7 +281,7 @@
                     Still you can use the low level API of GraphHopper and you'll see that
                     it was created to allow fast and memory efficient use of the underlying
                     datastructures and algorithms.
-                    
+
                     <h2>Features</h2>
                     <ul>                        
                         <li>Written in Java and runs under Linux, Windows, Android, ... </li>
@@ -331,31 +332,44 @@
                     <p>Email: <a onclick="openEmail('peter dotty karich atty gmx dotty de')">peter dotty karich atty gmx dotty de</a></p>
                 </div>
                 <div id="enterprise" class="tab-pane">
-                    <h2>Consulting</h2>
+                    <h2>Free Support</h2>
                     <p>
-                        I'm available for your company to integrate GraphHopper in your products or add new features.
-                        Feel free to <a onclick="openEmail('peter dotty karich atty gmx dotty de')">contact me</a>!
-                        Questions regarding GraphHopper usage etc should go to the 
-                        <a href="http://lists.openstreetmap.org/listinfo/graphhopper">mailing list</a> instead.
+                        Get a fast answer for free on our
+                        <a href="http://lists.openstreetmap.org/listinfo/graphhopper">mailing list</a>.
                     </p>
-
+                    <h2>Consulting</h2>
+                    <ul>
+                        <li>
+                            <b>Company Boost</b><br/>
+                            You want one or more days of GraphHopper training? You are stuck with a specific problem
+                            in your routing software? You want professional support via skype/hangout/.. or phone?
+                            You want to integrate GraphHopper into your software? Or you just want to know where
+                            you could benefit from GraphHopper?
+                            <br/>
+                            Feel free to <a onclick="openEmail('peter dotty karich atty gmx dotty de','GraphHopper Consulting')">contact me</a> and
+                            we can discuss the details!
+                        </li>
+                        <li>
+                            <b>Feature Boost</b><br/>
+                            You don't have the resources to implement a feature? Or you want to 
+                            avoid a company-GraphHopper-fork or want to fix an issue quickly?
+                            I'll do all the work for you. I.e. developing, testing, and documenting!<br/>
+                            Feel free to <a onclick="openEmail('peter dotty karich atty gmx dotty de','GraphHopper Consulting')">contact me</a> and
+                            we can discuss the details!
+                        </li>
+                    </ul>                   
                     <h2>
                         <span class="it">Coming soon:</span> GraphHopper Enterprise
                     </h2>
 
                     <ul>
                         <li>
-                            Optimized to efficiently calculate many to many paths. 
+                            Optimized to efficiently calculate many to many paths.
                             Useable for ridesharing applications and more.
                         </li>
                         <li>
-                            More features like offline address search for Android.
-                        </li>                        
-                        <li>
-                            Even faster response times.
-                        </li>
-                        <li>
-                            Optionally include a support or source code license!
+                            <a href="https://github.com/graphhopper/geocoder">GraphHopper Geocoder</a>.
+                            No need for external services like Nominatim.
                         </li>
                     </ul>
                 </div>
