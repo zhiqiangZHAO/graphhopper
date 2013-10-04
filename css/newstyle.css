@@ -182,3 +182,6 @@ a:hover {
 .clear {
     clear: both;
 }
+.link {
+    cursor: pointer;
+}
