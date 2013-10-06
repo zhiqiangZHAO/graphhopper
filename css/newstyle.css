@@ -58,7 +58,7 @@ a:hover {
     /*    width: 600px;*/
 }
 .carousel .item {
-    min-height: 400px;    
+    min-height: 360px;    
 }
 .carousel .item .container {
     margin-left: auto;
@@ -73,7 +73,7 @@ a:hover {
     padding-right: 40px;
     padding-left: 40px;
 }
-.carousel-caption a {
+.carousel-caption a {    
     margin-top: 10px;
     margin-left: 40px;
 }
@@ -133,7 +133,7 @@ a:hover {
     /*    position: absolute;
         top: 40px;
         right: 0;*/
-    /*    float: right;*/
+    min-height: 200px;
 }
 
 #foot-footer {
@@ -184,4 +184,18 @@ a:hover {
 }
 .link {
     cursor: pointer;
+}
+
+#home .span6 #feature-highlights {
+    margin-left: 0px;
+    padding-left: 0px;
+}
+
+#short-description {
+    line-height: normal;
+    font-size: large;
+}
+
+#gh_logo {
+    margin-right: 20px;
 }
