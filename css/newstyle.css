@@ -23,6 +23,7 @@ a:hover {
 .main-links li{
     display: inline;
 }
+
 .navbar .navbar-inner {
     background-color: white;
     background-image: linear-gradient(to bottom, white, #e7e7e7);
@@ -48,6 +49,8 @@ a:hover {
 .tab-pane, #myCarousel, #foot-footer {
     max-width: 800px;
 }
+
+
 .it {
     font-style: italic;
 }
@@ -136,11 +139,6 @@ a:hover {
     min-height: 200px;
 }
 
-#foot-footer {
-    color: gray;
-    font-size: 9px;
-}
-
 .tab-pane {
     min-height: 400px;
 }
@@ -149,9 +147,6 @@ a:hover {
     margin-bottom: 0px;
 }
 
-.footer {
-    padding-top: 30px;
-}
 #mytabs li img {
     width: 10px;
     padding-left: 5px;
@@ -172,7 +167,7 @@ a:hover {
 }
 .tshirt {
     font-size: 12px;
-/*    float: right;*/
+    /*    float: right;*/
 }
 
 .myhide {
@@ -198,4 +193,23 @@ a:hover {
 
 #gh_logo {
     margin-right: 20px;
+}
+
+#foot-footer {
+    color: gray;
+    font-size: 9px;
+}
+
+.footer {
+    padding-top: 30px;
+}
+.footer a {
+    text-decoration: none;
+}
+a:hover  {
+    color: #63B0FD;
+}
+.externallink sup {    
+/*    font-size: smaller;*/
+/*    border: lightgray groove thin;*/
 }

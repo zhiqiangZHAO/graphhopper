@@ -10,7 +10,9 @@
         <link href="css/bootstrap-responsive.css" rel="stylesheet" media="screen"/>
         <link href="css/newstyle.css" rel="stylesheet" media="screen"/>
         <script src="js/jquery-1.10.2.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>      
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/jquery.easytabs.min.js"></script>
+        <script src="js/jquery.ba-hashchange.min.js"></script>
         <script type="text/javascript">
             function showTab(hash) {
                 if(!hash)
@@ -22,6 +24,7 @@
             function clickTab(hash) {
                 if(!hash)
                     hash = "#home";
+                
                 $("#mytabs li > a[href='" + hash + "']").click();
             }            
             function openEmail(email, subject) {
@@ -41,57 +44,49 @@
                     showTab(hash);
                 });
                 
+                $('.externallink').each(function(tmp) {
+                    // &#10169
+                    $(this).append("<sup>&#8599</sup>");
+                });
                 $('#mytabs a[data-toggle]').click(function (e) {
                     // avoid moving window focus to id=hash -> not necessary anymore?
                     // e.preventDefault();
-                    
+                
                     // use new history API to append hash nevertheless
                     if(history) {
                         history.pushState({ hash: this.hash }, "", this.hash);
                     }
-                    
+                                
                     $(this).tab('show');
                 });
                 
                 // make links with data-toggle outside of mytabs working
                 $('#main a[data-toggle]').click(function (e) {
-                    $(this).tab('show');
+                    document.location.hash = $(this).attr('href');
                 });
                 
                 // read hash from URL and click the tab
                 var hash = window.location.hash;
                 if (hash)
-                    showTab(hash);
-                
-                $('#installcommand').click(function(e){
-                    e.preventDefault();
-                    copyToClipboard($(this).attr('title'));
-                })
-                
-                function copyToClipboard(text) {
-                    try{
-                        if (window.clipboardData) 
-                        // Internet Explorer
-                            window.clipboardData.setData("Text", text);
-                        else {
-                            unsafeWindow.netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-                            const clipboardHelper = Components.classes["@mozilla.org/widget/clipboardhelper;1"].getService(Components.interfaces.nsIClipboardHelper);
-                            clipboardHelper.copyString(text);
-                        }
-                    }catch(e){}
-                }
+                    showTab(hash);                
             });            
         </script>
     </head>
     <body>
-        <div class="navbar navbar-fixed-top">
+        <div class="navbar navbar-fixed-top" role="navigation">
             <div class="navbar-inner">
                 <div class="container">
-                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
+                    <div>
+                        <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <!--
+                        <a class="navbar-brand" href="#">GraphHopper</a>
+                        -->
+                    </div>
                     <div id="mytabs" class="nav-collapse collapse">
                         <ul class="nav nav-tabs" data-tabs="tabs">
                             <li class="active">
@@ -103,23 +98,32 @@
                             <li class="">
                                 <a href="#download" data-toggle="tab">Download</a>
                             </li>
-                            <li class="">
-                                <a href="http://graphhopper.com/maps/?point=madrid&point=moscow&vehicle=car">Maps</a>
+                            <li>                                
+                                <a class="externallink" href="http://graphhopper.com/maps/?point=madrid&point=moscow&vehicle=car">Maps</a>
                             </li>
                             <li class="">
                                 <a href="#enterprise" data-toggle="tab">Enterprise</a>
                             </li>
                             <li class="">
                                 <a href="#developers" data-toggle="tab">Developers</a>
-                            </li>
-                            <li class="myhide">
-                                <a href="#thanks" data-toggle="tab">Testimonials</a>
-                            </li>
-                            <li class="myhide">
-                                <a href="#contact" data-toggle="tab">Contact</a>
-                            </li>
-                            <li class="">
-                                <a href="https://karussell.wordpress.com/category/graphhopper/">Blog</a>
+                            </li>                            
+                       
+                            <li class="dropdown right-float">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">More <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li class="">
+                                        <a class="externallink" href="https://karussell.wordpress.com/category/graphhopper/">Blog</a>
+                                    </li>
+                                    <li>
+                                        <a href="#thanks" data-toggle="tab">Testimonials</a>
+                                    </li>
+                                    <li>
+                                        <a href="#contact" data-toggle="tab">Contact</a>
+                                    </li>
+                                    <li>
+                                        <a class="externallink" href="https://twitter.com/graphhopp">Twitter</a>
+                                    </li>
+                                </ul>
                             </li>
                         </ul>
                     </div>
@@ -403,22 +407,14 @@
                 </div>
                 <div class="clear"></div>
                 <div class="footer">
-                    <ul class="main-links">
+                    <ul class="main-links">                        
+                        <li>
+                            <a class="externallink" href="http://graphhopper.com/maps">Maps</a>
+                        </li>
+                        <li class="muted">·</li>
                         <li>
                             <a href="#download" data-toggle="tab">Download</a>
-                        </li>
-                        <li class="muted">·</li>
-                        <li>
-                            <a href="http://graphhopper.com/maps">Maps</a>
-                        </li>
-                        <li class="muted">·</li>
-                        <li>
-                            <a href="https://twitter.com/graphhopp">Twitter</a>
-                        </li>
-                        <li class="muted">·</li>                        
-                        <li>
-                            <a href="#thanks" data-toggle="tab">Testimonials</a>
-                        </li>
+                        </li>                                              
                         <li class="muted">·</li>                        
                         <li>
                             <a href="#contact" data-toggle="tab">Contact</a>
