@@ -213,3 +213,7 @@ a:hover  {
 /*    font-size: smaller;*/
 /*    border: lightgray groove thin;*/
 }
+#contactimg {
+    margin-left: -5px;
+    padding-bottom: 10px;
+}

@@ -10,31 +10,32 @@
         <link href="css/bootstrap-responsive.css" rel="stylesheet" media="screen"/>
         <link href="css/newstyle.css" rel="stylesheet" media="screen"/>
         <script src="js/jquery-1.10.2.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>        
+        <script src="js/bootstrap.min.js"></script>     
+        <script src="http://j.maxmind.com/app/geoip.js"></script>  
         <script type="text/javascript">
             function showTab(hash) {
-                if(!hash)
+                if (!hash)
                     hash = "#home";
                 // tab is already active so we only need to show the content
                 $("#mytabs li > a[href='" + hash + "']").tab('show');
             }
             // emulate click on tab i.e. with history
             function clickTab(hash) {
-                if(!hash)
+                if (!hash)
                     hash = "#home";
-                
+
                 $("#mytabs li > a[href='" + hash + "']").click();
-            }            
+            }
             function getEmail() {
                 var email = 'info atty graphhopper dotty com';
                 return email.replace(/dotty/g, ".").replace(/atty/g, "@").replace(/ /g, "");
             }
             function openEmail(email, subject) {
-                window.location = "mailto:" + email + "?Subject="+subject.replace(/ /g, "%20");
+                window.location = "mailto:" + email + "?Subject=" + subject.replace(/ /g, "%20");
                 return false;
             }
-            
-            jQuery(document).ready(function ($) {
+
+            jQuery(document).ready(function($) {
                 $('#emaillink').html(getEmail());
                 // interval: 15000
                 $('#myCarousel').carousel({
@@ -42,36 +43,40 @@
                 });
                 // Chrome and Safari always emit a popstate event on page load, but Firefox doesn't.
                 window.addEventListener("popstate", function(e) {
-                    var hash = document.location.hash;                    
+                    var hash = document.location.hash;
                     showTab(hash);
                 });
-                
+
                 $('.externallink').each(function(tmp) {
                     // &#10169
                     $(this).append("<sup>&#8599</sup>");
                 });
-                $('#mytabs a[data-toggle]').click(function (e) {
+                $('#mytabs a[data-toggle]').click(function(e) {
                     // avoid moving window focus to id=hash -> not necessary anymore?
                     // e.preventDefault();
-                
+
                     // use new history API to append hash nevertheless
-                    if(history) {
-                        history.pushState({ hash: this.hash }, "", this.hash);
+                    if (history) {
+                        history.pushState({hash: this.hash}, "", this.hash);
                     }
-                                
+
                     $(this).tab('show');
                 });
-                
+
                 // make links with data-toggle outside of mytabs working
-                $('#main a[data-toggle]').click(function (e) {
+                $('#main a[data-toggle]').click(function(e) {
                     document.location.hash = $(this).attr('href');
                 });
-                
+
+                var from = geoip_latitude() + "," + geoip_longitude();
+                var to = "49.946505,11.571232";
+                $("#contacturl").attr('href', "http://graphhopper.com/maps/?point=" + encodeURIComponent(from) + "&point=" + encodeURIComponent(to));
+
                 // read hash from URL and click the tab
                 var hash = window.location.hash;
                 if (hash)
-                    showTab(hash);                
-            });            
+                    showTab(hash);
+            });
         </script>
     </head>
     <body>
@@ -109,7 +114,7 @@
                             <li class="">
                                 <a href="#developers" data-toggle="tab">Developers</a>
                             </li>                            
-                       
+
                             <li class="dropdown right-float">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">More <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
@@ -335,8 +340,15 @@
                     </ul>
                 </div>
                 <div id="contact" class="tab-pane">
-                    <h2>Contact</h2>
-                    <p>Twitter: <a href="https://twitter.com/timetabling">timetabling</a></p>
+                    <h2>Contact</h2>                    
+                    <!-- <p>Twitter: <a href="https://twitter.com/graphhopp">GraphHopp</a></p> -->
+                    <p>GraphHopper Team</p>                    
+                    <a id="contacturl">
+                        <img id="contactimg" src="img/contact.png"/>
+                        <div><small class="externallink">Click to route </small></div>
+                    </a>
+                    <br/>
+                    <br/>
                     <p>Email: <a id="emaillink" class="link" onclick="openEmail(getEmail(), 'GraphHopper')">email</a></p>
                 </div>
                 <div id="enterprise" class="tab-pane">
@@ -393,6 +405,9 @@
                             YourKit, LLC is the creator of innovative and intelligent tools for profiling
                             Java and .NET applications.
                         </li>
+                        <li>
+                            This website uses <a href="http://www.maxmind.com/en/javascript">GeoIP2 JavaScript from MaxMind</a>.
+                        </li>
                         <li id="open-source">
                             Xubuntu, Trove4J, Log4J, Guice, Maven and other Open Soure software.
                         </li>
@@ -436,7 +451,8 @@
                 var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 7);
                 piwikTracker.trackPageView();
                 piwikTracker.enableLinkTracking();
-            } catch( err ) {}
+            } catch (err) {
+            }
         </script><noscript><p><img src="http://www.pannous.info/piwik/piwik.php?idsite=7" style="border:0" alt="" /></p></noscript>
         <!-- End Piwik Tracking Code -->
     </body>
