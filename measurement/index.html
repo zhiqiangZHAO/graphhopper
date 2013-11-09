@@ -25,10 +25,10 @@
         <script type="text/javascript">
             var graphData = [];
             var dates = [];
-            
+
             $(document).ready(function(e) {
                 // do not display 'nicht wohlgeformt' http://stackoverflow.com/q/335409/194609
-                $.ajaxSetup({'beforeSend': function(xhr){
+                $.ajaxSetup({'beforeSend': function(xhr) {
                         if (xhr.overrideMimeType)
                             xhr.overrideMimeType("text/plain");
                     }});
@@ -40,18 +40,18 @@
                     url: MAIN_URL,
                     dataType: "text",
                     success: function(allText) {
-                        var allTextLines = allText.split(/"/);                        
+                        var allTextLines = allText.split(/"/);
                         var key = '.properties';
-                        for (var j=0; j<allTextLines.length; j++) {
+                        for (var j = 0; j < allTextLines.length; j++) {
                             var line = allTextLines[j];
                             var index = line.indexOf(key);
-                            if(index > 0 && index == line.length - key.length) {                                
+                            if (index > 0 && index == line.length - key.length) {
                                 // urls.push(line);
                                 urls.push(MAIN_URL + line);
                             }
                         }
                         console.log(urls);
-                        
+
                         grabData(urls);
                     }
                 });
@@ -61,16 +61,16 @@
                     plot($(this).text());
                 });
             });
-            
+
             function grabData(urls) {
-                for(var resIndex = 0; resIndex < urls.length; resIndex++) {
+                for (var resIndex = 0; resIndex < urls.length; resIndex++) {
                     var myurl = urls[resIndex];
                     var index1 = myurl.indexOf("measurement");
                     var index2 = myurl.indexOf(".properties");
-                    if(index1 >= 0 && index2 >= 0) {
-                        var dateStr = myurl.substring(index1+11, index2);
+                    if (index1 >= 0 && index2 >= 0) {
+                        var dateStr = myurl.substring(index1 + 11, index2);
                         var parts = dateStr.match(/(\d+)/g);
-                        dates.push(new Date(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5]));
+                        dates.push(new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]));
                     } else {
                         dates.push(new Date(0));
                     }
@@ -85,39 +85,39 @@
                         async: false
                     });
                 }
-                
+
                 console.log(dates);
             }
-            
+
             function plot(graphKey) {
                 var values = {};
-                for(var resIndex = 0; resIndex < graphData.length; resIndex++) {
-                    var map = graphData[resIndex];                    
-                    var mainEntry = map[graphKey];             
-                    for(var entry in mainEntry) {
+                for (var resIndex = 0; resIndex < graphData.length; resIndex++) {
+                    var map = graphData[resIndex];
+                    var mainEntry = map[graphKey];
+                    for (var entry in mainEntry) {
                         var val = mainEntry[entry];
-                        if(!values[entry])
+                        if (!values[entry])
                             values[entry] = [];
                         values[entry].push([dates[resIndex], val]);
-                    }                    
-                }                
-                
-                for(var val in values) {
-                    var id = graphKey + "_" + val;
-                    handleGraphs($("#charts"), values[val], id, id, ["dates", val]);                
+                    }
                 }
-            }            
-            
+
+                for (var val in values) {
+                    var id = graphKey + "_" + val;
+                    handleGraphs($("#charts"), values[val], id, id, ["dates", val]);
+                }
+            }
+
             // dateHisto is an array with an object (time,count) entry
             function handleGraphs(mydiv, values, id, name, labels) {
-                if(!name)
+                if (!name)
                     name = id;
 
                 var chartDivId = id + '-chart';
                 var wStr = 'width:450px;';
-                var chartContainer = $('<div id="'+chartDivId+'-box" class="chart-box" style="'+
-                    wStr+'"><div class="chart-header">' + name +'</div></div>');
-                var chartDiv = $('<div id="'+chartDivId+'"/>').attr('style', wStr+' height:400px');
+                var chartContainer = $('<div id="' + chartDivId + '-box" class="chart-box" style="' +
+                        wStr + '"><div class="chart-header">' + name + '</div></div>');
+                var chartDiv = $('<div id="' + chartDivId + '"/>').attr('style', wStr + ' height:400px');
                 chartContainer.append(chartDiv);
                 mydiv.append(chartContainer);
                 // we need getElementById here ...
@@ -128,11 +128,11 @@
                     },
                     labelsSeparateLines: true,
                     labels: labels,
-                    colors:['#2da8b0']
+                    colors: ['#2da8b0']
                 };
 
                 var graph = new Dygraph(document.getElementById(chartDivId), values, options);
-                
+
                 // TODO show gitinfo via graphData[index]["gitinfo"]
 //                graph.setAnnotations([ {
 //                        series: "Reopen Time (msec)",
@@ -142,29 +142,29 @@
 //                        text: "Switched to 240 GB OCZ Vertex III"
 //                    },{ ... }]);
             }
-            
+
             function processProperties(allText) {
                 var allTextLines = allText.split(/\r\n|\n/);
                 var result = {};
                 for (var j = 0; j < allTextLines.length; j++) {
-                    var line = allTextLines[j];                    
+                    var line = allTextLines[j];
                     var index = line.indexOf('=');
-                    if(index > 0) {
-                        if(line.indexOf("gitinfo") > 0) {
+                    if (index > 0) {
+                        if (line.indexOf("gitinfo") > 0) {
                             result["gitinfo"] = line.substr(index + 1);
                             continue;
                         }
                         var key = line.substr(0, index);
                         var value = parseFloat(line.substr(index + 1));
                         index = key.indexOf(".");
-                        if(index > 0) {
+                        if (index > 0) {
                             var mainKey = key.substr(0, index);
                             key = key.substr(index + 1);
-                            
+
                             var mainEntry = result[mainKey];
-                            if(!mainEntry)
+                            if (!mainEntry)
                                 result[mainKey] = mainEntry = {};
-                            
+
                             mainEntry[key] = value;
                         }
                     }
@@ -184,7 +184,49 @@
                 <a href="#measurement">measurement</a>
             </div>
             <div id="charts">            
-            </div>        
+            </div>
+
+            <div>
+                Comments
+                <ul>
+                    <li>
+                        9/10th November
+                        <pre>
+    fixing minor issue in location lookup
+    merged master into issue27 branch
+                        </pre>
+                    </li>
+                    <li>
+                        5th November
+                        <pre>
+    fixed bug (wrong edgeIterator filter check logic)
+    insert new edge at the beginning
+                        </pre>
+                    </li>
+                    <li>
+                        31th October
+                        <pre>
+    measurement: use bidijkstra for normal routing
+    measurement: use GraphHopper API with locationIndex overhead
+    measurement: use fastest instead of shortest weighting
+                        </pre>
+                    </li>
+                    <li>
+                        25th August
+                        <pre>
+    new edge access pattern (EdgeExplorer) -> #96
+                        </pre>
+                    </li> 
+                    <li>
+                        7th August
+                        <pre>
+    measurement: added simple Dijkstra
+    measurement: move to random integer values instead of the values derived from location index
+    measurement: increased memory to make simple Dijkstra better working
+                        </pre>
+                    </li>
+                </ul>
+            </div>
         </div>
     </body>
 </html>
