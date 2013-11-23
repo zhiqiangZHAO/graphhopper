@@ -218,20 +218,13 @@
                         <div>
                             <a href="https://github.com/graphhopper/graphhopper/wiki/QuickStart">Web Interface Quick Start</a>
                         </div>
-                        <h4>0.2</h4>
+                        <h4>0.2 release</h4>
                         <div>
                             <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.2/graphhopper-android-0.2.apk">Android Application (apk 0.2)</a>
                         </div>
                         <div>
                             <a href="https://github.com/graphhopper/graphhopper/issues?milestone=2&page=1&state=closed">Solved Issues for 0.2</a>
-                        </div>  
-                        <h4>Old 0.1</h4>
-                        <div>
-                            <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.1.1/graphhopper-android-0.1.1.apk">Android Application (apk 0.1.1)</a>
-                        </div>
-                        <div>
-                            <a href="https://github.com/graphhopper/graphhopper/issues?milestone=3&page=1&state=closed">Solved Issues for 0.1.*</a>
-                        </div>                        
+                        </div>                      
                     </div>
                     <div class="span3 tshirt">
                         <div>
@@ -245,15 +238,29 @@
                     </div>
                     <div class="clear"></div>
                     <div class="span7">
-                        <h3>Maven</h3>
-
-                        <div>Dependency</div>
+                        <h4>Maven</h4>
                         <textarea class="xmltextarea">
 <dependency>
     <groupId>com.graphhopper</groupId>
     <artifactId>graphhopper</artifactId>
     <version>0.2</version>
 </dependency></textarea>
+                    </div>
+                    <div class="span7">
+                        <b>Unstable 0.3</b>
+                        <div>
+                            <a href="http://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.3-SNAPSHOT/">Android Application (apk 0.3)</a>
+                        </div>
+                        <div>
+                            <a href="https://github.com/graphhopper/graphhopper/issues?milestone=4&page=1&state=open">Open Issues of 0.3</a>
+                        </div>  
+                        <b>Old 0.1.* releases</b>
+                        <div>
+                            <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.1.1/graphhopper-android-0.1.1.apk">Android Application (apk 0.1.1)</a>
+                        </div>
+                        <div>
+                            <a href="https://github.com/graphhopper/graphhopper/issues?milestone=3&page=1&state=closed">Solved Issues for 0.1.*</a>
+                        </div>  
                     </div>
                 </div>
                 <div id="overview" class="tab-pane">
@@ -271,6 +278,15 @@
                     OpenStreetMap is directly supported from GraphHopper. Without the amazing data from
                     OpenStreetMap GraphHopper wouldn't be possible at all.
                     Other map data will need a custom import procedure.
+                    
+                    <!--
+                    <h2>Users</h2>
+                    <ul>
+                        <li><a href="http://gpsies.com">GPSies.com</a></li>
+                        <li><a href="http://wanderreitkarte.de">wanderreitkarte.de</a></li>
+                        <li><a href="http://navigator.tu-dresden.de/">University of Dresden</a></li>
+                    </ul>   
+                    -->
                     <h2>Development</h2>
                     <a href="#developers" data-toggle="tab">Development</a> happens at GitHub. 
                     You can clone the project at GitHub or sign up at the mailing list.
@@ -306,42 +322,37 @@
                     <h2>Features</h2>
                     <ul>                        
                         <li>Written in Java and runs under Linux, Windows, Android, ... </li>
-                        <li>Business friendly Apache License 2.0</li>
+                        <li>Business friendly due to Apache License 2.0, commercial support and ... see below!</li>
                         <li>Based on many unit and integration tests</li>
-                        <li>Memory efficient</li>
-                        <li>Contraction Hierarchies are enabled by default which makes routing fast. Can be easily disabled.</li>
-                        <li>Has additional implementations for A*, Dijkstra and the bidirected versions</li>
-                        <li>Uses only a few dependencies like trove4j</li>
+                        <li>Memory efficient data structures, algorithms and also the API is tuned towards ease of use and efficiency.</li>
+                        <li>Very fast. And via the speed-up technic called "Contraction Hierarchies" it can be even faster - CH is enabled by default.</li>
+                        <li>Simple installation - just Java necessary! Simple setup for developers due to Maven.</li>
+                        <li>Has algorithms ala A*, Dijkstra and the bidirected versions, plus one-to-many cases</li>                        
                         <li>Works out of the box with OpenStreetMap (osm and pbf) but can be adapted to use your own data</li>
                         <li>OpenStreetMap integration: Takes care of the road type, the surface, barriers, access restrictions, ferries, ...</li>
-                        <li>Scales from small indoor to world wide sized graphs</li>
-                        <li>Can be used with gigabytes of RAM but also on mobile devices with less than 32MB</li>
-                        <li>Supports Car, Bike, Pedestrian and you can easily create your own or customize existing vehicles.</li>
+                        <li>Uses only a few dependencies (trove4j and slf4j)</li>
+                        <li>Scales from small indoor- to world-wide-sized graphs</li>
+                        <li>Can be used on mobile devices with less than 32MB. For Android we additionally provide a demo with mapsforge.</li>
+                        <li>Supports car, bicycle, pedestrian vehicles by default. But you can easily create your own or customize existing vehicles.</li>
                         <li>The web module provides GraphHopper routing as a service which can be accessed via Java or JavaScript.</li>
                         <li>The web module returns highly compressed paths via gzip and polyline encoding.</li>
-                        <li>Works on Android and provides a demo with mapsforge.</li>
                     </ul>
-                    <!--
-                    <h2>Users</h2>
-                    <ul>
-                        <li><a href="http://gpsies.com">gpsies.com</a></li>
-                        <li><a href="http://wanderreitkarte.de">wanderreitkarte.de</a></li>
-                        <li>... and more! Ping us if you want to be listed!</li>
-                    </ul>   
-                    -->
                 </div>
                 <div id="developers" class="tab-pane">
                     <h2>Developers</h2>                    
                     <ul>
                         <li>
+                            <a href="https://github.com/graphhopper/graphhopper/wiki/QuickStart">Quick Start for Users</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/graphhopper/graphhopper/wiki/Developers">Quick Start for Developers</a>
+                        </li>
+                        <li>
                             <a href="https://github.com/graphhopper/graphhopper/">Get Source</a>
                         </li>
                         <li>
                             <a href="https://github.com/graphhopper/graphhopper/issues">Issues</a>
-                        </li>
-                        <li>
-                            <a href="https://github.com/graphhopper/graphhopper/wiki/Developers">Developer wiki</a>
-                        </li>
+                        </li>                        
                         <li>
                             <a href="http://lists.openstreetmap.org/listinfo/graphhopper">Mailing list</a>
                         </li>
