@@ -10,8 +10,7 @@
         <link href="css/bootstrap-responsive.css" rel="stylesheet" media="screen"/>        
         <link href="css/newstyle.css" rel="stylesheet" media="screen"/>
         <script src="js/jquery-1.10.2.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>     
-        <script src="http://j.maxmind.com/app/geoip.js"></script>  
+        <script src="js/bootstrap.min.js"></script>        
         <script type="text/javascript">
             function showTab(hash) {
                 if (!hash)
@@ -68,9 +67,13 @@
                     document.location.hash = $(this).attr('href');
                 });
 
-                var from = geoip_latitude() + "," + geoip_longitude();
-                var to = "49.946505,11.571232";
-                $("#contacturl").attr('href', "http://graphhopper.com/maps/?point=" + encodeURIComponent(from) + "&point=" + encodeURIComponent(to));
+                $("#contacturl").click(function(e) {
+                    var from = "";
+                    if(typeof geoip_latitude != 'undefined')
+                        from = geoip_latitude() + "," + geoip_longitude();
+                    var to = "49.946505,11.571232";
+                    location.href = "http://graphhopper.com/maps/?point=" + encodeURIComponent(from) + "&point=" + encodeURIComponent(to);
+                });
 
                 // read hash from URL and click the tab
                 var hash = window.location.hash;
@@ -459,11 +462,13 @@
                     The Windows logo is a registered trademark of Microsoft Corporation.
                 </div>
             </div>
-        </div>       
+        </div> 
+        <!-- maxmind fetch location info as javascript variables -->
+        <script src="http://j.maxmind.com/app/geoip.js"></script>        
         <!-- Piwik -->
         <script type="text/javascript">
-            var pkBaseURL = (("https:" == document.location.protocol) ? "https://www.pannous.info/piwik/" : "http://www.pannous.info/piwik/");
-            document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
+                            var pkBaseURL = (("https:" == document.location.protocol) ? "https://www.pannous.info/piwik/" : "http://www.pannous.info/piwik/");
+                            document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
         </script><script type="text/javascript">
             try {
                 var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 7);

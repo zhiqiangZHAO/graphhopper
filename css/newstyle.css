@@ -215,3 +215,7 @@ a:hover  {
         max-width: 105%;
     }
 }
+
+#contacturl {
+    cursor: pointer;
+}
