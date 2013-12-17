@@ -83,9 +83,9 @@ $(document).ready(function(e) {
                 var vehiclesDiv = $("#vehicles");
                 function createButton(vehicle) {
                     vehicle = vehicle.toLowerCase();
-                    var button = $("<button class='vehicle-btn' title='"+tr(vehicle)+"'/>")
+                    var button = $("<button class='vehicle-btn' title='" + tr(vehicle) + "'/>")
                     button.attr('id', vehicle);
-                    button.html("<img src='img/"+vehicle+".png' alt='"+tr(vehicle)+"'></img>");
+                    button.html("<img src='img/" + vehicle + ".png' alt='" + tr(vehicle) + "'></img>");
                     button.click(function() {
                         ghRequest.vehicle = vehicle;
                         resolveFrom();
@@ -172,9 +172,19 @@ function initMap() {
     $("#info").css("max-height", height);
     console.log("init map at " + JSON.stringify(bounds));
 
-    // mapquest provider
+    // mapquest provider    
     var moreAttr = 'Data &copy; <a href="http://www.openstreetmap.org/copyright">OSM</a>,'
             + 'JS: <a href="http://leafletjs.com/">Leaflet</a>';
+
+    var tp = "ls";
+    if (L.Browser.retina)
+        tp = "lr";
+
+    var lyrk = L.tileLayer('http://{s}.tiles.lyrk.org/' + tp + '/{z}/{x}/{y}?apikey=6e8cfef737a140e2a58c8122aaa26077', {
+        attribution: '<a href="http://geodienste.lyrk.de/">Lyrk</a>,' + moreAttr,
+        subdomains: ['a', 'b', 'c']
+    });
+
     var mapquest = L.tileLayer('http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
         attribution: '<a href="http://open.mapquest.co.uk">MapQuest</a>,' + moreAttr,
         subdomains: ['otile1', 'otile2', 'otile3', 'otile4']
@@ -237,6 +247,7 @@ function initMap() {
     });
 
     var baseMaps = {
+        "Lyrk": lyrk,
         "MapQuest": mapquest,
         "MapQuest Aerial": mapquestAerial,
         "TF Transport": thunderTransport,
@@ -552,7 +563,7 @@ function routeLatLng(request, doQuery) {
             map.fitBounds(tmpB);
         }
 
-        var tmpTime = round(json.route.time / 60, 1000);
+        var tmpTime = round(json.route.time / 60 / 1000, 1000);
         if (tmpTime > 60) {
             if (tmpTime / 60 > 24)
                 tmpTime = floor(tmpTime / 60 / 24, 1) + tr2("dayAbbr") + " " + round(((tmpTime / 60) % 24), 1) + tr2("hourAbbr");
@@ -643,20 +654,24 @@ function routeLatLng(request, doQuery) {
                     indi = "right";
                 else if (indi == 3)
                     indi = "sharp_right";
+                else if (indi == 4)
+                    indi = "marker-to";
                 else
                     throw "did not found indication " + indi;
 
                 addInstruction(instructionsElement, indi, descriptions[m], distances[m], times[m], latLngs[m]);
             }
-            addInstruction(instructionsElement, "marker-to", tr("finish"), "", "", null);
         }
     });
 }
 
 function addInstruction(main, indi, title, distance, time, latLng) {
     var indiPic = "<img class='instr_pic' style='vertical-align: middle' src='" + window.location.pathname + "img/" + indi + ".png'/>";
-    var str = "<td class='instr_title'>" + title + "</td>"
-        + " <td class='instr_distance_td'><span class='instr_distance'>" + distance + "<br/>" + time + "</span></td>";
+    var str = "<td class='instr_title'>" + title + "</td>";
+
+    if (distance && distance.indexOf("0 ") < 0)
+        str += " <td class='instr_distance_td'><span class='instr_distance'>" + distance + "<br/>" + time + "</span></td>";
+
     if (indi !== "continue")
         str = "<td>" + indiPic + "</td>" + str;
     else
@@ -673,7 +688,7 @@ function addInstruction(main, indi, title, distance, time, latLng) {
 
 function showRouteSegmentPopup(html, latLng) {
     hideRouteSegmentPopup();
-    routeSegmentPopup = L.popup({closeButton:false}).setLatLng(latLng).setContent(html).openOn(map);
+    routeSegmentPopup = L.popup({closeButton: false}).setLatLng(latLng).setContent(html).openOn(map);
 }
 
 function hideRouteSegmentPopup() {
