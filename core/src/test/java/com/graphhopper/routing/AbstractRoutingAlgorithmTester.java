@@ -18,6 +18,7 @@
 package com.graphhopper.routing;
 
 import com.graphhopper.routing.edgebased.AbstractEdgeBasedRoutingAlgorithm;
+import com.graphhopper.routing.edgebased.EdgeBasedRoutingAlgorithm;
 import com.graphhopper.routing.util.*;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.GraphBuilder;
@@ -232,9 +233,9 @@ public abstract class AbstractRoutingAlgorithmTester
         initTurnRestrictionsFootVsCar(graph);
         RoutingAlgorithm algo = prepareGraph(graph, carEncoder, new ShortestWeighting()).createAlgo();
 
-        if (algo instanceof AbstractEdgeBasedRoutingAlgorithm)
+        if (algo instanceof EdgeBasedRoutingAlgorithm)
         {
-            ((AbstractEdgeBasedRoutingAlgorithm) algo).turnCosts(turnRestrictions);
+            ((EdgeBasedRoutingAlgorithm) algo).turnCosts(turnRestrictions);
             Path p1 = algo.calcPath(0, 3);
             assertEquals(Helper.createTList(0, 1, 5, 3), p1.calcNodes());
             assertEquals(p1.toString(), 25000, p1.getDistance(), 1e-4);
@@ -246,9 +247,9 @@ public abstract class AbstractRoutingAlgorithmTester
     {
         Graph graph = createTestGraphPTurn(createTurnCostsGraph());
         RoutingAlgorithm algo = prepareGraph(graph, carEncoder, new FastestWeighting(carEncoder)).createAlgo();
-        if (algo instanceof AbstractEdgeBasedRoutingAlgorithm)
+        if (algo instanceof EdgeBasedRoutingAlgorithm)
         {
-            ((AbstractEdgeBasedRoutingAlgorithm) algo).turnCosts(turnRestrictions);
+            ((EdgeBasedRoutingAlgorithm) algo).turnCosts(turnRestrictions);
             Path p1 = algo.calcPath(3, 0);
 
             assertEquals(Helper.createTList(3, 5, 8, 9, 10, 5, 6, 7, 0), p1.calcNodes());
@@ -262,9 +263,9 @@ public abstract class AbstractRoutingAlgorithmTester
         GraphTurnCosts graph = createTurnCostsGraph();
         initTurnRestrictionsFootVsCar(graph);
         RoutingAlgorithm algo = prepareGraph(graph, carEncoder, new ShortestWeighting()).createAlgo();
-        if (algo instanceof AbstractEdgeBasedRoutingAlgorithm)
+        if (algo instanceof EdgeBasedRoutingAlgorithm)
         {
-            ((AbstractEdgeBasedRoutingAlgorithm) algo).turnCosts(turnIgnore);
+            ((EdgeBasedRoutingAlgorithm) algo).turnCosts(turnIgnore);
             Path p1 = algo.calcPath(0, 3);
             assertEquals(Helper.createTList(0, 1, 5, 8, 3), p1.calcNodes());
             assertEquals(p1.toString(), 18000, p1.getDistance(), 1e-4);

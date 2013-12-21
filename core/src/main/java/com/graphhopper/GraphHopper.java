@@ -22,6 +22,7 @@ import com.graphhopper.routing.Path;
 import com.graphhopper.routing.RoutingAlgorithm;
 import com.graphhopper.routing.ch.PrepareContractionHierarchies;
 import com.graphhopper.routing.edgebased.AbstractEdgeBasedRoutingAlgorithm;
+import com.graphhopper.routing.edgebased.EdgeBasedRoutingAlgorithm;
 import com.graphhopper.routing.util.*;
 import com.graphhopper.storage.*;
 import com.graphhopper.storage.index.*;
@@ -129,7 +130,6 @@ public class GraphHopper implements GraphHopperAPI
 
     public GraphHopper forMobile()
     {
-        setSimplifyRequest(false);
         setPreciseIndexResolution(500);
         return setMemoryMapped();
     }
@@ -633,14 +633,14 @@ else if (turnRestrictions) {
             prepare = NoOpAlgorithmPreparation.createAlgoPrepare(graph, request.getAlgorithm(),
                     encoder, weighting);
             algo = prepare.createAlgo();
-            if(algo instanceof AbstractEdgeBasedRoutingAlgorithm){
+            if(algo instanceof EdgeBasedRoutingAlgorithm){
 
                 if (request.turnCosts() == null) {
                     //if turn costs calculation has not been set, the calculation which fits best to requested vehicle and weight calculation will be chosen
-                    ((AbstractEdgeBasedRoutingAlgorithm)algo).turnCosts(new DefaultTurnCostsCalc(encodingManager.getEncoder(request.getVehicle()), weighting));
+                    ((EdgeBasedRoutingAlgorithm)algo).turnCosts(new DefaultTurnCostsCalc(encodingManager.getEncoder(request.getVehicle()), weighting));
                 } else 
                 {
-                    ((AbstractEdgeBasedRoutingAlgorithm)algo).turnCosts(request.turnCosts());
+                    ((EdgeBasedRoutingAlgorithm)algo).turnCosts(request.turnCosts());
                 }
                     
             }

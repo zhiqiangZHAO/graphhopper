@@ -48,8 +48,6 @@ public class EdgeDijkstraBidirectionRef extends AbstractEdgeBasedBidirAlgo
 {
 
     //    private int from, to;
-    private boolean fromFirstRun = false;
-    private boolean toFirstRun = false;
     private PriorityQueue<EdgeEntry> openSetFrom;
     private TIntObjectMap<EdgeEntry> bestWeightMapFrom;
     private PriorityQueue<EdgeEntry> openSetTo;
@@ -57,7 +55,6 @@ public class EdgeDijkstraBidirectionRef extends AbstractEdgeBasedBidirAlgo
     protected TIntObjectMap<EdgeEntry> bestWeightMapOther;
     protected EdgeEntry currFrom;
     protected EdgeEntry currTo;
-    
 
     public PathBidirRef bestPath;
 
@@ -78,9 +75,8 @@ public class EdgeDijkstraBidirectionRef extends AbstractEdgeBasedBidirAlgo
 
     public void initFrom( int from, double dist )
     {
-        fromFirstRun = true;
         currFrom = createEdgeEntry(from, dist);
-//        openSetFrom.add(currFrom);
+        openSetFrom.add(currFrom);
         if (currTo != null)
         {
             bestWeightMapOther = bestWeightMapTo;
@@ -91,9 +87,8 @@ public class EdgeDijkstraBidirectionRef extends AbstractEdgeBasedBidirAlgo
     @Override
     public void initTo( int to, double dist )
     {
-        toFirstRun = true;
         currTo = createEdgeEntry(to, dist);
-//        openSetTo.add(currTo);
+        openSetTo.add(currTo);
         if (currFrom != null)
         {
             bestWeightMapOther = bestWeightMapFrom;
@@ -229,31 +224,23 @@ public class EdgeDijkstraBidirectionRef extends AbstractEdgeBasedBidirAlgo
     @Override
     protected boolean fillEdgesFrom()
     {
-        if(!fromFirstRun) {
-            if (openSetFrom.isEmpty())
-                return false;
-            currFrom = openSetFrom.poll();
-        }else{
-            fromFirstRun = false;
-        }
-        
+        if (openSetFrom.isEmpty())
+            return false;
+        currFrom = openSetFrom.poll();
+
         bestWeightMapOther = bestWeightMapTo;
         fillEdges(currFrom, openSetFrom, bestWeightMapFrom, outEdgeExplorer);
         visitedFromCount++;
         return true;
     }
-    
+
     @Override
     protected boolean fillEdgesTo()
     {
-        if(!toFirstRun) {
-            if (openSetTo.isEmpty())
-                return false;
-            currTo = openSetTo.poll();
-        }else{
-            toFirstRun = false;
-        }
-        
+        if (openSetTo.isEmpty())
+            return false;
+        currTo = openSetTo.poll();
+
         bestWeightMapOther = bestWeightMapFrom;
         fillEdges(currTo, openSetTo, bestWeightMapTo, inEdgeExplorer);
         visitedToCount++;

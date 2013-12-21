@@ -38,7 +38,7 @@ import com.graphhopper.util.EdgeIteratorState;
  * 
  * @author Karl Huebner
  */
-public abstract class AbstractEdgeBasedRoutingAlgorithm extends AbstractRoutingAlgorithm
+public abstract class AbstractEdgeBasedRoutingAlgorithm extends AbstractRoutingAlgorithm implements EdgeBasedRoutingAlgorithm
 {
 
     public static int HIGHEST_BIT_MASK = 0x7FFFFFFF;
@@ -53,11 +53,12 @@ public abstract class AbstractEdgeBasedRoutingAlgorithm extends AbstractRoutingA
         turnCosts(new DefaultTurnCostsCalc(DefaultTurnCostsCalc.MODE_IGNORE_RESTRICTIONS));
     }
 
-    protected int createIterKey(EdgeIteratorState iter, boolean backwards) {
+    @Override
+    public int createIterKey(EdgeIteratorState iter, boolean backwards) {
         return createIterKey(iter.getEdge(), iter.getBaseNode(), iter.getAdjNode(), backwards);
     }
     
-    protected int createIterKey(int edgeId, int startNode, int endNode, boolean backwards) {
+    private int createIterKey(int edgeId, int startNode, int endNode, boolean backwards) {
         return edgeId | directionFlag(startNode, endNode, backwards);
     }
 
@@ -86,6 +87,7 @@ public abstract class AbstractEdgeBasedRoutingAlgorithm extends AbstractRoutingA
         throw new UnsupportedOperationException("use accept(EdgeIterator, EdgeEntry) instead");
     }
 
+    @Override
     public RoutingAlgorithm turnCosts(TurnCostCalculation calc) {
         this.turnCostCalc = calc;
         this.turnCostCalc.setGraph(graph);
