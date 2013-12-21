@@ -19,6 +19,7 @@
 package com.graphhopper.routing.util;
 
 import com.graphhopper.util.EdgeIterator;
+import com.graphhopper.util.EdgeIteratorState;
 
 /**
  * @author Peter Karich
@@ -30,7 +31,7 @@ public class DefaultEdgeFilter implements EdgeFilter
     private FlagEncoder encoder;
 
     /**
-     * Creates an edges filter which accepts both direction of the specified vehicle type.
+     * Creates an edges filter which accepts both direction of the specified vehicle.
      */
     public DefaultEdgeFilter( FlagEncoder encoder )
     {
@@ -45,9 +46,9 @@ public class DefaultEdgeFilter implements EdgeFilter
     }
 
     @Override
-    public boolean accept( EdgeIterator iter )
+    public boolean accept( EdgeIteratorState iter )
     {
-        int flags = iter.getFlags();
+        long flags = iter.getFlags();
         return out && encoder.isForward(flags) || in && encoder.isBackward(flags);
     }
 

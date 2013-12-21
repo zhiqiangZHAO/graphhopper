@@ -13,7 +13,7 @@ import com.graphhopper.util.TurnCostIterator;
  * 
  * @author Karl Hübner
  */
-public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCosts
+public class GraphStorageTurnCosts extends GraphHopperStorage implements GraphTurnCosts
 {
 
     /* pointer for no cost entry */
@@ -72,14 +72,13 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
     }
 
     @Override
-    public GraphStorage setSegmentSize( int bytes )
+    public void setSegmentSize( int bytes )
     {
         super.setSegmentSize(bytes);
         if (supportTurnCosts)
         {
             turnCosts.setSegmentSize(bytes);
         }
-        return this;
     }
 
     @Override
@@ -187,13 +186,13 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
 
     void ensureTurnCostsIndex( int nodeIndex )
     {
-        long deltaCap = ((long) nodeIndex + 1) * turnCostsEntryBytes - turnCosts.getCapacity();
+        long deltaCap = ((long) nodeIndex + 4) * turnCostsEntryBytes - turnCosts.getCapacity();
         if (deltaCap <= 0)
         {
             return;
         }
 
-        incCapacity(turnCosts, deltaCap);
+        turnCosts.incCapacity(deltaCap);
     }
 
     @Override
@@ -208,7 +207,7 @@ public class GraphStorageTurnCosts extends GraphStorage implements GraphTurnCost
                             "cannot load node costs. corrupt file or directory? " + getDirectory());
 
                 turnCostsEntryBytes = turnCosts.getHeader(0);
-                turnCostsCount = turnCosts.getHeader(1);
+                turnCostsCount = turnCosts.getHeader(4);
             }
             return true;
         }

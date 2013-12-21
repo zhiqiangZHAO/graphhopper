@@ -48,12 +48,12 @@ public class DefaultTurnCostsCalc implements TurnCostCalculation
      * @param flagEncoder
      * @param weightCalc
      */
-    public DefaultTurnCostsCalc( FlagEncoder flagEncoder, WeightCalculation weightCalc )
+    public DefaultTurnCostsCalc( FlagEncoder flagEncoder, Weighting weightCalc )
     {
         encoder = new TurnCostEncoder();
         if ( flagEncoder instanceof CarFlagEncoder )
         {
-            if ( weightCalc instanceof FastestCalc )
+            if ( weightCalc instanceof FastestWeighting )
             {
                 //we consider restrictions AND costs when searching fastest routes
                 mode = MODE_CAR_COSTS;
@@ -64,7 +64,7 @@ public class DefaultTurnCostsCalc implements TurnCostCalculation
             }
         } else if ( flagEncoder instanceof BikeFlagEncoder )
         {
-            if ( weightCalc instanceof FastestCalc )
+            if ( weightCalc instanceof FastestWeighting )
             {
                 //we consider restrictions AND costs when searching fastest routes
                 mode = MODE_BIKE_COSTS;

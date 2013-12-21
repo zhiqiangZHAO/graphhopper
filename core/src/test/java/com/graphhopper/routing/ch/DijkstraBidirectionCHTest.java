@@ -26,15 +26,18 @@ import org.junit.Test;
 import com.graphhopper.routing.AbstractRoutingAlgorithmTester;
 import com.graphhopper.routing.Path;
 import com.graphhopper.routing.util.FlagEncoder;
-import com.graphhopper.routing.util.ShortestCalc;
-import com.graphhopper.routing.util.WeightCalculation;
+import com.graphhopper.routing.util.ShortestWeighting;
+import com.graphhopper.routing.util.Weighting;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.GraphBuilder;
 import com.graphhopper.storage.GraphTurnCosts;
 import com.graphhopper.storage.LevelGraph;
 import com.graphhopper.storage.LevelGraphStorage;
 import com.graphhopper.util.EdgeSkipExplorer;
+import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.Helper;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * Tests if a graph optimized by contraction hierarchies returns the same results as a none
@@ -72,24 +75,16 @@ public class DijkstraBidirectionCHTest extends AbstractRoutingAlgorithmTester
     }
 
     @Override
-    public PrepareContractionHierarchies prepareGraph( Graph g, FlagEncoder encoder, WeightCalculation calc)
+    public PrepareContractionHierarchies prepareGraph( Graph g, FlagEncoder encoder, Weighting w )
     {
-        PrepareContractionHierarchies ch = new PrepareContractionHierarchies(encoder, calc).setGraph(g);
+        PrepareContractionHierarchies ch = new PrepareContractionHierarchies(encoder, w).setGraph(g);
         // hack: prepare matrixgraph only once
         if (g != preparedMatrixGraph)
-        {
             ch.doWork();
-        }
+
         return ch;
     }
 
-    @Test
-    @Override
-    public void testPerformance() throws IOException
-    {
-        // TODO hmmh preparation takes a bit tooo long
-        // super.testPerformance();
-    }
 
     @Test @Override
     public void testCalcWithTurnRestrictions_CarPath_ignoreTurnRestrictions() {
@@ -104,8 +99,8 @@ public class DijkstraBidirectionCHTest extends AbstractRoutingAlgorithmTester
         initNodes(g2, 8);
 
         g2.edge(0, 1, 1, true);
-        EdgeSkipExplorer iter1_1 = g2.edge(0, 2, 1.4, true);
-        EdgeSkipExplorer iter1_2 = g2.edge(2, 5, 1.4, true);
+        EdgeIteratorState iter1_1 = g2.edge(0, 2, 1.4, true);
+        EdgeIteratorState iter1_2 = g2.edge(2, 5, 1.4, true);
         g2.edge(1, 2, 1, true);
         g2.edge(1, 3, 3, true);
         g2.edge(2, 3, 1, true);
@@ -118,10 +113,14 @@ public class DijkstraBidirectionCHTest extends AbstractRoutingAlgorithmTester
         g2.edge(6, 7, 1, true);
 
         // simulate preparation
-        EdgeSkipExplorer iter2_1 = g2.edge(0, 5, 2.8, carEncoder.flags(0, true));
+        EdgeIteratorState iter2_2 = g2.edge(5, 7);
+        iter2_2.setDistance(1.4).setFlags(carEncoder.setProperties(0, true, true));
+        EdgeSkipExplorer iter2_1 = g2.shortcut(0, 5);
+        iter2_1.setDistance(2.8).setFlags(carEncoder.setProperties(0, true, true));
         iter2_1.setSkippedEdges(iter1_1.getEdge(), iter1_2.getEdge());
-        EdgeSkipExplorer iter2_2 = g2.edge(5, 7, 1.4, carEncoder.flags(0, true));
-        g2.edge(0, 7, 4.2, carEncoder.flags(0, true)).setSkippedEdges(iter2_1.getEdge(), iter2_2.getEdge());
+        EdgeSkipExplorer tmp = g2.shortcut(0, 7);
+        tmp.setDistance(4.2).setFlags(carEncoder.setProperties(0, true, true));
+        tmp.setSkippedEdges(iter2_1.getEdge(), iter2_2.getEdge());
         g2.setLevel(1, 0);
         g2.setLevel(3, 1);
         g2.setLevel(4, 2);
@@ -131,7 +130,7 @@ public class DijkstraBidirectionCHTest extends AbstractRoutingAlgorithmTester
         g2.setLevel(7, 6);
         g2.setLevel(0, 7);
 
-        Path p = new PrepareContractionHierarchies(carEncoder, new ShortestCalc()).setGraph(g2).createAlgo().calcPath(0, 7);
+        Path p = new PrepareContractionHierarchies(carEncoder, new ShortestWeighting()).setGraph(g2).createAlgo().calcPath(0, 7);
         assertEquals(Helper.createTList(0, 2, 5, 7), p.calcNodes());
         assertEquals(4, p.calcNodes().size());
         assertEquals(4.2, p.getDistance(), 1e-5);

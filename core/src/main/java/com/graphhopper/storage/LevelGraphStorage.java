@@ -20,9 +20,10 @@ package com.graphhopper.storage;
 import com.graphhopper.routing.util.AllEdgesSkipIterator;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.EncodingManager;
-import com.graphhopper.util.EdgeBase;
+import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.EdgeIterator;
 import com.graphhopper.util.EdgeSkipExplorer;
+import com.graphhopper.util.EdgeSkipIterator;
 
 /**
  * A Graph necessary for shortcut algorithms like Contraction Hierarchies. This class enables the
@@ -64,17 +65,17 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
     }
 
     @Override
-    public EdgeSkipExplorer edge( int a, int b, double distance, boolean bothDir )
+    public EdgeSkipExplorer shortcut( int a, int b )
     {
-        return (EdgeSkipExplorer) super.edge(a, b, distance, bothDir);
+        return (EdgeSkipExplorer) edge(a, b);
     }
 
     @Override
-    public EdgeSkipExplorer edge( int a, int b, double distance, int flags )
+    public EdgeIteratorState edge( int a, int b )
     {
         ensureNodeIndex(Math.max(a, b));
-        int edgeId = internalEdgeAdd(a, b, distance, flags);
-        EdgeSkipIteratorImpl iter = new EdgeSkipIteratorImpl(null);
+        int edgeId = internalEdgeAdd(a, b);
+        EdgeSkipIteratorImpl iter = new EdgeSkipIteratorImpl(EdgeFilter.ALL_EDGES);
         iter.setBaseNode(a);
         iter.setEdgeId(edgeId);
         iter.next();
@@ -109,6 +110,13 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
         }
 
         @Override
+        public EdgeSkipIterator setBaseNode( int baseNode )
+        {
+            super.setBaseNode(baseNode);
+            return this;
+        }
+
+        @Override
         public final void setSkippedEdges( int edge1, int edge2 )
         {
             if (EdgeIterator.Edge.isValid(edge1) != EdgeIterator.Edge.isValid(edge2))
@@ -137,40 +145,47 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
         {
             return EdgeIterator.Edge.isValid(getSkippedEdge1());
         }
+
+        @Override
+        public EdgeIterator detach()
+        {
+            if (edgeId == nextEdge)
+                throw new IllegalStateException("call next before detaching");
+            EdgeSkipIteratorImpl iter = new EdgeSkipIteratorImpl(filter);
+            iter.setBaseNode(baseNode);
+            iter.setEdgeId(edgeId);
+            iter.next();
+            return iter;
+        }
     }
 
     /**
-     * Removes the edge in one direction. TODO hide this lower level API somehow.
+     * Disconnects the edges (higher->lower node) via the specified edgeState pointing from lower to
+     * higher node.
+     * <p>
+     * @param edgeState the edge from lower to higher
      */
-    public int disconnect( EdgeBase iter, long prevEdgePointer, boolean sameDirection )
+    public void disconnect( EdgeSkipExplorer explorer, EdgeIteratorState edgeState )
     {
-        // open up package protected API for now ...
-        if (sameDirection)
+        // search edge with opposite direction        
+        // EdgeIteratorState tmpIter = getEdgeProps(iter.getEdge(), iter.getBaseNode());
+        EdgeSkipIterator tmpIter = explorer.setBaseNode(edgeState.getAdjNode());
+        int tmpPrevEdge = EdgeIterator.NO_EDGE;
+        boolean found = false;
+        while (tmpIter.next())
         {
-            internalEdgeDisconnect(iter.getEdge(), prevEdgePointer, iter.getBaseNode(), iter.getAdjNode());
-        } else
-        {
-            // prevEdgePointer belongs to baseNode ... but now we need it for adjNode()!           
-            EdgeSkipExplorer tmpIter = createEdgeExplorer();
-            tmpIter.setBaseNode(iter.getAdjNode());
-            int tmpPrevEdge = EdgeIterator.NO_EDGE;
-            boolean found = false;
-            while (tmpIter.next())
+            // If we disconnect shortcuts only we could run normal algos on the graph too
+            // BUT CH queries will be 10-20% slower and preparation will be 10% slower
+            if (/*tmpIter.isShortcut() &&*/tmpIter.getEdge() == edgeState.getEdge())
             {
-                if (tmpIter.getEdge() == iter.getEdge())
-                {
-                    found = true;
-                    break;
-                }
+                found = true;
+                break;
+            }
 
-                tmpPrevEdge = tmpIter.getEdge();
-            }
-            if (found)
-            {
-                internalEdgeDisconnect(iter.getEdge(), (long) tmpPrevEdge * edgeEntryBytes, iter.getAdjNode(), iter.getBaseNode());
-            }
+            tmpPrevEdge = tmpIter.getEdge();
         }
-        return iter.getEdge();
+        if (found)
+            internalEdgeDisconnect(edgeState.getEdge(), (long) tmpPrevEdge * edgeEntryBytes, edgeState.getAdjNode(), edgeState.getBaseNode());
     }
 
     @Override
@@ -208,12 +223,6 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
     }
 
     @Override
-    public EdgeSkipExplorer getEdgeProps( int edgeId, int endNode )
-    {
-        return (EdgeSkipExplorer) super.getEdgeProps(edgeId, endNode);
-    }
-
-    @Override
     protected SingleEdge createSingleEdge( int edge, int nodeId )
     {
         return new SingleLevelEdge(edge, nodeId);
@@ -224,6 +233,13 @@ public class LevelGraphStorage extends GraphStorageTurnCosts implements LevelGra
         public SingleLevelEdge( int edge, int nodeId )
         {
             super(edge, nodeId);
+        }
+
+        @Override
+        public EdgeSkipIterator setBaseNode( int baseNode )
+        {
+            super.setBaseNode(baseNode);
+            return this;
         }
 
         @Override

@@ -7,7 +7,7 @@ import org.junit.Test;
 import com.graphhopper.GraphHopper;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.routing.util.TurnCostEncoder;
-import com.graphhopper.storage.AbstractGraphTester;
+import com.graphhopper.storage.AbstractGraphStorageTester;
 import com.graphhopper.storage.GraphStorage;
 import com.graphhopper.storage.GraphStorageTurnCosts;
 import com.graphhopper.storage.GraphTurnCosts;
@@ -44,15 +44,15 @@ public class OSMReaderTurnCostsTest extends OSMReaderTest
 
         assertEquals(9, g.getNodes());
 
-        int n1 = AbstractGraphTester.getIdOf(g, 51.0, 9.0);
-        int n2 = AbstractGraphTester.getIdOf(g, 51.2, 9.0);
-        int n3 = AbstractGraphTester.getIdOf(g, 51.2, 9.1);
-        int n4 = AbstractGraphTester.getIdOf(g, 51.2, 9.2);
-        int n5 = AbstractGraphTester.getIdOf(g, 51.0, 9.2);
-        int n6 = AbstractGraphTester.getIdOf(g, 51.1, 9.1);
+        int n1 = AbstractGraphStorageTester.getIdOf(g, 51.0, 9.0);
+        int n2 = AbstractGraphStorageTester.getIdOf(g, 51.2, 9.0);
+        int n3 = AbstractGraphStorageTester.getIdOf(g, 51.2, 9.1);
+        int n4 = AbstractGraphStorageTester.getIdOf(g, 51.2, 9.2);
+        int n5 = AbstractGraphStorageTester.getIdOf(g, 51.0, 9.2);
+        int n6 = AbstractGraphStorageTester.getIdOf(g, 51.1, 9.1);
         //int n7 = AbstractGraphTester.getIdOf(g, 51.4, 9.2);
-        int n8 = AbstractGraphTester.getIdOf(g, 51.4, 9.1);
-        int n9 = AbstractGraphTester.getIdOf(g, 51.4, 9.0);
+        int n8 = AbstractGraphStorageTester.getIdOf(g, 51.4, 9.1);
+        int n9 = AbstractGraphStorageTester.getIdOf(g, 51.4, 9.0);
 
         //node3 : restriction for turn (2,3)->(3,8) and (2,3)->(3,9), since only (2,3)->(3,4) is allowed 
         //+ everything allowed from other directions, except (4,3)->(3,8) since there is a 'no_right_turn'restriction
@@ -86,12 +86,12 @@ public class OSMReaderTurnCostsTest extends OSMReaderTest
     private int e( GraphTurnCosts graph, int nodeStart, int nodeEnd )
     {
         EdgeExplorer expl = graph.createEdgeExplorer();
-        expl.setBaseNode(nodeStart);
-        while ( expl.next() )
+        EdgeIterator it = expl.setBaseNode(nodeStart);
+        while ( it.next() )
         {
-            if ( expl.getAdjNode() == nodeEnd )
+            if ( it.getAdjNode() == nodeEnd )
             {
-                return expl.getEdge();
+                return it.getEdge();
             }
         }
         return EdgeIterator.NO_EDGE;

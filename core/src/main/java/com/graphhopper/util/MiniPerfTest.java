@@ -47,20 +47,17 @@ public abstract class MiniPerfTest
             dummySum += doCalc(false, i);
             long time = System.nanoTime() - start;
             if (time < min)
-            {
                 min = time;
-            }
+
             if (time > max)
-            {
                 max = time;
-            }
         }
         fullTime = System.nanoTime() - startFull;
         logger.info("dummySum:" + dummySum);
         return this;
     }
 
-    public MiniPerfTest count( int counts )
+    public MiniPerfTest setIterations( int counts )
     {
         this.counts = counts;
         return this;
@@ -90,7 +87,7 @@ public abstract class MiniPerfTest
         return getSum() / counts;
     }
 
-    public String report()
+    public String getReport()
     {
         return "sum:" + nf(getSum() / 1000f) + "s, time/call:" + nf(getMean() / 1000f) + "s";
     }

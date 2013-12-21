@@ -26,10 +26,10 @@ import java.util.PriorityQueue;
 import com.graphhopper.routing.AStar.AStarEdge;
 import com.graphhopper.routing.Path;
 import com.graphhopper.routing.util.FlagEncoder;
-import com.graphhopper.routing.util.WeightCalculation;
-import com.graphhopper.storage.EdgeEntry;
+import com.graphhopper.routing.util.Weighting;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.util.DistanceCalc;
+import com.graphhopper.util.DistanceCalcEarth;
 import com.graphhopper.util.DistancePlaneProjection;
 import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.EdgeIterator;
@@ -48,82 +48,97 @@ import com.graphhopper.util.EdgeIterator;
 public class EdgeAStar extends AbstractEdgeBasedRoutingAlgorithm
 {
 
-    private DistanceCalc dist = new DistancePlaneProjection();
-    private boolean alreadyRun;
+    private DistanceCalc dist;
     private int visitedCount;
+    private TIntObjectMap<AStarEdge> fromMap;
+    private PriorityQueue<AStarEdge> prioQueueOpenSet;
+    private AStarEdge currEdge;
+    private int to1 = -1;
+    private double toLat;
+    private double toLon;
 
-    public EdgeAStar( Graph g, FlagEncoder encoder, WeightCalculation type )
+    public EdgeAStar( Graph g, FlagEncoder encoder, Weighting weighting )
     {
-        super(g, encoder, type);
+        super(g, encoder, weighting);
+        initCollections(1000);
+        setApproximation(true);
+    }
+
+    protected void initCollections( int size )
+    {
+        fromMap = new TIntObjectHashMap<AStarEdge>();
+        prioQueueOpenSet = new PriorityQueue<AStarEdge>(size);
     }
 
     /**
-     * @param fast
-     *            if true it enables an approximative distance calculation from lat,lon values
+     * @param fast if true it enables an approximative distance calculation from lat,lon values
      */
     public EdgeAStar setApproximation( boolean approx )
     {
-        if ( approx )
+        if (approx)
             dist = new DistancePlaneProjection();
         else
-            dist = new DistanceCalc();
+            dist = new DistanceCalcEarth();
         return this;
     }
 
     @Override
     public Path calcPath( int from, int to )
     {
-        if ( alreadyRun )
-            throw new IllegalStateException("Create a new instance per call");
-        alreadyRun = true;
-        TIntObjectMap<AStarEdge> map = new TIntObjectHashMap<AStarEdge>();
-        PriorityQueue<AStarEdge> prioQueueOpenSet = new PriorityQueue<AStarEdge>(1000);
-        double toLat = graph.getLatitude(to);
-        double toLon = graph.getLongitude(to);
+        checkAlreadyRun();
+        toLat = graph.getLatitude(to);
+        toLon = graph.getLongitude(to);
+        to1 = to;
+        currEdge = createEdgeEntry(from, 0);
+        return runAlgo();
+    }
+
+    private Path runAlgo()
+    {
+        if(!fromMap.isEmpty()){
+            throw new AssertionError("the fromMap for edgebased algorithms must be empty");
+        }
+        
         double currWeightToGoal, distEstimation, tmpLat, tmpLon;
-        AStarEdge fromEntry = new AStarEdge(EdgeIterator.NO_EDGE, from, 0, 0);
-        AStarEdge currEdge = fromEntry;
         EdgeExplorer explorer = outEdgeExplorer;
         while ( true )
         {
             int currVertex = currEdge.endNode;
             visitedCount++;
-            if ( finished(currEdge, to) )
+            if (finished())
                 break;
 
-            
-            explorer.setBaseNode(currVertex);
-            while ( explorer.next() )
+            EdgeIterator iter = explorer.setBaseNode(currVertex);
+            while ( iter.next() )
             {
-                if ( !accept(explorer, currEdge) )
+                if (!accept(iter, currEdge))
+                    continue;
+                if (currEdge.edge == iter.getEdge())
                     continue;
 
                 //we need to distinguish between backward and forward direction when storing end weights
-                int key = createIterKey(explorer, true);
+                int key = createIterKey(iter, true);
 
-                int neighborNode = explorer.getAdjNode();
-                double alreadyVisitedWeight = weightCalc.getWeight(explorer.getDistance(),
-                        explorer.getFlags())
-                        + currEdge.weightToCompare;
-                alreadyVisitedWeight += turnCostCalc.getTurnCosts(currVertex, currEdge.edge,
-                        explorer.getEdge());
-                AStarEdge nEdge = map.get(key);
-                if ( nEdge == null || nEdge.weightToCompare > alreadyVisitedWeight )
+                int neighborNode = iter.getAdjNode();
+                double alreadyVisitedWeight = weighting.calcWeight(iter) + currEdge.weightToCompare;
+                alreadyVisitedWeight += turnCostCalc.getTurnCosts(currVertex, currEdge.edge, iter.getEdge());
+                AStarEdge nEdge = fromMap.get(key);
+                if (nEdge == null || nEdge.weightToCompare > alreadyVisitedWeight)
                 {
                     tmpLat = graph.getLatitude(neighborNode);
                     tmpLon = graph.getLongitude(neighborNode);
                     currWeightToGoal = dist.calcDist(toLat, toLon, tmpLat, tmpLon);
-                    currWeightToGoal = weightCalc.getMinWeight(currWeightToGoal);
+                    currWeightToGoal = weighting.getMinWeight(currWeightToGoal);
                     distEstimation = alreadyVisitedWeight + currWeightToGoal;
-                    if ( nEdge == null )
+                    if (nEdge == null)
                     {
-                        nEdge = new AStarEdge(explorer.getEdge(), neighborNode, distEstimation,
+                        nEdge = new AStarEdge(iter.getEdge(), neighborNode, distEstimation,
                                 alreadyVisitedWeight);
-                        map.put(key, nEdge);
+                        fromMap.put(key, nEdge);
                     } else
                     {
                         prioQueueOpenSet.remove(nEdge);
-                        nEdge.edge = explorer.getEdge();
+                        nEdge.edge = iter.getEdge();
                         nEdge.weight = distEstimation;
                         nEdge.weightToCompare = alreadyVisitedWeight;
                     }
@@ -133,20 +148,21 @@ public class EdgeAStar extends AbstractEdgeBasedRoutingAlgorithm
                 }
             }
 
-            if ( prioQueueOpenSet.isEmpty() )
-                return new Path(graph, flagEncoder);
+            if (prioQueueOpenSet.isEmpty())
+                return createEmptyPath();
 
             currEdge = prioQueueOpenSet.poll();
-            if ( currEdge == null )
-                throw new AssertionError("cannot happen?");
+            if (currEdge == null)
+                throw new AssertionError("Empty edge cannot happen");
         }
 
-        return extractPath(currEdge);
+        return extractPath();
     }
 
-    boolean finished( EdgeEntry currEdge, int to )
+    @Override
+    protected boolean finished()
     {
-        return currEdge.endNode == to;
+        return currEdge.endNode == to1;
     }
 
     @Override
@@ -155,14 +171,21 @@ public class EdgeAStar extends AbstractEdgeBasedRoutingAlgorithm
         return visitedCount;
     }
 
-    Path extractPath( EdgeEntry currEdge )
+    @Override
+    protected Path extractPath()
     {
         return new Path(graph, flagEncoder).setEdgeEntry(currEdge).extract();
     }
 
     @Override
+    protected AStarEdge createEdgeEntry( int node, double dist )
+    {
+        return new AStarEdge(EdgeIterator.NO_EDGE, node, dist, dist);
+    }
+
+    @Override
     public String getName()
     {
-        return "astar";
+        return "edgeAstar";
     }
 }

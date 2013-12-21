@@ -17,9 +17,13 @@
  */
 package com.graphhopper;
 
-import com.graphhopper.util.PointList;
+import com.graphhopper.util.GPXEntry;
+import com.graphhopper.util.Instruction;
 import com.graphhopper.util.InstructionList;
+import com.graphhopper.util.PointList;
 import com.graphhopper.util.shapes.BBox;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,8 +38,9 @@ public class GHResponse
     private double distance;
     private long time;
     private String debugInfo = "";
-    private List<Throwable> errors = new ArrayList<Throwable>(4);
+    private final List<Throwable> errors = new ArrayList<Throwable>(4);
     private InstructionList instructions = new InstructionList(0);
+    private boolean found;
 
     public GHResponse()
     {
@@ -66,23 +71,29 @@ public class GHResponse
         return distance;
     }
 
-    public GHResponse setTime( long timeInSec )
+    public GHResponse setMillis( long timeInMillis )
     {
-        this.time = timeInSec;
+        this.time = timeInMillis;
         return this;
     }
 
     /**
-     * @return time in seconds
+     * @return time in millis
      */
-    public long getTime()
+    public long getMillis()
     {
         return time;
     }
 
+    public GHResponse setFound( boolean found )
+    {
+        this.found = found;
+        return this;
+    }
+
     public boolean isFound()
     {
-        return list != null && !list.isEmpty();
+        return found;
     }
 
     public BBox calcRouteBBox( BBox _fallback )
@@ -91,22 +102,22 @@ public class GHResponse
         int len = list.getSize();
         if (len == 0)
             return _fallback;
-        
+
         for (int i = 0; i < len; i++)
         {
             double lat = list.getLatitude(i);
             double lon = list.getLongitude(i);
             if (lat > bounds.maxLat)
                 bounds.maxLat = lat;
-            
+
             if (lat < bounds.minLat)
                 bounds.minLat = lat;
-            
+
             if (lon > bounds.maxLon)
                 bounds.maxLon = lon;
-            
+
             if (lon < bounds.minLon)
-                bounds.minLon = lon;            
+                bounds.minLon = lon;
         }
         return bounds;
     }

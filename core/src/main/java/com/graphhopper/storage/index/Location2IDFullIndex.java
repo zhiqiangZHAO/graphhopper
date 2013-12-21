@@ -21,22 +21,23 @@ import com.graphhopper.routing.util.AllEdgesIterator;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.util.DistanceCalc;
+import com.graphhopper.util.DistanceCalcEarth;
 import com.graphhopper.util.DistancePlaneProjection;
 import com.graphhopper.util.shapes.Circle;
 
 /**
- * Very slow O(n) Location2IDIndex but no RAM/disc required.
+ * Very slow O(n) LocationIndex but no RAM/disc required.
  * <p/>
  * @author Peter Karich
  */
-public class Location2IDFullIndex implements Location2IDIndex
+public class Location2IDFullIndex implements LocationIndex
 {
     private DistanceCalc calc = new DistancePlaneProjection();
-    private Graph g;
+    private final Graph graph;
 
     public Location2IDFullIndex( Graph g )
     {
-        this.g = g;
+        this.graph = g;
     }
 
     @Override
@@ -46,42 +47,40 @@ public class Location2IDFullIndex implements Location2IDIndex
     }
 
     @Override
-    public Location2IDIndex setApproximation( boolean approxDist )
+    public LocationIndex setApproximation( boolean approxDist )
     {
         if (approxDist)
         {
             calc = new DistancePlaneProjection();
         } else
         {
-            calc = new DistanceCalc();
+            calc = new DistanceCalcEarth();
         }
         return this;
     }
 
     @Override
-    public Location2IDIndex setResolution( int resolution )
+    public LocationIndex setResolution( int resolution )
     {
         return this;
     }
 
     @Override
-    public Location2IDIndex prepareIndex()
+    public LocationIndex prepareIndex()
     {
         return this;
     }
 
     @Override
-    public LocationIDResult findClosest( double queryLat, double queryLon, EdgeFilter edgeFilter )
+    public QueryResult findClosest( double queryLat, double queryLon, EdgeFilter edgeFilter )
     {
-        LocationIDResult res = new LocationIDResult();
+        QueryResult res = new QueryResult(queryLat, queryLon);
         Circle circle = null;
-        AllEdgesIterator iter = g.getAllEdges();
+        AllEdgesIterator iter = graph.getAllEdges();
         while (iter.next())
         {
             if (!edgeFilter.accept(iter))
-            {
                 continue;
-            }
 
             for (int node, i = 0; i < 2; i++)
             {
@@ -92,17 +91,16 @@ public class Location2IDFullIndex implements Location2IDIndex
                 {
                     node = iter.getAdjNode();
                 }
-                double tmpLat = g.getLatitude(node);
-                double tmpLon = g.getLongitude(node);
+                double tmpLat = graph.getLatitude(node);
+                double tmpLon = graph.getLongitude(node);
                 double dist = calc.calcDist(tmpLat, tmpLon, queryLat, queryLon);
                 if (circle == null || dist < calc.calcDist(circle.getLat(), circle.getLon(), queryLat, queryLon))
                 {
+                    res.setClosestEdge(iter.detach());
                     res.setClosestNode(node);
-                    res.setWeight(dist);
+                    res.setQueryDistance(dist);
                     if (dist <= 0)
-                    {
                         break;
-                    }
 
                     circle = new Circle(tmpLat, tmpLon, dist, calc);
                 }
@@ -118,7 +116,7 @@ public class Location2IDFullIndex implements Location2IDIndex
     }
 
     @Override
-    public Location2IDIndex create( long size )
+    public LocationIndex create( long size )
     {
         return this;
     }

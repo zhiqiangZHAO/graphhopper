@@ -1,5 +1,6 @@
 #!/bin/bash
 
+GH_CLASS=com.graphhopper.GraphHopper
 GH_HOME=$(dirname $0)
 JAVA=$JAVA_HOME/bin/java
 if [ "x$JAVA_HOME" = "x" ]; then
@@ -21,7 +22,7 @@ fi
 ACTION=$1
 FILE=$2
 
-USAGE="./graphhopper.sh import|ui|test <your-osm-file>"
+USAGE="./graphhopper.sh import|ui|test|measurement|miniui|extract|build <your-osm-file>"
 if [ "x$ACTION" = "x" ]; then
  echo -e "## action $ACTION not found. try \n$USAGE"
 fi
@@ -80,14 +81,25 @@ function ensureMaven {
 }
 
 function packageCoreJar {
+  if [ ! -d "./target" ]; then
+    echo "## building parent"
+    "$MAVEN_HOME/bin/mvn" --non-recursive install > /tmp/graphhopper-compile.log
+     returncode=$?
+     if [[ $returncode != 0 ]] ; then
+       echo "## compilation of parent failed"
+       cat /tmp/graphhopper-compile.log
+       exit $returncode
+     fi                                     
+  fi
+  
   if [ ! -f "$JAR" ]; then
     echo "## now building graphhopper jar: $JAR"
     echo "## using maven at $MAVEN_HOME"
     #mvn clean
-    "$MAVEN_HOME/bin/mvn" -f "$GH_HOME/core/pom.xml" -DskipTests=true install assembly:single > /tmp/graphhopper-compile.log
+    "$MAVEN_HOME/bin/mvn" --projects core -DskipTests=true install assembly:single > /tmp/graphhopper-compile.log
     returncode=$?
     if [[ $returncode != 0 ]] ; then
-        echo "## compilation failed"
+        echo "## compilation of core failed"
         cat /tmp/graphhopper-compile.log
         exit $returncode
     fi      
@@ -111,10 +123,14 @@ if [ "x$ACTION" = "xclean" ]; then
 elif [ "x$ACTION" = "xeclipse" ]; then
  prepareEclipse
  exit
+
+elif [ "x$ACTION" = "xbuild" ]; then
+ prepareEclipse
+ exit  
  
 elif [ "x$ACTION" = "xandroid" ]; then
  prepareEclipse
- "$MAVEN_HOME/bin/mvn" -f "$GH_HOME/android/pom.xml" install android:deploy android:run
+ "$MAVEN_HOME/bin/mvn" --projects android install android:deploy android:run
  exit
 fi
 
@@ -204,24 +220,36 @@ if [ "x$ACTION" = "xui" ] || [ "x$ACTION" = "xweb" ]; then
 
 
 elif [ "x$ACTION" = "ximport" ]; then
- "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.GraphHopper printVersion=true config=$CONFIG \
-      graph.location="$GRAPH" \
-      osmreader.osm="$OSM_FILE"
+ "$JAVA" $JAVA_OPTS -cp "$JAR" $GH_CLASS printVersion=true \
+      config=$CONFIG \
+      $GH_IMPORT_OPTS graph.location="$GRAPH" osmreader.osm="$OSM_FILE"
 
 
 elif [ "x$ACTION" = "xtest" ]; then
- "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.GraphHopper printVersion=true config=$CONFIG \
+ "$JAVA" $JAVA_OPTS -cp "$JAR" $GH_CLASS printVersion=true config=$CONFIG \
        graph.location="$GRAPH" osmreader.osm="$OSM_FILE" prepare.chShortcuts=false \
        graph.testIT=true
 
 elif [ "x$ACTION" = "xtorture" ]; then
  "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.util.QueryTorture $3 $4 $5 $6 $7 $8 $9
+
+elif [ "x$ACTION" = "xminiui" ]; then
+ "$MAVEN_HOME/bin/mvn" -f "$GH_HOME/tools/pom.xml" -DskipTests clean install assembly:single
+ JAR=tools/target/graphhopper-tools-$VERSION-jar-with-dependencies.jar   
+ "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.ui.MiniGraphUI osmreader.osm="$OSM_FILE" printVersion=true config=$CONFIG \
+              graph.location="$GRAPH"
+
+elif [ "x$ACTION" = "xextract" ]; then
+ echo use "./graphhopper.sh extract \"left,bottom,right,top\""
+ URL="http://api.openstreetmap.org/api/0.6/map?bbox=$2"
+ #echo "$URL"
+ wget -O extract.osm $URL
        
 elif [ "x$ACTION" = "xmeasurement" ]; then
- ARGS="graph.location=$GRAPH osmreader.osm=$OSM_FILE prepare.chShortcuts=fastest osmreader.acceptWay=CAR"
+ ARGS="config=$CONFIG graph.location=$GRAPH osmreader.osm=$OSM_FILE prepare.chShortcuts=fastest osmreader.acceptWay=CAR"
  echo -e "\ncreate graph via $ARGS, $JAR"
  START=$(date +%s)
- "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.GraphHopper $ARGS prepare.doPrepare=false
+ "$JAVA" $JAVA_OPTS -cp "$JAR" $GH_CLASS $ARGS prepare.doPrepare=false
  END=$(date +%s)
  IMPORT_TIME=$(($END - $START))
 
@@ -232,6 +260,7 @@ elif [ "x$ACTION" = "xmeasurement" ]; then
     "$JAVA" $JAVA_OPTS -cp "$JAR" com.graphhopper.util.Measurement $ARGS measurement.count=$COUNT measurement.location=$M_FILE_NAME \
             graph.importTime=$IMPORT_TIME measurement.gitinfo="$commit_info"
  }
+ 
  
  # use all <last_commits> versions starting from HEAD
  last_commits=$3

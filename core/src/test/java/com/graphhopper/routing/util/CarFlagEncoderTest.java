@@ -31,8 +31,8 @@ import static org.junit.Assert.*;
  */
 public class CarFlagEncoderTest
 {
-    private EncodingManager em = new EncodingManager("CAR,BIKE,FOOT");
-    private CarFlagEncoder encoder = (CarFlagEncoder) em.getEncoder("CAR");
+    private final EncodingManager em = new EncodingManager("CAR,BIKE,FOOT");
+    private final CarFlagEncoder encoder = (CarFlagEncoder) em.getEncoder("CAR");
 
     @Test
     public void testAccess()
@@ -56,12 +56,30 @@ public class CarFlagEncoderTest
         assertFalse(encoder.isAllowed(way) > 0);
         map.put("motorcar", "yes");
         assertTrue(encoder.isAllowed(way) > 0);
-        
-        map.clear();        
+
+        map.clear();
         map.put("route", "ferry");
         assertTrue(encoder.isAllowed(way) > 0);
         map.put("motorcar", "no");
         assertFalse(encoder.isAllowed(way) > 0);
+
+        map.clear();
+        map.put("route", "ferry");
+        map.put("foot", "yes");
+        assertFalse(encoder.isAllowed(way) > 0);
+    }
+
+    @Test
+    public void testSetAccess()
+    {
+        assertTrue(encoder.isForward(encoder.setProperties(0, true, true)));
+        assertTrue(encoder.isBackward(encoder.setProperties(0, true, true)));
+
+        assertTrue(encoder.isForward(encoder.setProperties(0, true, false)));
+        assertFalse(encoder.isBackward(encoder.setProperties(0, true, false)));
+
+        assertFalse(encoder.isForward(encoder.setProperties(0, false, true)));
+        assertTrue(encoder.isBackward(encoder.setProperties(0, false, true)));
     }
 
     @Test
@@ -71,9 +89,9 @@ public class CarFlagEncoderTest
         OSMWay way = new OSMWay(1, map);
         map.put("highway", "trunk");
         map.put("maxspeed", "500");
-        int allowed = encoder.isAllowed(way);
-        int encoded = encoder.handleWayTags(allowed, way);
-        assertEquals(100, encoder.getSpeed(encoded));                
+        long allowed = encoder.isAllowed(way);
+        long encoded = encoder.handleWayTags(allowed, way);
+        assertEquals(100, encoder.getSpeed(encoded));
     }
 
     @Test
@@ -84,21 +102,47 @@ public class CarFlagEncoderTest
         OSMWay way = new OSMWay(1, map);
         map.put("highway", "trunk");
         map.put("maxspeed", "110");
-        int allowed = encoder.isAllowed(way);
-        int encoded = encoder.handleWayTags(allowed, way);
+        long allowed = encoder.isAllowed(way);
+        long encoded = encoder.handleWayTags(allowed, way);
         assertEquals(95, encoder.getSpeed(encoded));
-        
+
         map.clear();
         map.put("highway", "residential");
         map.put("surface", "cobblestone");
-        allowed = encoder.isAllowed(way);        
+        allowed = encoder.isAllowed(way);
         encoded = encoder.handleWayTags(allowed, way);
-        assertEquals(30, encoder.getSpeed(encoded));
+        assertEquals(30, encoder.getSpeed(encoded)); 
+        
+        map.clear();
+        map.put("highway", "track");
+        allowed = encoder.isAllowed(way);
+        encoded = encoder.handleWayTags(allowed, way);
+        assertEquals(15, encoder.getSpeed(encoded));
+        
+        map.clear();
+        map.put("highway", "track");
+        map.put("tracktype", "grade1");
+        allowed = encoder.isAllowed(way);
+        encoded = encoder.handleWayTags(allowed, way);
+        assertEquals(20, encoder.getSpeed(encoded));
+        
+        map.clear();
+        map.put("highway", "track");
+        map.put("tracktype", "grade5");
+        allowed = encoder.isAllowed(way);
+        encoded = encoder.handleWayTags(allowed, way);
+        assertEquals(5, encoder.getSpeed(encoded));
+    }
+
+    @Test
+    public void testSetSpeed()
+    {
+        assertEquals(10, encoder.getSpeed(encoder.setSpeed(0, 10)));
     }
 
     @Test
     public void testRailway()
-    {        
+    {
         Map<String, String> map = new HashMap<String, String>();
         OSMWay way = new OSMWay(1, map);
         map.put("highway", "secondary");
@@ -116,21 +160,21 @@ public class CarFlagEncoderTest
     @Test
     public void testBasics()
     {
-        assertTrue(encoder.isForward(encoder.flagsDefault(true)));
-        assertTrue(encoder.isBackward(encoder.flagsDefault(true)));
-        assertTrue(encoder.isBoth(encoder.flagsDefault(true)));
+        assertTrue(encoder.isForward(encoder.flagsDefault(true, true)));
+        assertTrue(encoder.isBackward(encoder.flagsDefault(true, true)));
+        assertTrue(encoder.isBoth(encoder.flagsDefault(true, true)));
 
-        assertTrue(encoder.isForward(encoder.flagsDefault(false)));
-        assertFalse(encoder.isBackward(encoder.flagsDefault(false)));
-        assertFalse(encoder.isBoth(encoder.flagsDefault(false)));
+        assertTrue(encoder.isForward(encoder.flagsDefault(true, false)));
+        assertFalse(encoder.isBackward(encoder.flagsDefault(true, false)));
+        assertFalse(encoder.isBoth(encoder.flagsDefault(true, false)));
     }
 
     @Test
     public void testOverwrite()
     {
-        int forward = encoder.flags(10, false);
-        int backward = encoder.swapDirection(forward);
-        int both = encoder.flags(20, true);
+        long forward = encoder.setProperties(10, true, false);
+        long backward = encoder.swapDirection(forward);
+        long both = encoder.setProperties(20, true, true);
         assertTrue(encoder.canBeOverwritten(forward, forward));
         assertTrue(encoder.canBeOverwritten(backward, backward));
         assertTrue(encoder.canBeOverwritten(forward, both));
@@ -146,11 +190,11 @@ public class CarFlagEncoderTest
     @Test
     public void testSwapDir()
     {
-        int swappedFlags = encoder.swapDirection(encoder.flagsDefault(true));
+        long swappedFlags = encoder.swapDirection(encoder.flagsDefault(true, true));
         assertTrue(encoder.isForward(swappedFlags));
         assertTrue(encoder.isBackward(swappedFlags));
 
-        swappedFlags = encoder.swapDirection(encoder.flagsDefault(false));
+        swappedFlags = encoder.swapDirection(encoder.flagsDefault(true, false));
 
         assertFalse(encoder.isForward(swappedFlags));
         assertTrue(encoder.isBackward(swappedFlags));

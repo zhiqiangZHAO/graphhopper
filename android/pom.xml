@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.graphhopper</groupId>
     <artifactId>graphhopper-android</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3-SNAPSHOT</version>
     <name>GraphHopper Android</name>
     <packaging>apk</packaging>    
     <organization>
@@ -15,9 +15,9 @@
     <parent>
         <groupId>com.graphhopper</groupId>
         <artifactId>graphhopper-parent</artifactId>    	
-        <version>0.2-SNAPSHOT</version>
+        <version>0.3-SNAPSHOT</version>
     </parent>
-    <properties>
+    <properties>        
         <!-- do not put the properties here as it differs from dev to dev <android.sdk.path>/home/peterk/Programme/android-sdk-linux_x86</android.sdk.path>
         instead use your IDE to set it up or specify android sdk via command line
         using -Dandroid.sdk.path=... or by setting environment variable ANDROID_HOME
@@ -54,20 +54,19 @@
             </exclusions>
         </dependency>        
           
-        <!-- run scripts/maven-install-mapsforge.sh -> or already solved via local repo!
-        if we would use system dep it doesn't work (classnotfound)-->              
+        <!-- see scripts/maven-install-mapsforge.sh !
+            if we would use system dep it doesn't work (classnotfound). See also script for more infos.
+        -->              
         <dependency>
-            <groupId>org.mapsforge</groupId>
-            <artifactId>mapsforge</artifactId>
-            <version>0.3.1-SNAPSHOT</version>	                                                
-            <type>jar</type>            
+            <groupId>com.graphhopper</groupId>            
+            <artifactId>mapsforge-gh</artifactId>
+            <version>0.3-0.3.1-SNAPSHOT</version>
         </dependency>
         
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-android</artifactId>
             <version>1.6.1-RC1</version>
-            <type>jar</type>
         </dependency>        
 
         <!-- Make sure this is above (!) the android dependencies -->
@@ -118,10 +117,14 @@
                 <configuration>
                     <sdk>
                         <!-- platform or api level (api level 8 = platform 2.2) -->                        
-                        <platform>8</platform>
+                        <platform>10</platform>
                     </sdk>
                     <deleteConflictingFiles>true</deleteConflictingFiles>
                     <undeployBeforeDeploy>true</undeployBeforeDeploy>
+                    <!--
+                    bug in maven plugin I think
+                    <extractDuplicates>true</extractDuplicates>
+                    -->
                 </configuration>                
             </plugin>            
         </plugins>

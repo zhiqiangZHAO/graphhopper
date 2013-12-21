@@ -33,9 +33,9 @@ import java.util.HashMap;
  */
 public class EncodingManager
 {
-    public static final String CAR = "CAR";
-    public static final String BIKE = "BIKE";
-    public static final String FOOT = "FOOT";
+    public static final String CAR = "car";
+    public static final String BIKE = "bike";
+    public static final String FOOT = "foot";
     private static final HashMap<String, String> defaultEncoders = new HashMap<String, String>();
 
     static
@@ -79,7 +79,7 @@ public class EncodingManager
                 className = entry.substring(pos + 1);
             } else
             {
-                className = defaultEncoders.get(entry);
+                className = defaultEncoders.get(entry.toLowerCase());
                 if (className == null)
                     throw new IllegalArgumentException("Unknown encoder name " + entry);
             }
@@ -139,10 +139,8 @@ public class EncodingManager
     {
         for (int i = 0; i < encoderCount; i++)
         {
-            if (name.equals(encoders.get(i).toString()))
-            {
+            if (name.equalsIgnoreCase(encoders.get(i).toString()))
                 return encoders.get(i);
-            }
         }
         if (throwExc)
             throw new IllegalArgumentException("Encoder for " + name + " not found.");
@@ -169,9 +167,9 @@ public class EncodingManager
      * <p/>
      * @return the encoded flags
      */
-    public int encodeTags( int includeWay, OSMWay way )
+    public long handleWayTags( int includeWay, OSMWay way )
     {
-        int flags = 0;
+        long flags = 0;
         for (int i = 0; i < encoderCount; i++)
         {
             flags |= encoders.get(i).handleWayTags(includeWay, way);
@@ -236,12 +234,12 @@ public class EncodingManager
         return encoders.get(0);
     }
 
-    public int flagsDefault( boolean bothDirections )
+    public int flagsDefault( boolean forward, boolean backward )
     {
         int flags = 0;
         for (int i = 0; i < encoderCount; i++)
         {
-            flags |= encoders.get(i).flagsDefault(bothDirections);
+            flags |= encoders.get(i).flagsDefault(forward, backward);
         }
         return flags;
     }
@@ -249,7 +247,7 @@ public class EncodingManager
     /**
      * Swap direction for all encoders
      */
-    public int swapDirection( int flags )
+    public long swapDirection( long flags )
     {
         for (int i = 0; i < encoderCount; i++)
         {

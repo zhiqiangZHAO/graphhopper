@@ -28,10 +28,10 @@ import org.junit.Test;
  *
  * @author Peter Karich
  */
-public class Location2IDQuadtreeTest extends AbstractLocation2IDIndexTester
+public class Location2IDQuadtreeTest extends AbstractLocationIndexTester
 {
     @Override
-    public Location2IDIndex createIndex( Graph g, int resolution )
+    public LocationIndex createIndex( Graph g, int resolution )
     {
         return new Location2IDQuadtree(g, new MMapDirectory(location + "loc2idIndex")).setResolution(resolution).prepareIndex();
     }

@@ -26,10 +26,10 @@ import static org.junit.Assert.*;
  *
  * @author Peter Karich
  */
-public class Location2IDFullIndexTest extends AbstractLocation2IDIndexTester
+public class Location2IDFullIndexTest extends AbstractLocationIndexTester
 {
     @Override
-    public Location2IDIndex createIndex( Graph g, int resolution )
+    public LocationIndex createIndex( Graph g, int resolution )
     {
         return new Location2IDFullIndex(g);
     }
@@ -43,7 +43,7 @@ public class Location2IDFullIndexTest extends AbstractLocation2IDIndexTester
     @Test
     public void testFullIndex()
     {
-        Location2IDIndex idx = new Location2IDFullIndex(createSampleGraph(new EncodingManager("CAR")));
+        LocationIndex idx = new Location2IDFullIndex(createSampleGraph(new EncodingManager("CAR")));
         assertEquals(5, idx.findID(2, 3));
         assertEquals(10, idx.findID(4, 1));
         assertEquals(10, idx.findID(3.6, 1.4));

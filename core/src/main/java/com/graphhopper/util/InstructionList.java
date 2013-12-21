@@ -1,48 +1,21 @@
-/*
- *  Licensed to Peter Karich under one or more contributor license
- *  agreements. See the NOTICE file distributed with this work for
- *  additional information regarding copyright ownership.
- *
- *  Peter Karich licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License. You may obtain a copy of the
- *  License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
 package com.graphhopper.util;
 
-import com.graphhopper.util.TranslationMap.Translation;
 import gnu.trove.list.TDoubleList;
-import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TDoubleArrayList;
-import gnu.trove.list.array.TIntArrayList;
-import java.util.*;
+import java.text.SimpleDateFormat;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
- * Slim list to store several points (without the need for a point object).
- * <p/>
- * @author Ottavio Campana
- * @author Peter Karich
+ * List of instruction.
  */
-public class InstructionList
-{    
-    public static final int TURN_SHARP_LEFT = -3;
-    public static final int TURN_LEFT = -2;
-    public static final int TURN_SLIGHT_LEFT = -1;
-    public static final int CONTINUE_ON_STREET = 0;
-    public static final int TURN_SLIGHT_RIGHT = 1;
-    public static final int TURN_RIGHT = 2;
-    public static final int TURN_SHARP_RIGHT = 3;
-    private TIntList indications;
-    private List<String> names;
-    private TDoubleArrayList distances;
+public class InstructionList implements Iterable<Instruction>
+{
+    private final List<Instruction> instructions;
 
     public InstructionList()
     {
@@ -51,59 +24,22 @@ public class InstructionList
 
     public InstructionList( int cap )
     {
-        if (cap < 5)
-        {
-            cap = 5;
-        }
-        indications = new TIntArrayList(cap);
-        names = new ArrayList<String>(cap);
-        distances = new TDoubleArrayList(cap);
+        instructions = new ArrayList<Instruction>(cap);
     }
 
-    public void add( int indication, String name, double dist )
+    public void add( Instruction instr )
     {
-        indications.add(indication);
-        names.add(name);
-        distances.add(dist);
+        instructions.add(instr);
+    }
+
+    public int getSize()
+    {
+        return instructions.size();
     }
 
     public int size()
     {
-        return indications.size();
-    }
-
-    public boolean isEmpty()
-    {
-        return indications.isEmpty();
-    }
-
-    public void clear()
-    {
-        indications.clear();
-        names.clear();
-        distances.clear();
-    }
-
-    @Override
-    public String toString()
-    {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indications.size(); i++)
-        {
-            if (i > 0)
-            {
-                sb.append(", ");
-            }
-
-            sb.append('(');
-            sb.append(indications.get(i));
-            sb.append(',');
-            sb.append(names.get(i));
-            sb.append(',');
-            sb.append(distances.get(i));
-            sb.append(')');
-        }
-        return sb.toString();
+        return instructions.size();
     }
 
     /**
@@ -111,71 +47,111 @@ public class InstructionList
      */
     public List<Integer> createIndications()
     {
-        List<Integer> res = new ArrayList<Integer>(indications.size());
-        for (int i = 0; i < indications.size(); i++)
+        List<Integer> res = new ArrayList<Integer>(instructions.size());
+        for (Instruction instruction : instructions)
         {
-            res.add(indications.get(i));
+            res.add(instruction.getIndication());
         }
         return res;
     }
 
-    public TDoubleList getDistances()
+    public TDoubleList createDistances()
     {
-        return distances;
+        TDoubleList res = new TDoubleArrayList(instructions.size());
+        for (Instruction instruction : instructions)
+        {
+            res.add(instruction.calcDistance());
+        }
+        return res;
     }
 
-    public List<String> createDistances( Locale locale )
+    public List<String> createDistances( TranslationMap.Translation tr, boolean mile )
     {
-        // United Kingdom, Canada, Ireland, Australia, the Bahamas, India, and Malaysia 
-        // still use some forms of the Imperial System, but are official Metric Nations
+        TDoubleList distances = createDistances();
         List<String> labels = new ArrayList<String>(distances.size());
-        String country = locale.getCountry();
-        boolean mile = Locale.US.getCountry().equals(country)
-                || Locale.UK.getCountry().equals(country)
-                || Locale.CANADA.getCountry().equals(country);
-
         for (int i = 0; i < distances.size(); i++)
         {
             double dist = distances.get(i);
             if (mile)
             {
                 // calculate miles
-                double distInMiles = dist / 1000 / DistanceCalc.KM_MILE;
+                double distInMiles = dist / 1000 / DistanceCalcEarth.KM_MILE;
                 if (distInMiles < 0.9)
                 {
-                    labels.add((int) DistanceCalc.round(distInMiles * 5280, 1) + " ft");
+                    labels.add((int) DistanceCalcEarth.round(distInMiles * 5280, 1) + " " + tr.tr("ftAbbr"));
                 } else
                 {
                     if (distInMiles < 100)
-                    {
-                        labels.add(DistanceCalc.round(distInMiles, 2) + " miles");
-                    } else
-                    {
-                        labels.add((int) DistanceCalc.round(distInMiles, 1) + " miles");
-                    }
+                        labels.add(DistanceCalcEarth.round(distInMiles, 2) + " " + tr.tr("miAbbr"));
+                    else
+                        labels.add((int) DistanceCalcEarth.round(distInMiles, 1) + " " + tr.tr("miAbbr"));
                 }
             } else
             {
                 if (dist < 950)
                 {
-                    labels.add((int) DistanceCalc.round(dist, 1) + " m");
+                    labels.add((int) DistanceCalcEarth.round(dist, 1) + " " + tr.tr("mAbbr"));
                 } else
                 {
                     if (dist < 100000)
-                    {
-                        labels.add(DistanceCalc.round(dist / 1000, 2) + " km");
-                    } else
-                    {
-                        labels.add((int) DistanceCalc.round(dist / 1000, 1) + " km");
-                    }
+                        labels.add(DistanceCalcEarth.round(dist / 1000, 2) + " " + tr.tr("kmAbbr"));
+                    else
+                        labels.add((int) DistanceCalcEarth.round(dist / 1000, 1) + " " + tr.tr("kmAbbr"));
                 }
             }
         }
         return labels;
     }
 
-    public List<String> createDescription( Translation tr )
-    {        
+    /**
+     * @return string representations of the times until no new instruction.
+     */
+    public List<String> createTimes( TranslationMap.Translation tr )
+    {
+        List<String> res = new ArrayList<String>();
+        for (Instruction instruction : instructions)
+        {
+            long millis = instruction.calcMillis();
+            int minutes = (int) Math.round(millis / 60000.0);
+            if (minutes > 60)
+            {
+                if (minutes / 60.0 > 24)
+                {
+                    long days = (long) Math.floor(minutes / 60.0 / 24.0);
+                    long hours = Math.round((minutes / 60.0) % 24);
+                    res.add(String.format("%d %s %d %s", days, tr.tr("dayAbbr"), hours, tr.tr("hourAbbr")));
+                } else
+                {
+                    long hours = (long) Math.floor(minutes / 60.0);
+                    minutes = Math.round(minutes % 60);
+                    res.add(String.format("%d %s %d %s", hours, tr.tr("hourAbbr"), minutes, tr.tr("minAbbr")));
+                }
+            } else
+            {
+                if (minutes > 0)
+                    res.add(String.format("%d %s", minutes, tr.tr("minAbbr")));
+                else
+                    res.add(String.format(Locale.US, "%.1f %s", millis / 60000.0, tr.tr("minAbbr")));
+            }
+        }
+        return res;
+    }
+
+    public List<List<Double>> createSegmentStartPoints()
+    {
+        List<List<Double>> res = new ArrayList<List<Double>>();
+        for (Instruction instruction : instructions)
+        {
+            List<Double> latLng = new ArrayList<Double>(2);
+            latLng.add(instruction.getStartLat());
+            latLng.add(instruction.getStartLon());
+            res.add(latLng);
+        }
+        return res;
+    }
+
+    public List<String> createDescription( TranslationMap.Translation tr )
+    {
         String shLeftTr = tr.tr("sharp_left");
         String shRightTr = tr.tr("sharp_right");
         String slLeftTr = tr.tr("slight_left");
@@ -183,13 +159,16 @@ public class InstructionList
         String leftTr = tr.tr("left");
         String rightTr = tr.tr("right");
         String continueTr = tr.tr("continue");
-        List<String> instructions = new ArrayList<String>(names.size());
-        for (int i = 0; i < indications.size(); i++)
+        List<String> res = new ArrayList<String>(instructions.size());
+        for (Instruction instruction : instructions)
         {
             String str;
-            String n = names.get(i);
-            int indi = indications.get(i);
-            if (indi == CONTINUE_ON_STREET)
+            String n = instruction.getName();
+            int indi = instruction.getIndication();
+            if (indi == Instruction.FINISH)
+            {
+                str = tr.tr("finish");
+            } else if (indi == Instruction.CONTINUE_ON_STREET)
             {
                 str = Helper.isEmpty(n) ? continueTr : tr.tr("continue_onto", n);
             } else
@@ -197,41 +176,112 @@ public class InstructionList
                 String dir = null;
                 switch (indi)
                 {
-                    case TURN_SHARP_LEFT:
+                    case Instruction.TURN_SHARP_LEFT:
                         dir = shLeftTr;
                         break;
-                    case TURN_LEFT:
+                    case Instruction.TURN_LEFT:
                         dir = leftTr;
                         break;
-                    case TURN_SLIGHT_LEFT:
+                    case Instruction.TURN_SLIGHT_LEFT:
                         dir = slLeftTr;
                         break;
-                    case TURN_SLIGHT_RIGHT:
+                    case Instruction.TURN_SLIGHT_RIGHT:
                         dir = slRightTr;
                         break;
-                    case TURN_RIGHT:
+                    case Instruction.TURN_RIGHT:
                         dir = rightTr;
                         break;
-                    case TURN_SHARP_RIGHT:
+                    case Instruction.TURN_SHARP_RIGHT:
                         dir = shRightTr;
                         break;
                 }
                 if (dir == null)
-                {
                     throw new IllegalStateException("Indication not found " + indi);
-                }
 
                 str = Helper.isEmpty(n) ? tr.tr("turn", dir) : tr.tr("turn_onto", dir, n);
             }
-            instructions.add(Helper.firstBig(str));
+            res.add(Helper.firstBig(str));
         }
-        return instructions;
+        return res;
     }
 
-    public void updateLastDistance( double prevDist )
+    public boolean isEmpty()
     {
-        if (distances.isEmpty())
-            throw new IllegalStateException("Cannot update last distance with:" + prevDist);
-        distances.set(distances.size() - 1, prevDist);
+        return instructions.isEmpty();
+    }
+
+    @Override
+    public Iterator<Instruction> iterator()
+    {
+        return instructions.iterator();
+    }
+
+    public Instruction get( int index )
+    {
+        return instructions.get(index);
+    }
+
+    @Override
+    public String toString()
+    {
+        return instructions.toString();
+    }
+
+    /**
+     * This method returns a list of gpx entries where the time (in millis) is relative to the first
+     * which is 0.
+     */
+    public List<GPXEntry> createGPXList()
+    {
+        List<GPXEntry> gpxList = new ArrayList<GPXEntry>();
+        long timeOffset = 0;
+        for (Instruction i : this)
+        {
+            timeOffset = i.fillGPXList(gpxList, timeOffset);
+        }
+        return gpxList;
+    }
+
+    /**
+     * Creates the GPX Format out of the points.
+     * <p/>
+     * @return string to be stored as gpx file
+     */
+    public String createGPX( String trackName, long startTimeMillis, String timeZoneId )
+    {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        TimeZone tz = TimeZone.getDefault();
+        if (!Helper.isEmpty(timeZoneId))
+            tz = TimeZone.getTimeZone(timeZoneId);
+
+        formatter.setTimeZone(tz);
+        String header = "<?xml version='1.0' encoding='UTF-8' standalone='no' ?>"
+                + "<gpx xmlns='http://www.topografix.com/GPX/1/1' creator='Graphhopper' version='1.1' >"
+                + "<metadata>"
+                + "<link href='http://graphhopper.com'>"
+                + "<text>GraphHopper GPX</text>"
+                + "</link>"
+                + "<time>" + tzHack(formatter.format(startTimeMillis)) + "</time>"
+                + "</metadata>";
+        StringBuilder track = new StringBuilder(header);
+        track.append("<trk><name>").append(trackName).append("</name>");
+        track.append("<trkseg>");
+        for (GPXEntry entry : createGPXList())
+        {
+            track.append("<trkpt lat='").append(entry.getLat()).append("' lon='").append(entry.getLon()).append("'>");
+            track.append("<time>").append(tzHack(formatter.format(startTimeMillis + entry.getMillis()))).append("</time>");
+            track.append("</trkpt>");
+        }
+        track.append("</trkseg>");
+        track.append("</trk></gpx>");
+        return track.toString().replaceAll("\\'", "\"");
+    }
+
+    /**
+     * Hack to form valid timezone ala +01:00 instead +0100
+     */
+    private static String tzHack( String str )
+    {
+        return str.substring(0, str.length() - 2) + ":" + str.substring(str.length() - 2);
     }
 }

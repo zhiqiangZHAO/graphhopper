@@ -2,13 +2,11 @@ package com.graphhopper.reader;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.graphhopper.coll.LongIntMap;
-import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.TurnCostEncoder;
 import com.graphhopper.routing.util.TurnCostsEntry;
 import com.graphhopper.storage.DataAccess;
@@ -66,19 +64,19 @@ public class OSMRestrictionRelation
             int edgeIdFrom = EdgeIterator.NO_EDGE;
 
             // get all incoming edges and receive the edge which is defined by osmFrom
-            edgeInExplorer.setBaseNode(via);
+            EdgeIterator iter = edgeInExplorer.setBaseNode(via);
 
-            while ( edgeInExplorer.next() )
+            while ( iter.next() )
             {
-                if (osmid(edgeInExplorer.getEdge(), osmidsOfEdges) == fromOsm)
+                if (osmid(iter.getEdge(), osmidsOfEdges) == fromOsm)
                 {
-                    edgeIdFrom = edgeInExplorer.getEdge();
+                    edgeIdFrom = iter.getEdge();
                     break;
                 }
             }
 
             //get all outgoing edges of the via node 
-            edgeOutExplorer.setBaseNode(via);
+            iter = edgeOutExplorer.setBaseNode(via);
             if (edgeIdFrom != EdgeIterator.NO_EDGE)
             {
                 if (restriction == TYPE_NO_U_TURN
@@ -88,15 +86,15 @@ public class OSMRestrictionRelation
                 {
                     // if we have a restriction of TYPE_NO_* we add restriction only to
                     // the given turn (from, via, to)  
-                    while ( edgeOutExplorer.next() )
+                    while ( iter.next() )
                     {
-                        if (edgeOutExplorer.getEdge() != edgeIdFrom
-                                && osmid(edgeOutExplorer.getEdge(), osmidsOfEdges) == toOsm)
+                        if (iter.getEdge() != edgeIdFrom
+                                && osmid(iter.getEdge(), osmidsOfEdges) == toOsm)
                         {
                             entries.add(new TurnCostsEntry()
                                     .flags(TurnCostEncoder.restriction()).node(via)
                                     .edgeFrom(edgeIdFrom)
-                                    .edgeTo(edgeOutExplorer.getEdge()));
+                                    .edgeTo(iter.getEdge()));
                         }
                     }
 
@@ -106,15 +104,15 @@ public class OSMRestrictionRelation
                 {
                     // if we have a restriction of TYPE_ONLY_* we add restriction to
                     // any turn possibility (from, via, * ) except the given turn
-                    while ( edgeOutExplorer.next() )
+                    while ( iter.next() )
                     {
-                        if (edgeOutExplorer.getEdge() != edgeIdFrom
-                                && osmid(edgeOutExplorer.getEdge(), osmidsOfEdges) != toOsm)
+                        if (iter.getEdge() != edgeIdFrom
+                                && osmid(iter.getEdge(), osmidsOfEdges) != toOsm)
                         {
                             entries.add(new TurnCostsEntry()
                                     .flags(TurnCostEncoder.restriction()).node(via)
                                     .edgeFrom(edgeIdFrom)
-                                    .edgeTo(edgeOutExplorer.getEdge()));
+                                    .edgeTo(iter.getEdge()));
                         }
                     }
                     ;
@@ -157,7 +155,7 @@ public class OSMRestrictionRelation
                 } else if (OSMElement.NODE == member.type() && "via".equals(member.role()))
                 {
                     int tmpNode = osmNodeIDToIndexMap.get(member.ref());
-                    if (tmpNode < OSMReaderHelper.TOWER_NODE)
+                    if (tmpNode < OSMReader.TOWER_NODE)
                     {
                         tmpNode = -tmpNode - 3;
                         restriction.via = tmpNode;

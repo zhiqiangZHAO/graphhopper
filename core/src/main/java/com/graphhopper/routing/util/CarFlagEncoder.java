@@ -83,17 +83,29 @@ public class CarFlagEncoder extends AbstractFlagEncoder
         return shift + 5;
     }
 
-    int getSpeed( String string )
+    int getSpeed( OSMWay way )
     {
-        Integer speed = SPEED.get(string);
+        String highwayValue = way.getTag("highway");
+        Integer speed = SPEED.get(highwayValue);
         if (speed == null)
-            throw new IllegalStateException("car, no speed found for:" + string);
-        
+            throw new IllegalStateException("car, no speed found for:" + highwayValue);
+
+        if (highwayValue.equals("track"))
+        {
+            String tt = way.getTag("tracktype");
+            if (!Helper.isEmpty(tt))
+            {
+                Integer tInt = TRACKTYPE_SPEED.get(tt);
+                if (tInt != null)
+                    speed = tInt;
+            }
+        }
+
         return speed;
     }
 
     @Override
-    public int isAllowed( OSMWay way )
+    public long isAllowed( OSMWay way )
     {
         String highwayValue = way.getTag("highway");
         if (highwayValue == null)
@@ -104,13 +116,17 @@ public class CarFlagEncoder extends AbstractFlagEncoder
                 if (motorcarTag == null)
                     motorcarTag = way.getTag("motor_vehicle");
 
-                if (motorcarTag == null || "yes".equals(motorcarTag))
+                if (motorcarTag == null && !way.hasTag("foot") && !way.hasTag("bicycle")
+                        || "yes".equals(motorcarTag))
                     return acceptBit | ferryBit;
             }
             return 0;
         }
 
         if (!SPEED.containsKey(highwayValue))
+            return 0;
+
+        if (way.hasTag("impassable", "yes") || way.hasTag("status", "impassable"))
             return 0;
 
         // do not drive street cars into fords
@@ -130,17 +146,16 @@ public class CarFlagEncoder extends AbstractFlagEncoder
     }
 
     @Override
-    public int handleWayTags( int allowed, OSMWay way )
+    public long handleWayTags( long allowed, OSMWay way )
     {
         if ((allowed & acceptBit) == 0)
             return 0;
 
-        int encoded;
+        long encoded;
         if ((allowed & ferryBit) == 0)
         {
-            String highwayValue = way.getTag("highway");
             // get assumed speed from highway type
-            Integer speed = getSpeed(highwayValue);
+            Integer speed = getSpeed(way);
             int maxspeed = parseSpeed(way.getTag("maxspeed"));
             // apply speed limit no matter of the road type
             if (maxspeed >= 0)
@@ -169,8 +184,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder
 
         } else
         {
-            // TODO read duration and calculate speed 00:30 for ferry
-            encoded = speedEncoder.setValue(0, 10);
+            encoded = handleFerry(way, SPEED.get("living_street"), SPEED.get("service"), SPEED.get("residential"));
             encoded |= directionBitMask;
         }
 
@@ -178,7 +192,7 @@ public class CarFlagEncoder extends AbstractFlagEncoder
     }
 
     @Override
-    public int analyzeNodeTags( OSMNode node )
+    public long analyzeNodeTags( OSMNode node )
     {
 
         // absolute barriers always block
@@ -241,11 +255,22 @@ public class CarFlagEncoder extends AbstractFlagEncoder
     @Override
     public String toString()
     {
-        return "CAR";
+        return "car";
     }
+
+    private static final Map<String, Integer> TRACKTYPE_SPEED = new HashMap<String, Integer>()
+    {
+        {
+            put("grade1", 20); // paved
+            put("grade2", 15); // now unpaved - gravel mixed with ...
+            put("grade3", 10); // ... hard and soft materials
+            put("grade4", 5); // ... some hard or compressed materials
+            put("grade5", 5); // ... no hard materials. soil/sand/grass
+        }
+    };
+
     private static final Set<String> BAD_SURFACE = new HashSet<String>()
     {
-        
         {
             add("cobblestone");
             add("grass_paver");
@@ -264,7 +289,6 @@ public class CarFlagEncoder extends AbstractFlagEncoder
      */
     private static final Map<String, Integer> SPEED = new HashMap<String, Integer>()
     {
-        
         {
             // autobahn
             put("motorway", 100);
@@ -284,12 +308,12 @@ public class CarFlagEncoder extends AbstractFlagEncoder
             put("unclassified", 30);
             put("residential", 30);
             // spielstraße
-            put("living_street", 10);
+            put("living_street", 5);
             put("service", 20);
             // unknown road
             put("road", 20);
             // forestry stuff
-            put("track", 20);
+            put("track", 15);
         }
     };
 }

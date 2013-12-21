@@ -18,20 +18,12 @@
  */
 package com.graphhopper.routing;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-
-import org.junit.Test;
-
 import com.graphhopper.routing.edgebased.EdgeAStar;
 import com.graphhopper.routing.util.AlgorithmPreparation;
-import com.graphhopper.routing.util.FastestCalc;
 import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.routing.util.NoOpAlgorithmPreparation;
-import com.graphhopper.routing.util.WeightCalculation;
+import com.graphhopper.routing.util.Weighting;
 import com.graphhopper.storage.Graph;
-import com.graphhopper.util.Helper;
 
 /**
  * 
@@ -42,7 +34,7 @@ public class EdgeAStarTest extends AbstractRoutingAlgorithmTester
 
     @Override
     public AlgorithmPreparation prepareGraph( Graph g,
-            final FlagEncoder encoder, final WeightCalculation calc )
+            final FlagEncoder encoder, final Weighting calc )
     {
         return new NoOpAlgorithmPreparation()
         {
@@ -52,23 +44,5 @@ public class EdgeAStarTest extends AbstractRoutingAlgorithmTester
                 return new EdgeAStar(_graph, encoder, calc);
             }
         }.setGraph(g);
-    }
-
-    @Override
-    @Test
-    public void testPerformance() throws IOException
-    {
-        //the edge based version of astar needs more time because we have much more edges to traverse
-        //TODO speed improvements
-    }
-
-    @Test
-    public void testCalcWithTurnRestrictions_PTurnInShortestPath()
-    {
-        Graph graph = createTestGraphPTurn(createTurnCostsGraph());
-        Path p1 = prepareGraph(graph, carEncoder, new FastestCalc(carEncoder)).createAlgo()
-                .calcPath(3, 0);
-        assertEquals(Helper.createTList(3, 5, 8, 9, 10, 5, 6, 7, 0), p1.calcNodes());
-        assertEquals(p1.toString(), 26, p1.getDistance(), 1e-6);
     }
 }

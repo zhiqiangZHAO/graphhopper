@@ -19,7 +19,7 @@ package com.graphhopper.routing.util;
 
 import com.graphhopper.coll.GHBitSet;
 import com.graphhopper.coll.GHBitSetImpl;
-import com.graphhopper.storage.Graph;
+import com.graphhopper.storage.GraphStorage;
 import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.EdgeIterator;
 import com.graphhopper.util.XFirstSearch;
@@ -38,13 +38,14 @@ import org.slf4j.LoggerFactory;
  */
 public class PrepareRoutingSubnetworks
 {
-    private Logger logger = LoggerFactory.getLogger(getClass());
-    private final Graph g;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final GraphStorage g;
     private final EdgeFilter edgeFilter;
-    private int minNetworkSize = 3000;
+    private int minNetworkSize = 200;
     private int subNetworks = -1;
+    private final AtomicInteger maxEdgesPerNode = new AtomicInteger(0);
 
-    public PrepareRoutingSubnetworks( Graph g, EncodingManager em )
+    public PrepareRoutingSubnetworks( GraphStorage g, EncodingManager em )
     {
         this.g = g;
         if (em.getVehicleCount() == 0)
@@ -66,7 +67,8 @@ public class PrepareRoutingSubnetworks
         int del = removeZeroDegreeNodes();
         Map<Integer, Integer> map = findSubnetworks();
         keepLargeNetworks(map);
-        logger.info("optimize to remove subnetworks (" + map.size() + "), zero-degree-nodes(" + del + ")");
+        logger.info("optimize to remove subnetworks (" + map.size() + "), zero-degree-nodes (" + del + "), "
+                + "maxEdges/node (" + maxEdgesPerNode.get() + ")");
         g.optimize();
         subNetworks = map.size();
     }
@@ -90,18 +92,32 @@ public class PrepareRoutingSubnetworks
 
             new XFirstSearch()
             {
+                int tmpCounter = 0;
+
                 @Override
-                protected GHBitSet createBitSet( )
+                protected GHBitSet createBitSet()
                 {
                     return bs;
                 }
 
                 @Override
-                protected boolean goFurther( int nodeId )
+                protected final boolean goFurther( int nodeId )
                 {
+                    if (tmpCounter > maxEdgesPerNode.get())
+                        maxEdgesPerNode.set(tmpCounter);
+
+                    tmpCounter = 0;
                     integ.incrementAndGet();
                     return true;
                 }
+
+                @Override
+                protected final boolean checkAdjacent( EdgeIterator iter )
+                {
+                    tmpCounter++;
+                    return true;
+                }
+
             }.start(explorer, start, false);
             map.put(start, integ.get());
             integ.set(0);
@@ -150,14 +166,14 @@ public class PrepareRoutingSubnetworks
     {
         if (entries >= minNetworkSize)
         {
-            logger.info("did not remove large network (" + entries + ")");
+            // logger.info("did not remove large network (" + entries + ")");
             return;
         }
         EdgeExplorer explorer = g.createEdgeExplorer(edgeFilter);
         new XFirstSearch()
         {
             @Override
-            protected GHBitSet createBitSet(  )
+            protected GHBitSet createBitSet()
             {
                 return bs;
             }
@@ -167,7 +183,7 @@ public class PrepareRoutingSubnetworks
             {
                 g.markNodeRemoved(nodeId);
                 return super.goFurther(nodeId);
-            }            
+            }
         }.start(explorer, start, true);
     }
 
@@ -183,8 +199,8 @@ public class PrepareRoutingSubnetworks
         EdgeExplorer explorer = g.createEdgeExplorer();
         for (int start = 0; start < locs; start++)
         {
-            explorer.setBaseNode(start);
-            if (!explorer.next())
+            EdgeIterator iter = explorer.setBaseNode(start);
+            if (!iter.next())
             {
                 removed++;
                 g.markNodeRemoved(start);

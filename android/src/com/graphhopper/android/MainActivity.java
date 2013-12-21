@@ -1,7 +1,6 @@
 package com.graphhopper.android;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +41,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.graphhopper.GHRequest;
@@ -69,7 +69,7 @@ public class MainActivity extends MapActivity
     private volatile boolean prepareInProgress = false;
     private volatile boolean shortestPathRunning = false;
     private String currentArea = "berlin";
-    private String fileListURL = "http://graphhopper.com/public/maps/0.1/";
+    private String fileListURL = "http://graphhopper.com/public/maps/" + Constants.VERSION + "/";
     private String prefixURL = fileListURL;
     private String downloadURL;
     private String mapsFolder;
@@ -155,6 +155,9 @@ public class MainActivity extends MapActivity
             new File(mapsFolder).mkdirs();
         }
 
+        TextView welcome = (TextView) findViewById(R.id.welcome);
+        welcome.setText("Welcome to GraphHopper " + Constants.VERSION + "!");
+        welcome.setPadding(6, 3, 3, 3); 
         localSpinner = (Spinner) findViewById(R.id.locale_area_spinner);
         localButton = (Button) findViewById(R.id.locale_button);
         remoteSpinner = (Spinner) findViewById(R.id.remote_area_spinner);
@@ -237,7 +240,7 @@ public class MainActivity extends MapActivity
                         }
                     }
                 }
-                log(res.toString());
+
                 return res;
             }
 
@@ -401,7 +404,7 @@ public class MainActivity extends MapActivity
             protected Path saveDoInBackground( Void... v ) throws Exception
             {
                 GraphHopper tmpHopp = new GraphHopper().forMobile();
-                tmpHopp.setCHShortcuts(true, true);
+                tmpHopp.setCHShortcuts("fastest");
                 tmpHopp.load(mapsFolder + currentArea);
                 log("found graph " + tmpHopp.getGraph().toString() + ", nodes:" + tmpHopp.getGraph().getNodes());
                 hopper = tmpHopp;
@@ -444,11 +447,7 @@ public class MainActivity extends MapActivity
         paintStroke.setColor(Color.BLUE);
         paintStroke.setAlpha(128);
         paintStroke.setStrokeWidth(8);
-        paintStroke
-                .setPathEffect(new DashPathEffect(new float[]
-                {
-                    25, 15
-                }, 0));
+        paintStroke.setPathEffect(new DashPathEffect(new float[] { 25, 15 }, 0));
 
         return new Polyline(polygonalChain, paintStroke);
     }
@@ -489,7 +488,7 @@ public class MainActivity extends MapActivity
                             / 1000f + ", nodes:" + resp.getPoints().getSize() + ", time:"
                             + time + " " + resp.getDebugInfo());
                     logUser("the route is " + (int) (resp.getDistance() / 100) / 10f
-                            + "km long, time:" + resp.getTime() / 60f + "min, debug:" + time);
+                            + "km long, time:" + resp.getMillis() / 60000f + "min, debug:" + time);
 
                     pathOverlay.getOverlayItems().add(createPolyline(resp));
                     mapView.redraw();

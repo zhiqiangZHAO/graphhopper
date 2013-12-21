@@ -24,8 +24,8 @@ import static org.junit.Assert.*;
  *
  * @author Peter Karich
  */
-public class DouglasPeuckerTest
-{
+public class DouglasPeuckerTest {
+
     // get some real life points from graphhopper API
     // http://217.92.216.224:8080/api?from=49.945642,11.571436&to=49.946001,11.580706
     String points1 = "[[11.571499218899739,49.945605917549265],[11.571664621792689,49.94570668665409],[11.571787742639804,49.94578156499077],[11.572065649302282,49.94590338198625],[11.572209445511016,49.94595944760649],[11.57229438213172,49.94598850487147],"
@@ -35,27 +35,10 @@ public class DouglasPeuckerTest
             + "[11.577917149169382,49.94702655703634],[11.577969116970207,49.947010724552214],[11.578816061738493,49.94673523932849],[11.579533552666014,49.94648974269233],[11.580073719771365,49.946299007824784],[11.580253092503245,49.946237913062525],"
             + "[11.580604946179799,49.94608871518274],[11.580740546749693,49.94603041438826]]";
 
-    void parse( PointList list, String str )
-    {
-        for (String latlon : str.split("\\["))
-        {
-            if (latlon.trim().length() == 0)
-            {
-                continue;
-            }
-
-            String ll[] = latlon.split(",");
-            String lat = ll[1].replace("]", "").trim();
-            // oh, again geoJson
-            list.add(Double.parseDouble(lat), Double.parseDouble(ll[0].trim()));
-        }
-    }
-
     @Test
-    public void testParse()
-    {
+    public void testParse() {
         PointList pointList = new PointList();
-        parse(pointList, "[[11.571499218899739,49.945605917549265],[11.571664621792689,49.94570668665409]]");
+        pointList.parseJSON("[[11.571499218899739,49.945605917549265],[11.571664621792689,49.94570668665409]]");
         assertEquals(49.945605917549265, pointList.getLatitude(0), 1e-6);
         assertEquals(11.571499218899739, pointList.getLongitude(0), 1e-6);
         assertEquals(49.94570668665409, pointList.getLatitude(1), 1e-6);
@@ -63,10 +46,9 @@ public class DouglasPeuckerTest
     }
 
     @Test
-    public void testPathSimplify()
-    {
+    public void testPathSimplify() {
         PointList pointList = new PointList();
-        parse(pointList, points1);
+        pointList.parseJSON(points1);
         assertEquals(32, pointList.getSize());
         new DouglasPeucker().setMaxDistance(.5).simplify(pointList);
         // Arrays.asList(2, 4, 6, 7, 8, 9, 12, 14, 15, 17, 18, 19, 20, 22, 24, 27, 28, 29, 31, 33),
@@ -74,10 +56,9 @@ public class DouglasPeuckerTest
     }
 
     @Test
-    public void testSimplifyCheckPointCount()
-    {
+    public void testSimplifyCheckPointCount() {
         PointList pointList = new PointList();
-        parse(pointList, points1);
+        pointList.parseJSON(points1);
         DouglasPeucker dp = new DouglasPeucker().setMaxDistance(.5);
         assertEquals(32, pointList.getSize());
         dp.simplify(pointList);
@@ -88,10 +69,9 @@ public class DouglasPeuckerTest
             + "[9.961859918278305,50.201853928011374],[9.961668810881722,50.20138565901039],[9.96216874485095,50.20128507617008],[9.961953795595925,50.20088553877664],[9.961899033827313,50.200686794534775],[9.961716680863127,50.20014066696481],[9.961588158344957,50.199798499043254]]";
 
     @Test
-    public void testSimplifyCheckPointOrder()
-    {
+    public void testSimplifyCheckPointOrder() {
         PointList pointList = new PointList();
-        parse(pointList, points2);
+        pointList.parseJSON(points2);
         assertEquals(13, pointList.getSize());
         new DouglasPeucker().setMaxDistance(.5).simplify(pointList);
         assertEquals(11, pointList.getSize());

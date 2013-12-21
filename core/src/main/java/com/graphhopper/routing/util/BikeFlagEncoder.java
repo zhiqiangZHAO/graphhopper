@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Use this FlagEncoder for bicycle support (not motorbikes).
+ * <p/>
  * @author Peter Karich
  * @author Nop
  */
@@ -91,7 +93,7 @@ public class BikeFlagEncoder extends AbstractFlagEncoder
     @Override
     public String toString()
     {
-        return "BIKE";
+        return "bike";
     }
 
     /**
@@ -100,7 +102,7 @@ public class BikeFlagEncoder extends AbstractFlagEncoder
      * @param way
      */
     @Override
-    public int isAllowed( OSMWay way )
+    public long isAllowed( OSMWay way )
     {
         String highwayValue = way.getTag("highway");
         if (highwayValue == null)
@@ -146,12 +148,12 @@ public class BikeFlagEncoder extends AbstractFlagEncoder
     }
 
     @Override
-    public int handleWayTags( int allowed, OSMWay way )
+    public long handleWayTags( long allowed, OSMWay way )
     {
         if ((allowed & acceptBit) == 0)
             return 0;
 
-        int encoded;
+        long encoded;
         if ((allowed & ferryBit) == 0)
         {
             // set speed
@@ -184,15 +186,17 @@ public class BikeFlagEncoder extends AbstractFlagEncoder
 
         } else
         {
-            // TODO read duration and calculate speed 00:30 for ferry
-            encoded = speedEncoder.setValue(0, 10);
+            encoded = handleFerry(way,
+                    HIGHWAY_SPEED.get("living_street"),
+                    HIGHWAY_SPEED.get("track"),
+                    HIGHWAY_SPEED.get("primary"));
             encoded |= directionBitMask;
         }
         return encoded;
     }
 
     @Override
-    public int analyzeNodeTags( OSMNode node )
+    public long analyzeNodeTags( OSMNode node )
     {
 
         // absolute barriers always block
@@ -234,9 +238,7 @@ public class BikeFlagEncoder extends AbstractFlagEncoder
         {
             Integer tInt = TRACKTYPE_SPEED.get(tt);
             if (tInt != null)
-            {
-                return tInt;
-            }
+                return tInt;            
         }
         String highway = way.getTag("highway");
         if (!Helper.isEmpty(highway))
@@ -251,7 +253,6 @@ public class BikeFlagEncoder extends AbstractFlagEncoder
     }
     private final Set<String> safeHighwayTags = new HashSet<String>()
     {
-        
         {
             add("cycleway");
             add("path");
@@ -262,9 +263,9 @@ public class BikeFlagEncoder extends AbstractFlagEncoder
             add("residential");
         }
     };
+    
     private static final Map<String, Integer> TRACKTYPE_SPEED = new HashMap<String, Integer>()
     {
-        
         {
             put("grade1", 16); // paved
             put("grade2", 12); // now unpaved ...
@@ -273,9 +274,9 @@ public class BikeFlagEncoder extends AbstractFlagEncoder
             put("grade5", 8); // like sand/grass            
         }
     };
+    
     private static final Map<String, Integer> SURFACE_SPEED = new HashMap<String, Integer>()
-    {
-        
+    {   
         {
             put("asphalt", 18);
             put("concrete", 18);
@@ -289,9 +290,9 @@ public class BikeFlagEncoder extends AbstractFlagEncoder
             put("cobblestone", 6);
         }
     };
+    
     private static final Map<String, Integer> HIGHWAY_SPEED = new HashMap<String, Integer>()
     {
-        
         {
             put("living_street", 6);
 
@@ -311,7 +312,6 @@ public class BikeFlagEncoder extends AbstractFlagEncoder
             put("secondary_link", 16);
             put("tertiary", 18);
             put("tertiary_link", 16);
-
         }
     };
 }

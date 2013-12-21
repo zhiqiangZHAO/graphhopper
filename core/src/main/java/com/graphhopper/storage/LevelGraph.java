@@ -19,7 +19,7 @@ package com.graphhopper.storage;
 
 import com.graphhopper.routing.util.AllEdgesSkipIterator;
 import com.graphhopper.routing.util.EdgeFilter;
-import com.graphhopper.util.EdgeBase;
+import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.EdgeSkipExplorer;
 
 /**
@@ -35,14 +35,10 @@ public interface LevelGraph extends GraphTurnCosts
 
     int getLevel( int index );
 
-    @Override
-    EdgeSkipExplorer edge( int a, int b, double distance, int flags );
+    EdgeSkipExplorer shortcut( int a, int b );
 
     @Override
-    EdgeSkipExplorer edge( int a, int b, double distance, boolean bothDirections );
-
-    @Override
-    EdgeBase getEdgeProps( int edgeId, int endNode );
+    EdgeIteratorState getEdgeProps( int edgeId, int endNode );
 
     @Override
     EdgeSkipExplorer createEdgeExplorer();

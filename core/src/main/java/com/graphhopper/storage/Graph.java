@@ -20,7 +20,7 @@ package com.graphhopper.storage;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.AllEdgesIterator;
 import com.graphhopper.util.EdgeExplorer;
-import com.graphhopper.util.EdgeBase;
+import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.shapes.BBox;
 
 /**
@@ -43,11 +43,14 @@ public interface Graph
     void setNode( int node, double lat, double lon );
 
     /**
-     * @return the latitude at the specified index
+     * @return the latitude at the specified node index
      */
-    double getLatitude( int node );
+    double getLatitude( int nodeId );
 
-    double getLongitude( int node );
+    /**
+     * @return the longitude at the specified node index
+     */
+    double getLongitude( int nodeId );
 
     /**
      * Returns the implicit bounds of this graph calculated from the lat,lon input of setNode
@@ -55,28 +58,30 @@ public interface Graph
     BBox getBounds();
 
     /**
-     * Creates an edge between the nodes a and b.
+     * Creates an edge between the nodes a and b. To set distance or access use the returned edge
+     * and e.g. edgeState.setDistance
      * <p/>
      * @param a the index of the starting (tower) node of the edge
      * @param b the index of the ending (tower) node of the edge
-     * @param distance between a and b. Often setNode is not called - if it is not a geo-graph - and
-     * we need the distance parameter here.
-     * @param flags see EdgeFlags - involves velocity and direction
-     * @return the created edge
+     * @return the newly created edge
      */
-    EdgeBase edge( int a, int b, double distance, int flags );
+    EdgeIteratorState edge( int a, int b );
 
-    EdgeBase edge( int a, int b, double distance, boolean bothDirections );
+    /**
+     * Use edge(a,b).setDistance().setFlags instead
+     */
+    EdgeIteratorState edge( int a, int b, double distance, boolean bothDirections );
 
     /**
      * Returns a wrapper over the specified edgeId.
      * <p/>
-     * @param endNode will be returned via adjNode(). If endNode is -1 then adjNode() will be the
-     * bigger node.
+     * @param adjNode is the node that will be returned via adjNode(). If adjNode is
+     * Integer.MIN_VALUE then the edge with undefined values for adjNode and baseNode will be
+     * returned.
      * @return an edge iterator over one element where the method next() will always return false.
      * @throws IllegalStateException if edgeId is not valid
      */
-    EdgeBase getEdgeProps( int edgeId, int endNode );
+    EdgeIteratorState getEdgeProps( int edgeId, int adjNode );
 
     /**
      * @return all edges in this graph, where baseNode will be the smaller node.
@@ -85,35 +90,25 @@ public interface Graph
 
     /**
      * Returns an iterator which makes it possible to traverse all edges of the specified node if
-     * the filter accepts the edge.
+     * the filter accepts the edge. Reduce calling this method as much as possible, e.g. create it
+     * before a for loop!
+     * <p/>
+     * @see Graph#createEdgeExplorer()
      */
     EdgeExplorer createEdgeExplorer( EdgeFilter filter );
 
     /**
      * Returns all the edges reachable from the specified index. Same behaviour as
-     * graph.getEdges(index, new AllEdgesFilter());
+     * graph.getEdges(index, EdgeFilter.ALL_EDGES);
      * <p/>
      * @return all edges regardless of the vehicle type or direction.
      */
     EdgeExplorer createEdgeExplorer();
 
     /**
-     * @return the specified graph g
+     * Copy this Graph into the specified Graph g.
+     * <p>
+     * @return the specified GraphStorage g
      */
     Graph copyTo( Graph g );
-
-    /**
-     * Schedule the deletion of the specified node until an optimize() call happens
-     */
-    void markNodeRemoved( int index );
-
-    /**
-     * Checks if the specified node is marked as removed.
-     */
-    boolean isNodeRemoved( int index );
-
-    /**
-     * Performs optimization routines like deletion or node rearrangements.
-     */
-    void optimize();
 }

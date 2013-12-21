@@ -22,20 +22,21 @@ import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.util.DistancePlaneProjection;
 import com.graphhopper.util.DistanceCalc;
+import com.graphhopper.util.DistanceCalcEarth;
 
 /**
  * Same as full index but calculates distance to all edges too
  * <p/>
  * @author Peter Karich
  */
-public class Location2IDFullWithEdgesIndex implements Location2IDIndex
+public class Location2IDFullWithEdgesIndex implements LocationIndex
 {
-    private DistanceCalc calc = new DistanceCalc();
-    private Graph g;
+    private DistanceCalc calc = new DistanceCalcEarth();
+    private Graph graph;
 
     public Location2IDFullWithEdgesIndex( Graph g )
     {
-        this.g = g;
+        this.graph = g;
     }
 
     @Override
@@ -45,26 +46,26 @@ public class Location2IDFullWithEdgesIndex implements Location2IDIndex
     }
 
     @Override
-    public Location2IDIndex setResolution( int resolution )
+    public LocationIndex setResolution( int resolution )
     {
         return this;
     }
 
     @Override
-    public Location2IDIndex setApproximation( boolean approxDist )
+    public LocationIndex setApproximation( boolean approxDist )
     {
         if (approxDist)
         {
             calc = new DistancePlaneProjection();
         } else
         {
-            calc = new DistanceCalc();
+            calc = new DistanceCalcEarth();
         }
         return this;
     }
 
     @Override
-    public Location2IDIndex prepareIndex()
+    public LocationIndex prepareIndex()
     {
         return this;
     }
@@ -76,12 +77,11 @@ public class Location2IDFullWithEdgesIndex implements Location2IDIndex
     }
 
     @Override
-    public LocationIDResult findClosest( double queryLat, double queryLon, EdgeFilter filter )
+    public QueryResult findClosest( double queryLat, double queryLon, EdgeFilter filter )
     {
-        int nodes = g.getNodes();
-        LocationIDResult res = new LocationIDResult();
+        QueryResult res = new QueryResult(queryLat, queryLon);
         double foundDist = Double.MAX_VALUE;
-        AllEdgesIterator iter = g.getAllEdges();
+        AllEdgesIterator iter = graph.getAllEdges();
         while (iter.next())
         {
             if (!filter.accept(iter))
@@ -98,28 +98,27 @@ public class Location2IDFullWithEdgesIndex implements Location2IDIndex
                     node = iter.getAdjNode();
                 }
 
-                double fromLat = g.getLatitude(node);
-                double fromLon = g.getLongitude(node);
+                double fromLat = graph.getLatitude(node);
+                double fromLon = graph.getLongitude(node);
                 double fromDist = calc.calcDist(fromLat, fromLon, queryLat, queryLon);
                 if (fromDist < 0)
-                {
                     continue;
-                }
 
                 if (fromDist < foundDist)
                 {
+                    res.setQueryDistance(fromDist);
+                    res.setClosestEdge(iter.detach());
                     res.setClosestNode(node);
                     foundDist = fromDist;
                 }
 
                 // process the next stuff only for baseNode
                 if (i > 0)
-                {
                     continue;
-                }
+
                 int toNode = iter.getAdjNode();
-                double toLat = g.getLatitude(toNode);
-                double toLon = g.getLongitude(toNode);
+                double toLat = graph.getLatitude(toNode);
+                double toLon = graph.getLongitude(toNode);
 
                 if (calc.validEdgeDistance(queryLat, queryLon,
                         fromLat, fromLon, toLat, toLon))
@@ -128,11 +127,12 @@ public class Location2IDFullWithEdgesIndex implements Location2IDIndex
                             fromLat, fromLon, toLat, toLon));
                     if (distEdge < foundDist)
                     {
+                        res.setQueryDistance(distEdge);
                         res.setClosestNode(node);
+                        res.setClosestEdge(iter);
                         if (fromDist > calc.calcDist(toLat, toLon, queryLat, queryLon))
-                        {
                             res.setClosestNode(toNode);
-                        }
+
                         foundDist = distEdge;
                     }
                 }
@@ -142,7 +142,7 @@ public class Location2IDFullWithEdgesIndex implements Location2IDIndex
     }
 
     @Override
-    public Location2IDIndex create( long size )
+    public LocationIndex create( long size )
     {
         return this;
     }

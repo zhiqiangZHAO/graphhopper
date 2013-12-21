@@ -19,12 +19,15 @@
 package com.graphhopper.routing.edgebased;
 
 import com.graphhopper.routing.AbstractRoutingAlgorithm;
+import com.graphhopper.routing.RoutingAlgorithm;
+import com.graphhopper.routing.util.DefaultTurnCostsCalc;
 import com.graphhopper.routing.util.FlagEncoder;
-import com.graphhopper.routing.util.WeightCalculation;
+import com.graphhopper.routing.util.TurnCostCalculation;
+import com.graphhopper.routing.util.Weighting;
 import com.graphhopper.storage.EdgeEntry;
 import com.graphhopper.storage.Graph;
-import com.graphhopper.util.EdgeBase;
 import com.graphhopper.util.EdgeIterator;
+import com.graphhopper.util.EdgeIteratorState;
 
 /**
  * Shared methods for all edge-based algorithms. Edge-based algorithms need to consider the
@@ -42,13 +45,15 @@ public abstract class AbstractEdgeBasedRoutingAlgorithm extends AbstractRoutingA
     public static int HIGHEST_BIT_ONE = 0x80000000;
     
     protected boolean directed = true;
+    protected TurnCostCalculation turnCostCalc;
 
-    public AbstractEdgeBasedRoutingAlgorithm( Graph g, FlagEncoder encoder, WeightCalculation type )
+    public AbstractEdgeBasedRoutingAlgorithm( Graph g, FlagEncoder encoder, Weighting weighting )
     {
-        super(g, encoder, type);
+        super(g, encoder, weighting);
+        turnCosts(new DefaultTurnCostsCalc(DefaultTurnCostsCalc.MODE_IGNORE_RESTRICTIONS));
     }
 
-    protected int createIterKey(EdgeBase iter, boolean backwards) {
+    protected int createIterKey(EdgeIteratorState iter, boolean backwards) {
         return createIterKey(iter.getEdge(), iter.getBaseNode(), iter.getAdjNode(), backwards);
     }
     
@@ -79,6 +84,12 @@ public abstract class AbstractEdgeBasedRoutingAlgorithm extends AbstractRoutingA
     protected boolean accept( EdgeIterator iter )
     {
         throw new UnsupportedOperationException("use accept(EdgeIterator, EdgeEntry) instead");
+    }
+
+    public RoutingAlgorithm turnCosts(TurnCostCalculation calc) {
+        this.turnCostCalc = calc;
+        this.turnCostCalc.setGraph(graph);
+        return this;
     }
 
 }
