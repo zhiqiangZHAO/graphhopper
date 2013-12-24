@@ -12,6 +12,11 @@
         <script src="js/jquery-1.10.2.min.js"></script>
         <script src="js/bootstrap.min.js"></script>        
         <script type="text/javascript">
+            var fromViaGeoIP = "";
+            var callbackGeoIP = function(json) {
+                if (json)
+                    fromViaGeoIP = json.lat + "," + json.lng;
+            }
             function showTab(hash) {
                 if (!hash)
                     hash = "#home";
@@ -68,11 +73,8 @@
                 });
 
                 $("#contacturl").click(function(e) {
-                    var from = "";
-                    if(typeof geoip_latitude != 'undefined')
-                        from = geoip_latitude() + "," + geoip_longitude();
                     var to = "49.946505,11.571232";
-                    location.href = "http://graphhopper.com/maps/?point=" + encodeURIComponent(from) + "&point=" + encodeURIComponent(to);
+                    location.href = "http://graphhopper.com/maps/?point=" + encodeURIComponent(fromViaGeoIP) + "&point=" + encodeURIComponent(to);
                 });
 
                 // read hash from URL and click the tab
@@ -373,9 +375,14 @@
                         <img id="contactimg" src="img/contact.png"/>
                         <div><small class="externallink">Click to route </small></div>
                     </a>
-                    <br/>
+                    <br/>                    
                     <br/>
                     <p>Email: <a id="emaillink" class="link" onclick="openEmail(getEmail(), 'GraphHopper')">email</a></p>                    
+                    <small>Please ask questions on 
+                        <a href=http://stackoverflow.com/questions/tagged/graphhopper">Stackoverflow</a>
+                        or sign up to our
+                        <a href="http://lists.openstreetmap.org/listinfo/graphhopper">mailing list</a>!
+                    </small>
                 </div>
                 <div id="enterprise" class="tab-pane">                    
                     <p>
@@ -419,17 +426,14 @@
                         <li><a href="http://netbeans.org/">NetBeans</a> - for the best Java IDE!
                         </li>
                         <li id="pannous">
-                            <a href="http://gpsies.com/">Gpsies</a> - for hosting our GraphHopper API
+                            <a href="http://gpsies.com/">GPSies</a> - for hosting our GraphHopper API
                         </li>
                         <li>
                             YourKit is kindly supporting open source projects with its full-featured 
                             <a href="http://www.yourkit.com/java/profiler/index.jsp">Java Profiler</a>.
                             YourKit, LLC is the creator of innovative and intelligent tools for profiling
                             Java and .NET applications.
-                        </li>
-                        <li>
-                            This website uses <a href="http://www.maxmind.com/en/javascript">GeoIP2 JavaScript from MaxMind</a>.
-                        </li>
+                        </li>                        
                         <li id="open-source">
                             Xubuntu, Trove4J, Log4J, Guice, Maven and other Open Soure software.
                         </li>
@@ -462,13 +466,13 @@
                     The Windows logo is a registered trademark of Microsoft Corporation.
                 </div>
             </div>
-        </div> 
-        <!-- maxmind fetch location info as javascript variables -->
-        <script src="http://j.maxmind.com/app/geoip.js"></script>        
+        </div>         
+        <script src="http://www.iptolatlng.com/?type=jsonp&callback=callbackGeoIP">
+        </script>
         <!-- Piwik -->
         <script type="text/javascript">
-                            var pkBaseURL = (("https:" == document.location.protocol) ? "https://www.pannous.info/piwik/" : "http://www.pannous.info/piwik/");
-                            document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
+            var pkBaseURL = (("https:" == document.location.protocol) ? "https://www.pannous.info/piwik/" : "http://www.pannous.info/piwik/");
+            document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
         </script><script type="text/javascript">
             try {
                 var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 7);
