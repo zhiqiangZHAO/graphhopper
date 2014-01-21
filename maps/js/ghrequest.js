@@ -1,3 +1,14 @@
+// IE fix
+if (!window.console) {
+    var console = {
+        log: function() {},
+        warn: function() {},
+        error: function() {},
+        time: function() {},
+        timeEnd: function() {}
+    };
+}
+
 GHRequest = function(host) {
     this.minPathPrecision = 1;
     this.host = host;
@@ -170,7 +181,7 @@ GHRequest.prototype.doRequest = function(url, callback) {
             callback(json);
         },
         "error": function(err) {
-            var msg = "API did not response! ";
+            var msg = "API did not respond! ";
             if (err && err.statusText && err.statusText != "OK")
                 msg += err.statusText;
 
@@ -205,7 +216,6 @@ GHRequest.prototype.getInfo = function() {
 GHInput = function(str) {
     // either text or coordinates
     this.input = str;
-    this.resolvedText = "";
     try {
         var index = str.indexOf(",");
         if (index >= 0) {
@@ -227,7 +237,6 @@ GHInput.prototype.isResolved = function() {
 };
 
 GHInput.prototype.setCoord = function(lat, lng) {
-    this.resolvedText = "";
     this.lat = round(lat);
     this.lng = round(lng);
     this.input = this.lat + "," + this.lng;
