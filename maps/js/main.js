@@ -400,15 +400,9 @@ function resolve(fromOrTo, locCoord) {
             errorDiv.text(locCoord.error);
         } else if (list) {
             var anchor = String.fromCharCode(0x25BC);
-            var showAuto = false;
             var linkPart = $("<a>" + anchor + "<small>"+list.length+"</small></a>");
             foundDiv.append(linkPart.click(function(e) {
-                            if (showAuto)
-                                getAutoCompleteDiv(fromOrTo).autocomplete().hide();
-                            else
-                                setAutoCompleteList(fromOrTo, locCoord);
-
-                            showAuto = !showAuto;
+                            setAutoCompleteList(fromOrTo, locCoord);
                         }));
         }
 
