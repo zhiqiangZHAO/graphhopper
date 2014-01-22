@@ -482,9 +482,9 @@ function createAmbiguityList(locCoord) {
                 if (prevImportance - json.importance > 0.4)
                     break;
 
-                // ignore boundary stuff
-                if (json.type === "administrative")
-                    continue;
+                // de-duplicate via ignoring boundary stuff => not perfect as 'Freiberg' would no longer be correct
+                // if (json.type === "administrative")
+                //    continue;
 
                 // if no different properties => skip!
                 if (address && JSON.stringify(address) === JSON.stringify(json.address))
@@ -674,14 +674,7 @@ function routeLatLng(request, doQuery) {
             map.fitBounds(tmpB);
         }
 
-        var tmpTime = round(json.route.time / 60 / 1000, 1000);
-        if (tmpTime > 60) {
-            if (tmpTime / 60 > 24)
-                tmpTime = floor(tmpTime / 60 / 24, 1) + tr2("dayAbbr") + " " + round(((tmpTime / 60) % 24), 1) + tr2("hourAbbr");
-            else
-                tmpTime = floor(tmpTime / 60, 1) + tr2("hourAbbr") + " " + round(tmpTime % 60, 1) + tr2("minAbbr");
-        } else
-            tmpTime = round(tmpTime % 60, 1) + tr2("minAbbr");
+        var tmpTime = createTimeString(json.route.time);
         var dist = round(json.route.distance / 1000, 100);
         if (dist > 100)
             dist = round(dist, 1);
@@ -734,7 +727,7 @@ function routeLatLng(request, doQuery) {
         hiddenDiv.append(bingLink);
 
         if (host.indexOf("gpsies.com") > 0)
-            hiddenDiv.append("<div id='hosting'>The routing API is hosted by <a href='http://gpsies.com'>Gpsies.com</a></div>");
+            hiddenDiv.append("<div id='hosting'>The routing API is hosted by <a href='http://gpsies.com'>GPSies.com</a></div>");
 
         $('.defaulting').each(function(index, element) {
             $(element).css("color", "black");
@@ -778,6 +771,17 @@ function routeLatLng(request, doQuery) {
     });
 }
 
+function createTimeString(time) {
+    var tmpTime = round(time / 60 / 1000, 1000);
+    if (tmpTime > 60) {
+        if (tmpTime / 60 > 24)
+            tmpTime = floor(tmpTime / 60 / 24, 1) + tr2("dayAbbr") + " " + floor(((tmpTime / 60) % 24), 1) + tr2("hourAbbr");
+        else
+            tmpTime = floor(tmpTime / 60, 1) + tr2("hourAbbr") + " " + floor(tmpTime % 60, 1) + tr2("minAbbr");
+    } else
+        tmpTime = round(tmpTime % 60, 1) + tr2("minAbbr");
+    return tmpTime;
+}
 function addInstruction(main, indi, title, distance, time, latLng) {
     var indiPic = "<img class='instr_pic' style='vertical-align: middle' src='" +
             window.location.pathname + "img/" + indi + ".png'/>";
@@ -949,11 +953,8 @@ function initI18N() {
 }
 
 function exportGPX() {
-    if (!ghRequest.from.isResolved() || !ghRequest.to.isResolved())
-        return false;
-
-    var url = ghRequest.host + "/api/route" + ghRequest.createFullURL() + "&type=gpx";
-    window.open(url);
+    if (ghRequest.from.isResolved() && ghRequest.to.isResolved())       
+        window.open(ghRequest.createGPXURL());
     return false;
 }
 
