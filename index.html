@@ -244,11 +244,11 @@
                     <div class="span7">
                         <h4>Maven</h4>
                         <textarea class="xmltextarea">
-<dependency>
-    <groupId>com.graphhopper</groupId>
-    <artifactId>graphhopper</artifactId>
-    <version>0.2</version>
-</dependency></textarea>
+    <dependency>
+        <groupId>com.graphhopper</groupId>
+        <artifactId>graphhopper</artifactId>
+        <version>0.2</version>
+    </dependency></textarea>
                     </div>
                     <div class="span7">
                         <b>Unstable 0.3</b>
@@ -371,7 +371,6 @@
                 <div id="contact" class="tab-pane">
                     <h2>Contact</h2>                    
                     <!-- <p>Twitter: <a href="https://twitter.com/graphhopp">GraphHopp</a></p> -->
-                    <p>GraphHopper Team</p>                    
                     <a id="contacturl">
                         <img id="contactimg" src="img/contact.png"/>
                         <div><small class="externallink">Click to route </small></div>
@@ -385,37 +384,68 @@
                         <a href="http://lists.openstreetmap.org/listinfo/graphhopper">mailing list</a>!
                     </small>
                 </div>
-                <div id="enterprise" class="tab-pane">                    
-                    <p>
-                        Get a fast answer for free on our
-                        <a href="http://lists.openstreetmap.org/listinfo/graphhopper">mailing list</a>.
-                    </p>
+                <div id="enterprise" class="tab-pane">
                     <h3>GraphHopper Enterprise</h3>
-                    <p>
-                        <a class="link" onclick="openEmail(getEmail(), 'GraphHopper Enterprise')">Contact us</a>
-                        to get more information about our services:
-                    </p> 
-                    <ul>
-                        <li>
-                            <b>Consulting</b><br/>
-                            We offer GraphHopper training, support, development and consulting.
-                        </li>
-                        <li>
-                            <b>Installation</b><br/>
-                            We provide GraphHopper installation with support.
-                        </li>
-                    </ul>
-                    <span class="it">Coming soon:</span>
-                    <ul>     
-                        <li>
-                            <a href="https://github.com/graphhopper/geocoder">GraphHopper Geocoder</a>.
-                            Contact us to participate in our early adopters program.
-                        </li>
-                        <li>
-                            Optimized to efficiently calculate many to many paths.
-                            Useable for logistics, ridesharing applications and more.
-                        </li>                        
-                    </ul>              
+                    <div class='description'>
+                        We offer different solutions besides GraphHopper itself to make
+                        routing simple and flexible. Routing problems occur in a wide range of applications:
+                        From outdoor planning to optimization in logistic software;
+                        from touristic apps to ridesharing websites - 
+                        we offer the right and optimized package for you!
+                    </div>
+                    <div class="row">
+                        <div class="span3">
+                            <div class="panel-header">
+                                Consulting
+                            </div>
+                            <div class="panel-info">
+                                We provide training, support, development and hot fixes.
+                            </div>
+                            <a onclick="openEmail(getEmail(), 'GraphHopper Consulting')" class="btn btn-large mybtn">Contact Us</a>
+                            <div class="panel-q-head">The consulting package is for companies ...</div>
+                            <ul class="panel-q">
+                                <li>that don't want to waste time digging into GrapHopper or
+                                    routing algorithms</li>
+                                <li>that need fast one-time support or a support/maintenance contract</li>
+                                <li>with developers who should learn GraphHopper fast</li>
+                            </ul>                                
+                        </div>
+                        <div class="span3">
+                            <div class="panel-header">
+                                Custom Installation
+                            </div>
+                            <div class="panel-info">
+                                We offer custom GraphHopper installations with maintenance and support.
+                            </div>
+                            <a onclick="openEmail(getEmail(), 'Custom GraphHopper Installation')" class="btn btn-large mybtn">Contact Us</a>
+                            <div class="panel-q-head">The custom installation package is for companies ...</div>
+                            <ul class="panel-q">
+                                <li>that don't want to host own GraphHopper installations</li>
+                                <li>that need closed source or customized features</li>
+                                <li>that need support with their custom hosted GraphHopper solution</li>                                
+                            </ul>
+                        </div>
+                        <div class="span3">
+                            <div class="panel-header">
+                                Web Routing API
+                            </div>
+                            <div class="panel-info">
+                                A hosted solution of GraphHopper which works out of the box,
+                                is fast, easy to use and reliable.                                
+                            </div>
+                            <a onclick="openEmail(getEmail(), 'GraphHopper Web Routing API')" class="btn btn-large mybtn">Get Invitation</a>
+                            <div class="panel-q-head">The web routing API is for companies ...</div>
+                            <ul class="panel-q">
+                                <li>that need a cost effective GraphHopper solution and don't
+                                    want custom features
+                                </li>
+                                <li>
+                                    that additionally need many-to-many requests not available in
+                                    the Open Source GraphHopper core.
+                                </li>                                
+                            </ul>
+                        </div>
+                    </div>         
                 </div>
                 <div id="thanks" class="tab-pane">
                     <h2>

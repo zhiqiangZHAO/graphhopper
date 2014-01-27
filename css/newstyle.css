@@ -47,9 +47,12 @@ a:hover {
     position: static;
 }
 .tab-pane, #myCarousel, #foot-footer {
-    max-width: 800px;
+    max-width: 900px;
 }
 
+#overview {
+    max-width: 700px;
+}
 
 .it {
     font-style: italic;
@@ -106,6 +109,7 @@ a:hover {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00C621', endColorstr='#009218', GradientType=0);
     filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
 }
+
 .mybtn:hover, .mybtn:active, .mybtn.active, .mybtn.disabled, .mybtn[disabled] {
     color: #FFFFFF;
     background-color: #009218;
@@ -218,4 +222,40 @@ a:hover  {
 
 #contacturl {
     cursor: pointer;
+}
+
+#enterprise .panel-info {
+    min-height: 100px;
+}
+
+#enterprise .panel-header {
+    min-width: 200px;
+    font-size: 19px;
+    font-weight: bold;
+}
+
+#enterprise .row .panel-q {
+    padding-bottom: 30px;    
+}
+
+#enterprise .row div {
+    padding-right: 8px;
+    padding-bottom: 5px;
+}
+
+#enterprise .panel-q-head {    
+    font-size: 16px;
+    font-style: italic;
+}
+#enterprise .description {
+    max-width: 700px;
+    padding-bottom: 20px;
+}
+
+#enterprise .mybtn {
+    margin-bottom: 20px;
+}
+
+.sr-only {
+   color: gray;
 }
