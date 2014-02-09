@@ -1017,15 +1017,15 @@ function setAutoCompleteList(fromOrTo, ghRequestLoc) {
         }
     };
     options.onSelect = function(suggestion) {
-        options.onPreSelect(suggestion);
-        if (ghRequest.from.isResolved() && ghRequest.to.isResolved())
-            routeLatLng(ghRequest);
+        options.onPreSelect(suggestion);        
     };
     options.onPreSelect = function(suggestion) {
         var data = suggestion.data;
         ghRequestLoc.setCoord(data.lat, data.lng);
         ghRequestLoc.input = dataToText(suggestion.data);
-        if (suggestion.data.boundingbox) {
+        if (ghRequest.from.isResolved() && ghRequest.to.isResolved())
+            routeLatLng(ghRequest);
+        else if (suggestion.data.boundingbox) {
             var bbox = suggestion.data.box;
             focusWithBounds(ghRequestLoc, [[bbox[0], bbox[2]], [bbox[1], bbox[3]]], isFrom);
         } else
