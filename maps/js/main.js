@@ -23,7 +23,7 @@ var nominatim = "http://nominatim.openstreetmap.org/search";
 var nominatim_reverse = "http://nominatim.openstreetmap.org/reverse";
 var routingLayer;
 var map;
-var browserTitle = "GraphHopper Maps";
+var browserTitle = "GraphHopper Maps - Driving Directions";
 var firstClickToRoute;
 var defaultTranslationMap = null;
 var enTranslationMap = null;
