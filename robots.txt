@@ -1,5 +1,5 @@
 User-agent: *
-Disallow: /maps
+Disallow: /maps?
 Disallow: /public
 Disallow: /measurement
 Disallow: /api
