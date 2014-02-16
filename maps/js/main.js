@@ -769,9 +769,9 @@ function routeLatLng(request, doQuery) {
 }
 
 function createDistanceString(dist) {
-    if(dist < 900)
+    if (dist < 900)
         return round(dist, 1) + tr2("mAbbr");
-    
+
     dist = round(dist / 1000, 100);
     if (dist > 100)
         dist = round(dist, 1);
@@ -1017,7 +1017,7 @@ function setAutoCompleteList(fromOrTo, ghRequestLoc) {
         }
     };
     options.onSelect = function(suggestion) {
-        options.onPreSelect(suggestion);        
+        options.onPreSelect(suggestion);
     };
     options.onPreSelect = function(suggestion) {
         var data = suggestion.data;
