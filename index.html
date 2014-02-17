@@ -20,6 +20,10 @@
             function showTab(hash) {
                 if (!hash)
                     hash = "#home";
+                // redirect
+                if (hash === "#download" || hash === "#developers")
+                    hash = "#community";
+
                 // tab is already active so we only need to show the content
                 $("#mytabs li > a[href='" + hash + "']").tab('show');
             }
@@ -108,24 +112,20 @@
                                 <a href="#overview" data-toggle="tab">Overview</a>
                             </li>
                             <li class="">
-                                <a href="#download" data-toggle="tab">Download</a>
-                            </li>
-                            <li>                                
-                                <a class="externallink" href="http://graphhopper.com/maps/?point=madrid&point=moscow&vehicle=car">Maps</a>
+                                <a href="#community" data-toggle="tab">Community</a>
                             </li>
                             <li class="">
                                 <a href="#enterprise" data-toggle="tab">Enterprise</a>
-                            </li>
-                            <li class="">
-                                <a href="#developers" data-toggle="tab">Developers</a>
                             </li>                            
-
+                            <li>                                
+                                <a class="externallink" href="http://graphhopper.com/maps/?point=madrid&point=moscow&vehicle=car">Maps</a>
+                            </li>                            
+                            <li class="">
+                                <a class="externallink" href="https://karussell.wordpress.com/category/graphhopper/">News</a>
+                            </li>
                             <li class="dropdown right-float">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">More <b class="caret"></b></a>
-                                <ul class="dropdown-menu">
-                                    <li class="">
-                                        <a class="externallink" href="https://karussell.wordpress.com/category/graphhopper/">Blog</a>
-                                    </li>
+                                <ul class="dropdown-menu">                                    
                                     <li>
                                         <a href="#thanks" data-toggle="tab">Testimonials</a>
                                     </li>
@@ -177,7 +177,7 @@
                                         <div class="carousel-caption">
                                             <h2>Fast route planner in Java</h2>
                                             <p class="lead">GraphHopper uses OpenStreetMap and is Open Source.</p>
-                                            <a href="#download" data-toggle="tab" class="btn btn-large mybtn">Download</a>                                        
+                                            <a href="#community" data-toggle="tab" class="btn btn-large mybtn">Download</a>
                                         </div>
                                     </div>
                                     <div id="osm_logo" class="span3">
@@ -203,7 +203,7 @@
                                     <div class="carousel-caption">
                                         <h2>Runs Everywhere</h2>
                                         <p class="lead">GraphHopper works on the server-side and on mobile.</p>
-                                        <a href="#download" class="btn btn-large mybtn" data-toggle="tab">Download App</a>
+                                        <a href="#community" class="btn btn-large mybtn" data-toggle="tab">Download App</a>
                                     </div>
                                 </div>
                             </div>
@@ -213,60 +213,7 @@
                     </div>
                     <!-- /.carousel -->
                 </div>                
-                <div id="download" class="tab-pane">
-                    <div class="span5">
-                        <h3>Download</h3>
-                        <div>
-                            <a href="https://github.com/graphhopper/graphhopper/">Source Repository (git)</a>
-                        </div>
-                        <div>
-                            <a href="https://github.com/graphhopper/graphhopper/wiki/QuickStart">Web Interface Quick Start</a>
-                        </div>
-                        <h4>0.2 release</h4>
-                        <div>
-                            <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.2/graphhopper-android-0.2.apk">Android Application (apk 0.2)</a>
-                        </div>
-                        <div>
-                            <a href="https://github.com/graphhopper/graphhopper/issues?milestone=2&page=1&state=closed">Solved Issues for 0.2</a>
-                        </div>                      
-                    </div>
-                    <div class="span3 tshirt">
-                        <div>
-                            <a href="http://karussell.spreadshirt.de/graphhopper-C291144">
-                                <img src="img/tshirt.png"/>
-                            </a>
-                        </div>
-                        <span>
-                            Get your shirt!               
-                        </span>
-                    </div>
-                    <div class="clear"></div>
-                    <div class="span7">
-                        <h4>Maven</h4>
-                        <textarea class="xmltextarea">
-    <dependency>
-        <groupId>com.graphhopper</groupId>
-        <artifactId>graphhopper</artifactId>
-        <version>0.2</version>
-    </dependency></textarea>
-                    </div>
-                    <div class="span7">
-                        <b>Unstable 0.3</b>
-                        <div>
-                            <a href="http://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.3-SNAPSHOT/">Android Application (apk 0.3)</a>
-                        </div>
-                        <div>
-                            <a href="https://github.com/graphhopper/graphhopper/issues?milestone=4&page=1&state=open">Open Issues of 0.3</a>
-                        </div>  
-                        <b>Old 0.1.* releases</b>
-                        <div>
-                            <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.1.1/graphhopper-android-0.1.1.apk">Android Application (apk 0.1.1)</a>
-                        </div>
-                        <div>
-                            <a href="https://github.com/graphhopper/graphhopper/issues?milestone=3&page=1&state=closed">Solved Issues for 0.1.*</a>
-                        </div>  
-                    </div>
-                </div>
+
                 <div id="overview" class="tab-pane">
                     <h2>Overview</h2>
                     GraphHopper offers memory efficient algorithms in Java for routing on graphs.
@@ -292,10 +239,8 @@
                     </ul>   
                     -->
                     <h2>Development</h2>
-                    <a href="#developers" data-toggle="tab">Development</a> happens at GitHub. 
-                    You can clone the project at GitHub, ask questions on 
-                    <a href="http://stackoverflow.com/questions/tagged/graphhopper">Stackoverflow</a> 
-                    or sign up at the mailing list.
+                    <a href="#community" data-toggle="tab">Development</a> happens at GitHub. 
+                    You can clone the project at GitHub.
                     <h2>Written in Java</h2>
                     GraphHopper is written in Java and runs on Linux, OSX,
                     Windows, Raspberry Pi and Android. Other 
@@ -345,8 +290,8 @@
                         <li>The web module returns highly compressed paths via gzip and polyline encoding.</li>
                     </ul>
                 </div>
-                <div id="developers" class="tab-pane">
-                    <h2>Developers</h2>                    
+                <div id="community" class="tab-pane">
+                    <h2>Community</h2>                    
                     <ul>
                         <li>
                             <a href="https://github.com/graphhopper/graphhopper/wiki/QuickStart">Quick Start for Users</a>
@@ -355,18 +300,63 @@
                             <a href="https://github.com/graphhopper/graphhopper/wiki/Developers">Quick Start for Developers</a>
                         </li>
                         <li>
-                            <a href="https://github.com/graphhopper/graphhopper/">Get Source</a>
+                            <a href="https://github.com/graphhopper/graphhopper/">Get Source Code</a>
                         </li>
                         <li>
-                            <a href="https://github.com/graphhopper/graphhopper/issues">Issues</a>
+                            <a href="https://github.com/graphhopper/graphhopper/issues">See Issues</a>
                         </li>
                         <li>
-                            Ask questions on 
+                            Use <a href="http://lists.openstreetmap.org/listinfo/graphhopper">our mailing list</a>
+                            or
                             <a href="http://stackoverflow.com/questions/tagged/graphhopper">Stackoverflow</a>
-                            or sign up to our
-                            <a href="http://lists.openstreetmap.org/listinfo/graphhopper">mailing list</a>!
+                            to ask questions!
                         </li>
                     </ul>
+
+                    <h2>Download</h2>                    
+                    <h4>0.2 release, 23-Nov-2013</h4>
+                    <div>
+                        <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.2/graphhopper-android-0.2.apk">Android Application (apk 0.2)</a>
+                    </div>
+                    <div>
+                        <a href="https://github.com/graphhopper/graphhopper/issues?milestone=2&page=1&state=closed">Solved Issues for 0.2</a>
+                    </div>                      
+
+                    <h4>Maven</h4>
+                    <textarea class="xmltextarea">
+    <dependency>
+        <groupId>com.graphhopper</groupId>
+        <artifactId>graphhopper</artifactId>
+        <version>0.2</version>
+    </dependency></textarea>
+
+                    <div class="clear"></div>
+
+                    <div class="tshirt">
+                        <span>
+                            Support GraphHopper - Get your shirt!
+                        </span>
+                        <div>
+                            <a href="http://karussell.spreadshirt.de/graphhopper-C291144">
+                                <img src="img/tshirt.png"/>
+                            </a>
+                        </div>                        
+                    </div>
+
+                    <b>Unstable 0.3</b>
+                    <div>
+                        <a href="http://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.3-SNAPSHOT/">Android Application (apk 0.3)</a>
+                    </div>
+                    <div>
+                        <a href="https://github.com/graphhopper/graphhopper/issues?milestone=4&page=1&state=open">Open Issues of 0.3</a>
+                    </div>  
+                    <b>0.1.1 release, 06-Aug-2013</b>
+                    <div>
+                        <a href="https://oss.sonatype.org/content/groups/public/com/graphhopper/graphhopper-android/0.1.1/graphhopper-android-0.1.1.apk">Android Application (apk 0.1.1)</a>
+                    </div>
+                    <div>
+                        <a href="https://github.com/graphhopper/graphhopper/issues?milestone=3&page=1&state=closed">Solved Issues for 0.1 and 0.1.1</a>
+                    </div>
                 </div>
                 <div id="contact" class="tab-pane">
                     <h2>Contact</h2>                    
@@ -484,7 +474,7 @@
                                    #acc4f9; font-family: trebuchet ms,arial,sans-serif;font-weight:
                                    normal;text-align:left;">keyboard-centric bug tracker</a> 
                                 <a href="http://www.jetbrains.com/teamcity" title="TeamCity by JetBrains" style="margin:0 0 0 400px;padding:60px 0 2px 0;font-size:14px; background-image:none;border:0;display:block; color:#acc4f9; font-family: trebuchet ms,arial,sans-serif;font-weight:
-                                    normal;text-align:left;">continuous integration server</a> 
+                                   normal;text-align:left;">continuous integration server</a> 
                             </div>
                         </li>
                     </ul>
@@ -494,11 +484,7 @@
                     <ul class="main-links">                        
                         <li>
                             <a class="externallink" href="http://graphhopper.com/maps">Maps</a>
-                        </li>
-                        <li class="muted">·</li>
-                        <li>
-                            <a href="#download" data-toggle="tab">Download</a>
-                        </li>                                              
+                        </li>                        
                         <li class="muted">·</li>                        
                         <li>
                             <a href="#contact" data-toggle="tab">Contact</a>

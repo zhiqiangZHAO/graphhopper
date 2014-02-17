@@ -50,6 +50,13 @@ a:hover {
     max-width: 900px;
 }
 
+.tab-pane {
+    min-height: 400px;
+}
+/*.tab-content [class*="span"] {
+    margin-left: 10px;
+}*/
+
 #overview {
     max-width: 700px;
 }
@@ -134,10 +141,6 @@ a:hover {
     min-height: 200px;
 }
 
-.tab-pane {
-    min-height: 400px;
-}
-
 .carousel {    
     margin-bottom: 0px;
 }
@@ -158,7 +161,7 @@ a:hover {
 
 .tshirt span {
     font-style: italic;
-    padding-left: 35px;
+/*    padding-left: 35px;*/
 }
 .tshirt {
     font-size: 12px;
