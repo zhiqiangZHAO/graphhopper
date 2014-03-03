@@ -76,11 +76,20 @@
                     document.location.hash = $(this).attr('href');
                 });
 
-                $("#contacturl").click(function(e) {
+                var tmpFct = function() {
                     var to = "49.946505,11.571232";
                     location.href = "http://graphhopper.com/maps/?point=" + encodeURIComponent(fromViaGeoIP) + "&point=" + encodeURIComponent(to);
+                };
+                
+                $("#contacturl").click(function(e) {
+                    if(!fromViaGeoIP) {
+                        var tmpDiv = $('<div>Sorry cannot determine you location</div>');
+                        $('#contacturl').prepend(tmpDiv);
+                        tmpDiv.delay(3000).fadeOut('slow', tmpFct);                        
+                    } else
+                        tmpFct();
                 });
-
+                
                 // read hash from URL and click the tab
                 var hash = window.location.hash;
                 if (hash)
