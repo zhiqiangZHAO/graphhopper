@@ -4,7 +4,7 @@
  * to the URL or overwrite the 'host' variable.
  */
 var tmpArgs = parseUrlWithHisto();
-var host = "http://graphhopper.com/routing";
+var host = "http://graphhopper.com/api/1";
 // var host = "http://graphhopper.com/api/1";
 if (host == null) {
     if (location.port === '') {
