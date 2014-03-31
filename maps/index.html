@@ -11,8 +11,11 @@
         <link rel="stylesheet" href="css/leaflet.css" />
         <!--[if lte IE 8]>
             <link rel="stylesheet" href="css/leaflet.ie.css" />
-        <![endif]-->
+        <![endif]-->        
         <script type="text/javascript" src="js/leaflet.js?v=0.6.4"></script>
+        <link rel="stylesheet" href="css/Leaflet.Elevation-0.0.2.css" />
+        <script type="text/javascript" src="js/d3.min.js"></script>
+        <script type="text/javascript" src="js/Leaflet.Elevation-0.0.2.min.js"></script>
         <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
         <script type="text/javascript" src="js/jquery.history.js"></script>
         <!--        <script type="text/javascript" src="js/jquery.autocomplete.min.js"></script>-->
@@ -25,7 +28,7 @@
         <div id="input">
             <div id="header_img">
                 <a class="no_link" href="http://graphhopper.com">
-                    <img alt="GraphHopper" src="http://graphhopper.com/img/header.png"/>                    
+                    <img alt="GraphHopper" src="./img/header.png"/>                    
                 </a>
             </div>
             <div id="options">
@@ -53,11 +56,12 @@
                         <div id="toResolveError"></div>
                     </div>
                 </div>
-                <div class="clear"> </div>
-                <div id="exportLink" title="Static Link" class="left"><a href="/maps"><img src='img/link.png'></a></div>
-                <input id="searchButton" type="submit" value="Search">
+                <div class="clear"> </div>                
+                <input id="searchButton" type="submit" value="Search">                
             </form>      
+            <div id="exportLink" title="Static Link" class="left"><a href="/maps"><img src='img/link.png'></a></div>
             <div id="gpxExportButton" title="GPX Download"><a href=""><img alt="gpx" src='img/gpx.png'></a></div>
+            <div id="hosting">Powered by <a href='http://graphhopper.com/#enterprise'>GraphHopper API</a></div>
             <div class="clear"> </div>
             <div id="info" class="small_text">
             </div>

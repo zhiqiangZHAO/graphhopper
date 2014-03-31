@@ -5,7 +5,7 @@
  */
 var tmpArgs = parseUrlWithHisto();
 var host = "http://graphhopper.com/routing";
-//var host = "http://graphhopper.com/routing";
+// var host = "http://graphhopper.com/api/1";
 if (host == null) {
     if (location.port === '') {
         host = location.protocol + '//' + location.hostname;
@@ -28,6 +28,7 @@ var firstClickToRoute;
 var defaultTranslationMap = null;
 var enTranslationMap = null;
 var routeSegmentPopup = null;
+var elevationControl = null;
 
 var iconFrom = L.icon({
     iconUrl: './img/marker-icon-green.png',
@@ -43,9 +44,13 @@ var iconTo = L.icon({
     iconAnchor: [12, 40]
 });
 
-$(document).ready(function(e) {
+$(document).ready(function(e) {    
     // fixing cross domain support e.g in Opera
     jQuery.support.cors = true;
+    
+    if (host.indexOf("graphhopper.com") > 0)
+        $('#hosting').show();
+    
     var History = window.History;
     if (History.enabled) {
         History.Adapter.bind(window, 'statechange', function() {
@@ -98,7 +103,7 @@ $(document).ready(function(e) {
                 bounds.maxLat = tmp[3];
                 var vehiclesDiv = $("#vehicles");
                 function createButton(vehicle) {
-                    vehicle = vehicle.toLowerCase();
+                    var vehicle = vehicle.toLowerCase();
                     var button = $("<button class='vehicle-btn' title='" + tr(vehicle) + "'/>")
                     button.attr('id', vehicle);
                     button.html("<img src='img/" + vehicle + ".png' alt='" + tr(vehicle) + "'></img>");
@@ -111,22 +116,17 @@ $(document).ready(function(e) {
                     return button;
                 }
 
-                if (json.supportedVehicles) {
-                    var vehicles = json.supportedVehicles.split(",");
-                    if (vehicles.length > 1)
+                if (json.supported_vehicles) {
+                    var vehicles = json.supported_vehicles;
+                    if (vehicles.length > 0)
                         ghRequest.vehicle = vehicles[0];
+
                     for (var i = 0; i < vehicles.length; i++) {
                         vehiclesDiv.append(createButton(vehicles[i]));
                     }
                 }
 
                 initMap();
-
-//        var data = JSON.parse("[[10.4049076,48.2802518],[10.405231,48.2801396],...]");
-//        var tempFeature = {
-//            "type": "Feature", "geometry": { "type": "LineString", "coordinates": data }
-//        };        
-//        routingLayer.addData(tempFeature);
 
                 // execute query
                 initFromParams(urlParams, true);
@@ -147,7 +147,7 @@ $(document).ready(function(e) {
 function initFromParams(params, doQuery) {
     ghRequest.init(params);
     var fromAndTo = params.from && params.to;
-    var routeNow = params.point && params.point.length == 2 || fromAndTo;
+    var routeNow = params.point && params.point.length === 2 || fromAndTo;
     if (routeNow) {
         if (fromAndTo)
             resolveCoords(params.from, params.to, doQuery);
@@ -184,7 +184,7 @@ function initMap() {
     var height = $(window).height() - 5;
     mapDiv.width(width).height(height);
     if (height > 350)
-        height -= 265;
+        height -= $("#input").height() + 22;
     $("#info").css("max-height", height);
     console.log("init map at " + JSON.stringify(bounds));
 
@@ -309,6 +309,8 @@ function initMap() {
         }).addTo(map);
 
     routingLayer = L.geoJson().addTo(map);
+    routingLayer.options = {style: {color: "#00cc33", "weight": 5, "opacity": 0.6}};
+
     firstClickToRoute = true;
     function onMapClick(e) {
         var latlng = e.latlng;
@@ -358,7 +360,7 @@ function setFlag(coord, isFrom) {
                 resolveTo();
             }
             // do not wait for resolving and avoid zooming when dragging
-            ghRequest.doZoom = false;
+            ghRequest.do_zoom = false;
             routeLatLng(ghRequest, false);
         });
     }
@@ -599,9 +601,9 @@ function focus(coord, zoom, isFrom) {
     }
 }
 function routeLatLng(request, doQuery) {
-    // doZoom should not show up in the URL but in the request object to avoid zooming for history change
-    var doZoom = request.doZoom;
-    request.doZoom = true;
+    // do_zoom should not show up in the URL but in the request object to avoid zooming for history change
+    var doZoom = request.do_zoom;
+    request.do_zoom = true;
 
     var urlForHistory = request.createFullURL();
     // not enabled e.g. if no cookies allowed (?)
@@ -610,7 +612,7 @@ function routeLatLng(request, doQuery) {
         // 2. important workaround for encoding problems in history.js
         var params = parseUrl(urlForHistory);
         console.log(params);
-        params.doZoom = doZoom;
+        params.do_zoom = doZoom;
         // force a new request even if we have the same parameters
         params.mathRandom = Math.random();
         History.pushState(params, browserTitle, urlForHistory);
@@ -628,6 +630,9 @@ function routeLatLng(request, doQuery) {
         descriptionDiv.html('<small>' + tr('locationsNotFound') + '</small>');
         return;
     }
+
+    if (elevationControl)
+        elevationControl.clear();
 
     routingLayer.clearLayers();
     setFlag(request.from, true);
@@ -647,116 +652,140 @@ function routeLatLng(request, doQuery) {
                 descriptionDiv.append("<div class='error'>" + tmpErrors[m].message + "</div>");
             }
             return;
-        } else if (json.info.routeFound === false) {
-            descriptionDiv.html('Route not found! Disconnected areas?');
-            return;
         }
+        var path = json.paths[0];
         var geojsonFeature = {
             "type": "Feature",
             // "style": myStyle,                
-            "geometry": json.route.data
+            "geometry": path.points
         };
 
+        if (path.points_dimension === 3) {
+            if (elevationControl === null) {
+                elevationControl = L.control.elevation({
+                    position: "bottomright",
+                    theme: "white-theme", //default: lime-theme
+                    width: 450,
+                    height: 125,
+                    yAxisMin: 0, // set min domain y axis
+                    // yAxisMax: 550, // set max domain y axis
+                    forceAxisBounds: false,
+                    margins: {
+                        top: 10,
+                        right: 20,
+                        bottom: 30,
+                        left: 50
+                    },
+                    useHeightIndicator: true, //if false a marker is drawn at map position
+                    interpolation: "linear", //see https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-area_interpolate
+                    hoverNumber: {
+                        decimalsX: 3, //decimals on distance (always in km)
+                        decimalsY: 0, //deciamls on height (always in m)
+                        formatter: undefined //custom formatter function may be injected
+                    },
+                    xTicks: undefined, //number of ticks in x axis, calculated by default according to width
+                    yTicks: undefined, //number of ticks on y axis, calculated by default according to height
+                    collapsed: false    //collapsed mode, show chart on click or mouseover
+                });
+                elevationControl.addTo(map);
+            }
+
+            elevationControl.addData(geojsonFeature);
+        }
+
         routingLayer.addData(geojsonFeature);
-        if (json.route.bbox && doZoom) {
-            var minLon = json.route.bbox[0];
-            var minLat = json.route.bbox[1];
-            var maxLon = json.route.bbox[2];
-            var maxLat = json.route.bbox[3];
+        if (path.bbox && doZoom) {
+            var minLon = path.bbox[0];
+            var minLat = path.bbox[1];
+            var maxLon = path.bbox[2];
+            var maxLat = path.bbox[3];
             var tmpB = new L.LatLngBounds(new L.LatLng(minLat, minLon), new L.LatLng(maxLat, maxLon));
             map.fitBounds(tmpB);
-        }
+        }        
 
-        var tmpTime = createTimeString(json.route.time);
-        var tmpDist = createDistanceString(json.route.distance);
-        descriptionDiv.html(tr("routeInfo", [tmpDist, tmpTime]));
-
-        var hiddenDiv = $("<div id='routeDetails'/>");
-        hiddenDiv.hide();
-
-        var toggly = $("<button style='font-size:14px; float: right; font-weight: bold; padding: 0px'>+</button>");
-        toggly.click(function() {
-            hiddenDiv.toggle();
-        });
-        $("#info").prepend(toggly);
-        var infoStr = "took: " + round(json.info.took, 1000) + "s"
-                + ", points: " + json.route.data.coordinates.length;
-        //if (json.route.instructions)
-        //    infoStr += ", instructions: " + json.route.instructions.descriptions.length;
-        hiddenDiv.append("<span>" + infoStr + "</span>");
-        $("#info").append(hiddenDiv);
-
-        var exportLink = $("#exportLink a");
-        exportLink.attr('href', urlForHistory);
-        var startOsmLink = $("<a>start</a>");
-        startOsmLink.attr("href", "http://www.openstreetmap.org/?zoom=14&mlat=" + request.from.lat + "&mlon=" + request.from.lng);
-        var endOsmLink = $("<a>end</a>");
-        endOsmLink.attr("href", "http://www.openstreetmap.org/?zoom=14&mlat=" + request.to.lat + "&mlon=" + request.to.lng);
-        hiddenDiv.append("<br/><span>View on OSM: </span>").append(startOsmLink).append(endOsmLink);
-
-        var osrmLink = $("<a>OSRM</a>");
-        osrmLink.attr("href", "http://map.project-osrm.org/?loc=" + from + "&loc=" + to);
-        hiddenDiv.append("<br/><span>Compare with: </span>");
-        hiddenDiv.append(osrmLink);
-        var googleLink = $("<a>Google</a> ");
-        var addToGoogle = "";
-        var addToBing = "";
-        if (request.vehicle.toUpperCase() == "FOOT") {
-            addToGoogle = "&dirflg=w";
-            addToBing = "&mode=W";
-        } else if ((request.vehicle.toUpperCase() == "BIKE") ||
-                (request.vehicle.toUpperCase() == "RACINGBIKE") ||
-                (request.vehicle.toUpperCase() == "MTB")) {
-            addToGoogle = "&dirflg=b";
-            // ? addToBing = "&mode=B";
-        }
-        googleLink.attr("href", "http://maps.google.com/?q=from:" + from + "+to:" + to + addToGoogle);
-        hiddenDiv.append(googleLink);
-        var bingLink = $("<a>Bing</a> ");
-        bingLink.attr("href", "http://www.bing.com/maps/default.aspx?rtp=adr." + from + "~adr." + to + addToBing);
-        hiddenDiv.append(bingLink);
-
-        if (host.indexOf("gpsies.com") > 0)
-            hiddenDiv.append("<div id='hosting'>The routing API is hosted by <a href='http://gpsies.com'>GPSies.com</a></div>");
+        var tmpTime = createTimeString(path.time);
+        var tmpDist = createDistanceString(path.distance);
+        descriptionDiv.append(tr("routeInfo", [tmpDist, tmpTime]));       
 
         $('.defaulting').each(function(index, element) {
             $(element).css("color", "black");
         });
 
-        if (json.route.instructions) {
+        if (path.instructions) {
             var instructionsElement = $("<table id='instructions'><colgroup>"
                     + "<col width='10%'><col width='65%'><col width='25%'></colgroup>");
             $("#info").append(instructionsElement);
-            var descriptions = json.route.instructions.descriptions;
-            var distances = json.route.instructions.distances;
-            var indications = json.route.instructions.indications;
-            var millis = json.route.instructions.millis;
-            var latLngs = json.route.instructions.latLngs;
-            for (var m = 0; m < descriptions.length; m++) {
-                var indi = indications[m];
+            for (var m = 0; m < path.instructions.length; m++) {
+                var instr = path.instructions[m];
+                var sign = instr.sign;
                 if (m == 0)
-                    indi = "marker-from";
-                else if (indi == -3)
-                    indi = "sharp_left";
-                else if (indi == -2)
-                    indi = "left";
-                else if (indi == -1)
-                    indi = "slight_left";
-                else if (indi == 0)
-                    indi = "continue";
-                else if (indi == 1)
-                    indi = "slight_right";
-                else if (indi == 2)
-                    indi = "right";
-                else if (indi == 3)
-                    indi = "sharp_right";
-                else if (indi == 4)
-                    indi = "marker-to";
+                    sign = "marker-icon-green";
+                else if (sign == -3)
+                    sign = "sharp_left";
+                else if (sign == -2)
+                    sign = "left";
+                else if (sign == -1)
+                    sign = "slight_left";
+                else if (sign == 0)
+                    sign = "continue";
+                else if (sign == 1)
+                    sign = "slight_right";
+                else if (sign == 2)
+                    sign = "right";
+                else if (sign == 3)
+                    sign = "sharp_right";
+                else if (sign == 4)
+                    sign = "marker-icon-red";
                 else
-                    throw "did not found indication " + indi;
+                    throw "did not found indication " + sign;
 
-                addInstruction(instructionsElement, indi, descriptions[m], distances[m], millis[m], latLngs[m]);
+                var lngLat = path.points.coordinates[instr.interval[0]];
+                addInstruction(instructionsElement, sign, instr.text, instr.distance, instr.time, lngLat);
             }
+
+            var hiddenDiv = $("<div id='routeDetails'/>");
+            hiddenDiv.hide();            
+
+            var toggly = $("<button id='expandDetails'>+</button>");
+            toggly.click(function() {
+                hiddenDiv.toggle();
+            });
+            $("#info").append(toggly);
+            var infoStr = "took: " + round(json.info.took, 1000) + "s"
+                    + ", points: " + path.points.coordinates.length;
+
+            hiddenDiv.append("<span>" + infoStr + "</span>");
+
+            var exportLink = $("#exportLink a");
+            exportLink.attr('href', urlForHistory);
+            var startOsmLink = $("<a>start</a>");
+            startOsmLink.attr("href", "http://www.openstreetmap.org/?zoom=14&mlat=" + request.from.lat + "&mlon=" + request.from.lng);
+            var endOsmLink = $("<a>end</a>");
+            endOsmLink.attr("href", "http://www.openstreetmap.org/?zoom=14&mlat=" + request.to.lat + "&mlon=" + request.to.lng);
+            hiddenDiv.append("<br/><span>View on OSM: </span>").append(startOsmLink).append(endOsmLink);
+
+            var osrmLink = $("<a>OSRM</a>");
+            osrmLink.attr("href", "http://map.project-osrm.org/?loc=" + from + "&loc=" + to);
+            hiddenDiv.append("<br/><span>Compare with: </span>");
+            hiddenDiv.append(osrmLink);
+            var googleLink = $("<a>Google</a> ");
+            var addToGoogle = "";
+            var addToBing = "";
+            if (request.vehicle.toUpperCase() == "FOOT") {
+                addToGoogle = "&dirflg=w";
+                addToBing = "&mode=W";
+            } else if ((request.vehicle.toUpperCase() == "BIKE") ||
+                    (request.vehicle.toUpperCase() == "RACINGBIKE") ||
+                    (request.vehicle.toUpperCase() == "MTB")) {
+                addToGoogle = "&dirflg=b";
+                // ? addToBing = "&mode=B";
+            }
+            googleLink.attr("href", "http://maps.google.com/?q=from:" + from + "+to:" + to + addToGoogle);
+            hiddenDiv.append(googleLink);
+            var bingLink = $("<a>Bing</a> ");
+            bingLink.attr("href", "http://www.bing.com/maps/default.aspx?rtp=adr." + from + "~adr." + to + addToBing);
+            hiddenDiv.append(bingLink);  
+            $("#info").append(hiddenDiv);
         }
     });
 }
@@ -791,13 +820,14 @@ function createTimeString(time) {
     return resTimeStr;
 }
 
-function addInstruction(main, indi, title, distance, milliEntry, latLng) {
+function addInstruction(main, indi, title, distance, milliEntry, lngLat) {
     var indiPic = "<img class='instr_pic' style='vertical-align: middle' src='" +
             window.location.pathname + "img/" + indi + ".png'/>";
     var str = "<td class='instr_title'>" + title + "</td>";
 
     if (distance > 0) {
-        str += " <td class='instr_distance_td'><span class='instr_distance'>" + createDistanceString(distance) + "<br/>"
+        str += " <td class='instr_distance_td'><span class='instr_distance'>"
+                + createDistanceString(distance) + "<br/>"
                 + createTimeString(milliEntry) + "</span></td>";
     }
 
@@ -807,25 +837,18 @@ function addInstruction(main, indi, title, distance, milliEntry, latLng) {
         str = "<td/>" + str;
     var instructionDiv = $("<tr class='instruction'/>");
     instructionDiv.html(str);
-    if (latLng) {
+    if (lngLat) {
         instructionDiv.click(function() {
-            hideRouteSegmentPopup();
-            showRouteSegmentPopup(indiPic + " " + title, latLng);
+            if (routeSegmentPopup)
+                map.removeLayer(routeSegmentPopup);
+
+            routeSegmentPopup = L.popup().
+                    setLatLng([lngLat[1], lngLat[0]]).
+                    setContent(indiPic + " " + title).
+                    openOn(map);
         });
     }
     main.append(instructionDiv);
-}
-
-function showRouteSegmentPopup(html, latLng) {
-    hideRouteSegmentPopup();
-    routeSegmentPopup = L.popup().setLatLng(latLng).setContent(html).openOn(map);
-}
-
-function hideRouteSegmentPopup() {
-    if (routeSegmentPopup) {
-        map.removeLayer(routeSegmentPopup);
-        routeSegmentPopup = null;
-    }
 }
 
 function getCenter(bounds) {
