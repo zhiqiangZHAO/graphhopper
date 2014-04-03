@@ -228,7 +228,7 @@ a:hover  {
 }
 
 #enterprise .panel-info {
-    min-height: 100px;
+    min-height: 60px;
 }
 
 #enterprise .panel-header {
@@ -261,4 +261,8 @@ a:hover  {
 
 .sr-only {
    color: gray;
+}
+#carlimitation {    
+    font-size: 12px;
+    color: gray;
 }

@@ -80,16 +80,16 @@
                     var to = "49.946505,11.571232";
                     location.href = "http://graphhopper.com/maps/?point=" + encodeURIComponent(fromViaGeoIP) + "&point=" + encodeURIComponent(to);
                 };
-                
+
                 $("#contacturl").click(function(e) {
-                    if(!fromViaGeoIP) {
+                    if (!fromViaGeoIP) {
                         var tmpDiv = $('<div>Sorry cannot determine you location</div>');
                         $('#contacturl').prepend(tmpDiv);
-                        tmpDiv.delay(3000).fadeOut('slow', tmpFct);                        
+                        tmpDiv.delay(3000).fadeOut('slow', tmpFct);
                     } else
                         tmpFct();
                 });
-                
+
                 // read hash from URL and click the tab
                 var hash = window.location.hash;
                 if (hash)
@@ -400,58 +400,56 @@
                         we offer the right and optimized package for you!
                     </div>
                     <div class="row">
-                        <div class="span3">
+                        <div class="span4">
                             <div class="panel-header">
                                 Consulting
                             </div>
                             <div class="panel-info">
                                 We provide training, support, development and hot fixes.
+                                Or a custom GraphHopper installations with maintenance and support.
                             </div>
                             <a onclick="openEmail(getEmail(), 'GraphHopper Consulting')" class="btn btn-large mybtn">Contact Us</a>
-                            <div class="panel-q-head">The consulting package is for companies ...</div>
+                            <div class="panel-q-head">The Consulting package is for companies ...</div>
                             <ul class="panel-q">
                                 <li>that don't want to waste time digging into GrapHopper or
                                     routing algorithms</li>
                                 <li>that need fast one-time support or a support/maintenance contract</li>
-                                <li>with developers who want learn GraphHopper fast</li>
+                                <li>with developers who want learn GraphHopper fast</li>                                
+                                <li>that don't want to host own custom GraphHopper installations</li>
+                                <li>that need support with their custom hosted GraphHopper solution</li>                            
                             </ul>                                
-                        </div>
-                        <div class="span3">
+                        </div>                       
+                        <div class="span4">
                             <div class="panel-header">
-                                Custom Installation
-                            </div>
-                            <div class="panel-info">
-                                We offer custom GraphHopper installations with maintenance and support.
-                            </div>
-                            <a onclick="openEmail(getEmail(), 'Custom GraphHopper Installation')" class="btn btn-large mybtn">Contact Us</a>
-                            <div class="panel-q-head">The custom installation package is for companies ...</div>
-                            <ul class="panel-q">
-                                <li>that don't want to host own GraphHopper installations</li>
-                                <li>that need closed source or customized features</li>
-                                <li>that need support with their custom hosted GraphHopper solution</li>                                
-                            </ul>
-                        </div>
-                        <div class="span3">
-                            <div class="panel-header">
-                                Web Routing API
+                                GraphHopper Web API
                             </div>
                             <div class="panel-info">
                                 A hosted solution of GraphHopper which works out of the box,
-                                is fast, easy to use and reliable.                                
+                                is fast, <a href='https://github.com/graphhopper/graphhopper/blob/master/docs/web/api-doc.md'>easy to use</a> and reliable.
+                                No risks! Try <a href='http://graphhopper.com/maps/'>GraphHopper Maps</a> which uses 
+                                this Web API.
                             </div>
-                            <a onclick="openEmail(getEmail(), 'GraphHopper Web Routing API')" class="btn btn-large mybtn">Get Invitation</a>
-                            <div class="panel-q-head">The web routing API is for companies ...</div>
+                            <a onclick="openEmail(getEmail(), 'GraphHopper Web API')" class="btn btn-large mybtn">Get Invitation</a>
+                            <div class="panel-q-head">The Web API is for companies ...</div>
                             <ul class="panel-q">
-                                <li>that need a cost effective GraphHopper solution and don't
-                                    want custom features
+                                <li>that need a fast routing solution with world wide coverage
+                                </li>
+                                <li>that need a routing solution based on OpenStreetMap which
+                                    does not limit your use case. I.e. navigation applications
+                                    are allowed.
+                                </li>
+                                <li>that need a cost effective routing solution for bicycle, walking
+                                    and car [1].
                                 </li>
                                 <li>
-                                    that additionally need many-to-many requests not available in
-                                    the Open Source GraphHopper core.
-                                </li>                                
+                                    that need Geocoding
+                                </li>
                             </ul>
                         </div>
-                    </div>         
+                    </div>
+                    <div id='carlimitation'>
+                        [1] Car routing is currently without turn restrictions.
+                    </div>
                 </div>                
                 <div id="thanks" class="tab-pane">
                     <h2>
@@ -522,10 +520,10 @@
                 </div>
             </div>
         </div>         
-        
+
         <script defer="" src="http://www.iptolatlng.com/?type=jsonp&callback=callbackGeoIP">
         </script>
-        
+
         <!-- Piwik -->
         <script type="text/javascript">
             var pkBaseURL = (("https:" == document.location.protocol) ? "https://www.pannous.info/piwik/" : "http://www.pannous.info/piwik/");
