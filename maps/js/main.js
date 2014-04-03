@@ -44,13 +44,13 @@ var iconTo = L.icon({
     iconAnchor: [12, 40]
 });
 
-$(document).ready(function(e) {    
+$(document).ready(function(e) {
     // fixing cross domain support e.g in Opera
     jQuery.support.cors = true;
-    
+
     if (host.indexOf("graphhopper.com") > 0)
         $('#hosting').show();
-    
+
     var History = window.History;
     if (History.enabled) {
         History.Adapter.bind(window, 'statechange', function() {
@@ -142,6 +142,10 @@ $(document).ready(function(e) {
                 };
                 initMap();
             });
+
+    $(window).resize(function() {
+        adjustMapSize();
+    });
 });
 
 function initFromParams(params, doQuery) {
@@ -176,79 +180,69 @@ function resolveCoords(fromStr, toStr, doQuery) {
     }
 }
 
-function initMap() {
+function adjustMapSize() {
     var mapDiv = $("#map");
-    var width = $(window).width() - 300;
+    var width = $(window).width() - 280;
     if (width < 100)
-        width = $(window).width() - 5;
-    var height = $(window).height() - 5;
+        width = $(window).width();
+    var height = $(window).height();
     mapDiv.width(width).height(height);
-    if (height > 350)
-        height -= $("#input").height() + 22;
-    $("#info").css("max-height", height);
+    $("#input").height(height);
+    $("#info").css("max-height", height - $("#input_header").height() - 25);
+}
+
+function initMap() {
+    adjustMapSize();    
     console.log("init map at " + JSON.stringify(bounds));
 
     // mapquest provider
-    var moreAttr = 'Data &copy; <a href="http://www.openstreetmap.org/copyright">OSM</a>,'
-            + 'JS: <a href="http://leafletjs.com/">Leaflet</a>';
+    var osmAttr = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
     var tp = "ls";
     if (L.Browser.retina)
         tp = "lr";
 
     var lyrk = L.tileLayer('http://{s}.tiles.lyrk.org/' + tp + '/{z}/{x}/{y}?apikey=6e8cfef737a140e2a58c8122aaa26077', {
-        attribution: '<a href="http://geodienste.lyrk.de/">Lyrk</a>,' + moreAttr,
+        attribution: osmAttr + ', <a href="http://geodienste.lyrk.de/">Lyrk</a>',
         subdomains: ['a', 'b', 'c']
     });
 
     var mapquest = L.tileLayer('http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
-        attribution: '<a href="http://open.mapquest.co.uk">MapQuest</a>,' + moreAttr,
+        attribution: osmAttr + ', <a href="http://open.mapquest.co.uk">MapQuest</a>',
         subdomains: ['otile1', 'otile2', 'otile3', 'otile4']
     });
 
     var mapquestAerial = L.tileLayer('http://{s}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.png', {
-        attribution: '<a href="http://open.mapquest.co.uk">MapQuest</a>,' + moreAttr,
+        attribution: osmAttr + ', <a href="http://open.mapquest.co.uk">MapQuest</a>',
         subdomains: ['otile1', 'otile2', 'otile3', 'otile4']
     });
 
     var thunderTransport = L.tileLayer('http://{s}.tile.thunderforest.com/transport/{z}/{x}/{y}.png', {
-        attribution: '<a href="http://www.thunderforest.com/transport/">Thunderforest Transport</a>,' + moreAttr,
+        attribution: osmAttr + ', <a href="http://www.thunderforest.com/transport/">Thunderforest Transport</a>',
         subdomains: ['a', 'b', 'c']
     });
 
     var thunderCycle = L.tileLayer('http://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png', {
-        attribution: '<a href="http://www.thunderforest.com/opencyclemap/">Thunderforest Cycle</a>,' + moreAttr,
+        attribution: osmAttr + ', <a href="http://www.thunderforest.com/opencyclemap/">Thunderforest Cycle</a>',
         subdomains: ['a', 'b', 'c']
     });
 
     var thunderOutdoors = L.tileLayer('http://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png', {
-        attribution: '<a href="http://www.thunderforest.com/outdoors/">Thunderforest Outdoors</a>,' + moreAttr,
+        attribution: osmAttr + ', <a href="http://www.thunderforest.com/outdoors/">Thunderforest Outdoors</a>',
         subdomains: ['a', 'b', 'c']
     });
 
-    //    var mapbox = L.tileLayer('http://a.tiles.mapbox.com/v3/mapbox.world-bright/{z}/{x}/{y}.png', {
-    //        attribution: '<a href="http://www.mapbox.com">MapBox</a>,' + moreAttr, 
-    //        subdomains: ['a','b','c']
-    //    });    
-
     var wrk = L.tileLayer('http://{s}.wanderreitkarte.de/topo/{z}/{x}/{y}.png', {
-        attribution: '<a href="http://wanderreitkarte.de">WanderReitKarte</a>,' + moreAttr,
+        attribution: osmAttr + ', <a href="http://wanderreitkarte.de">WanderReitKarte</a>',
         subdomains: ['topo4', 'topo', 'topo2', 'topo3']
     });
 
     var osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: moreAttr
+        attribution: osmAttr
     });
 
     var osmde = L.tileLayer('http://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
-        attribution: moreAttr
-    });
-
-    // only work if you zoom a bit deeper
-    var lang = "en_US";
-    var apple = L.tileLayer('http://gsp2.apple.com/tile?api=1&style=slideshow&layers=default&lang=' + lang + '&z={z}&x={x}&y={y}&v=9', {
-        maxZoom: 17,
-        attribution: 'Map data and Imagery &copy; <a href="http://www.apple.com/ios/maps/">Apple</a>,' + moreAttr
+        attribution: osmAttr
     });
 
     // default
@@ -263,7 +257,6 @@ function initMap() {
         "TF Transport": thunderTransport,
         "TF Cycle": thunderCycle,
         "TF Outdoors": thunderOutdoors,
-        // didn't found a usage policy for this "Apple": apple,
         "WanderReitKarte": wrk,
         "OpenStreetMap": osm,
         "OpenStreetMap.de": osmde
@@ -701,50 +694,43 @@ function routeLatLng(request, doQuery) {
             var maxLat = path.bbox[3];
             var tmpB = new L.LatLngBounds(new L.LatLng(minLat, minLon), new L.LatLng(maxLat, maxLon));
             map.fitBounds(tmpB);
-        }        
+        }
 
         var tmpTime = createTimeString(path.time);
         var tmpDist = createDistanceString(path.distance);
-        descriptionDiv.append(tr("routeInfo", [tmpDist, tmpTime]));       
+        descriptionDiv.append(tr("routeInfo", [tmpDist, tmpTime]));
 
         $('.defaulting').each(function(index, element) {
             $(element).css("color", "black");
         });
 
         if (path.instructions) {
-            var instructionsElement = $("<table id='instructions'><colgroup>"
-                    + "<col width='10%'><col width='65%'><col width='25%'></colgroup>");
-            $("#info").append(instructionsElement);
-            for (var m = 0; m < path.instructions.length; m++) {
-                var instr = path.instructions[m];
-                var sign = instr.sign;
-                if (m == 0)
-                    sign = "marker-icon-green";
-                else if (sign == -3)
-                    sign = "sharp_left";
-                else if (sign == -2)
-                    sign = "left";
-                else if (sign == -1)
-                    sign = "slight_left";
-                else if (sign == 0)
-                    sign = "continue";
-                else if (sign == 1)
-                    sign = "slight_right";
-                else if (sign == 2)
-                    sign = "right";
-                else if (sign == 3)
-                    sign = "sharp_right";
-                else if (sign == 4)
-                    sign = "marker-icon-red";
-                else
-                    throw "did not found indication " + sign;
+            var instructionsElement = $("<table id='instructions'>");
 
+            var partialInstr = path.instructions.length > 100;
+            var len = Math.min(path.instructions.length, 100);
+            for (var m = 0; m < len; m++) {
+                var instr = path.instructions[m];
                 var lngLat = path.points.coordinates[instr.interval[0]];
-                addInstruction(instructionsElement, sign, instr.text, instr.distance, instr.time, lngLat);
+                addInstruction(instructionsElement, instr, m, lngLat);
+            }
+            $("#info").append(instructionsElement);
+
+            if (partialInstr) {
+                var moreDiv = $("<button id='moreButton'>More...</button>");
+                moreDiv.click(function() {
+                    moreDiv.remove();
+                    for (var m = len; m < path.instructions.length; m++) {
+                        var instr = path.instructions[m];
+                        var lngLat = path.points.coordinates[instr.interval[0]];
+                        addInstruction(instructionsElement, instr, m, lngLat);
+                    }
+                })
+                instructionsElement.append(moreDiv);
             }
 
             var hiddenDiv = $("<div id='routeDetails'/>");
-            hiddenDiv.hide();            
+            hiddenDiv.hide();
 
             var toggly = $("<button id='expandDetails'>+</button>");
             toggly.click(function() {
@@ -784,7 +770,7 @@ function routeLatLng(request, doQuery) {
             hiddenDiv.append(googleLink);
             var bingLink = $("<a>Bing</a> ");
             bingLink.attr("href", "http://www.bing.com/maps/default.aspx?rtp=adr." + from + "~adr." + to + addToBing);
-            hiddenDiv.append(bingLink);  
+            hiddenDiv.append(bingLink);
             $("#info").append(hiddenDiv);
         }
     });
@@ -820,21 +806,44 @@ function createTimeString(time) {
     return resTimeStr;
 }
 
-function addInstruction(main, indi, title, distance, milliEntry, lngLat) {
-    var indiPic = "<img class='instr_pic' style='vertical-align: middle' src='" +
-            window.location.pathname + "img/" + indi + ".png'/>";
+function addInstruction(main, instr, instrIndex, lngLat) {
+    var sign = instr.sign;
+    if (instrIndex === 0)
+        sign = "marker-icon-green";
+    else if (sign === -3)
+        sign = "sharp_left";
+    else if (sign === -2)
+        sign = "left";
+    else if (sign === -1)
+        sign = "slight_left";
+    else if (sign === 0)
+        sign = "continue";
+    else if (sign === 1)
+        sign = "slight_right";
+    else if (sign === 2)
+        sign = "right";
+    else if (sign === 3)
+        sign = "sharp_right";
+    else if (sign === 4)
+        sign = "marker-icon-red";
+    else
+        throw "did not found sign " + sign;
+    var title = instr.text;
+    var distance = instr.distance;
     var str = "<td class='instr_title'>" + title + "</td>";
 
     if (distance > 0) {
-        str += " <td class='instr_distance_td'><span class='instr_distance'>"
+        str += " <td class='instr_distance'><span>"
                 + createDistanceString(distance) + "<br/>"
-                + createTimeString(milliEntry) + "</span></td>";
+                + createTimeString(instr.time) + "</span></td>";
     }
 
-    if (indi !== "continue")
-        str = "<td>" + indiPic + "</td>" + str;
-    else
-        str = "<td/>" + str;
+    if (sign !== "continue") {
+        var indiPic = "<img class='pic' style='vertical-align: middle' src='" +
+                window.location.pathname + "img/" + sign + ".png'/>";
+        str = "<td class='instr_pic'>" + indiPic + "</td>" + str;
+    } else
+        str = "<td class='instr_pic'/>" + str;
     var instructionDiv = $("<tr class='instruction'/>");
     instructionDiv.html(str);
     if (lngLat) {
@@ -844,7 +853,7 @@ function addInstruction(main, indi, title, distance, milliEntry, lngLat) {
 
             routeSegmentPopup = L.popup().
                     setLatLng([lngLat[1], lngLat[0]]).
-                    setContent(indiPic + " " + title).
+                    setContent(title).
                     openOn(map);
         });
     }
